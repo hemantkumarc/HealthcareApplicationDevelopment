@@ -1,4 +1,4 @@
-package com.gururaj.webrtc;
+package com.gururaj.Webrtc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
