@@ -1,0 +1,29 @@
+package com.drvolte.spring_server.service;
+
+import com.drvolte.spring_server.dao.UserRepository;
+import com.drvolte.spring_server.dtos.CredentialsDto;
+import com.drvolte.spring_server.exceptions.AppException;
+import com.drvolte.spring_server.mappers.UserMapper;
+import com.drvolte.spring_server.models.User;
+import com.drvolte.spring_server.models.UserDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passowrdEncoderConfig;
+    private final UserMapper userMapper;
+
+    public UserDto login(CredentialsDto credentialsDto) {
+        User user = userRepository.findByUsername(credentialsDto.username())
+                .orElseThrow(() -> new AppException("Unknown Error", HttpStatus.NOT_FOUND));
+        if (passowrdEncoderConfig.matches(credentialsDto.password(), user.getPassword())) {
+            return userMapper.touserDto(user);
+        }
+        throw new AppException("Invalid Password", HttpStatus.BAD_REQUEST);
+    }
+}
