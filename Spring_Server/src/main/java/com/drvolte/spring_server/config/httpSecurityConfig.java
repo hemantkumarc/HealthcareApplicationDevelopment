@@ -26,6 +26,11 @@ public class httpSecurityConfig {
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers("/counsellor/**").hasRole("COUNSELLOR")
+                        .requestMatchers("/seniordr/**").hasRole("SENIORDR")
+                        .requestMatchers("/patient/**").hasRole("PATIENT")
+                        .requestMatchers("/patienthistory/**").hasRole("PATIENT")
+                        .requestMatchers("/patient/**").hasRole("PATIENT")
                         .anyRequest().authenticated());
         return http.build();
     }

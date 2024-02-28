@@ -8,11 +8,13 @@ import com.drvolte.spring_server.models.UserDto;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class UserAuthenticationProvider {
@@ -35,6 +37,7 @@ public class UserAuthenticationProvider {
                 .withExpiresAt(validity)
                 .withClaim("firstName", user.getFirstName())
                 .withClaim("lastName", user.getLastName())
+                .withClaim("role", user.getRole())
                 .sign(algorithm);
     }
 
@@ -45,14 +48,17 @@ public class UserAuthenticationProvider {
                 .build();
 
         DecodedJWT decoded = verifier.verify(token);
-
+        Set<String> roles = new HashSet<String>();
+        roles.add(decoded.getClaim("role").asString());
         UserDto user = UserDto.builder()
                 .username(decoded.getSubject())
                 .firstName(decoded.getClaim("firstName").asString())
                 .lastName(decoded.getClaim("lastName").asString())
+                .role(decoded.getClaim("role").asString())
                 .build();
-
-        return new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+        System.out.println("roles::" + roles);
+        return new UsernamePasswordAuthenticationToken(user, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
     }
+
 
 }

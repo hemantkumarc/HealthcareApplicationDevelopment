@@ -20,7 +20,7 @@ public class UserService {
 
     public UserDto login(CredentialsDto credentialsDto) {
         User user = userRepository.findByUsername(credentialsDto.username())
-                .orElseThrow(() -> new AppException("Unknown Error", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException("Username Not Found", HttpStatus.NOT_FOUND));
         System.out.println("inside the userservices" + user);
         if (passowrdEncoderConfig.matches(credentialsDto.password(), user.getPassword())) {
             return userMapper.touserDto(user);
