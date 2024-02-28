@@ -28,6 +28,7 @@ public class GeneralControllers {
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsdto) {
         System.out.println(credentialsdto);
         UserDto user = userService.login(credentialsdto);
+        System.out.println("userdto from login" + user);
         user.setToken(userAuthProvider.createToken(user));
         System.out.println(user);
         return ResponseEntity.ok(user);
@@ -36,5 +37,17 @@ public class GeneralControllers {
     @GetMapping("/hello")
     public ResponseEntity<String> sayHello() {
         return ResponseEntity.ok("Hello brother");
+    }
+
+
+    @GetMapping("/counsellor")
+    public ResponseEntity<String> sayHelloconsellor() {
+        return ResponseEntity.ok("Hello brother counsellor");
+    }
+
+
+    @GetMapping("/patient")
+    public ResponseEntity<String> sayHellopatient() {
+        return ResponseEntity.ok("Hello brother patient");
     }
 }

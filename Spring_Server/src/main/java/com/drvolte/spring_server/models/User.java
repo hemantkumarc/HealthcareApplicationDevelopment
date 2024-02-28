@@ -19,10 +19,15 @@ public class User {
 
     @Column(name = "name", nullable = false)
     private String name;
+
     @Column(name = "username", nullable = false)
     private String username;
+
     @Column(name = "password", nullable = false)
     private String password;
+
+    @Column(name = "role", nullable = false)
+    private String role;
 
     @Column(name = "enable", nullable = false)
     private boolean enable;
