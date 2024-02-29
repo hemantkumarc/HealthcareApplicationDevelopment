@@ -20,17 +20,23 @@ import java.util.Set;
 public class UserAuthenticationProvider {
 
     private String secretKey = "SECRET";
+    private Algorithm algorithm;
+
+    private JWTVerifier verifier;
 
     @PostConstruct
     public void init() {
         this.secretKey = Base64.getEncoder().encodeToString(this.secretKey.getBytes());
+        this.algorithm = Algorithm.HMAC256(secretKey);
+        this.verifier = JWT.require(algorithm)
+                .build();
     }
 
     public String createToken(UserDto user) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000); // 1 hour
 
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+
         return JWT.create()
                 .withSubject(user.getUsername())
                 .withIssuedAt(now)
@@ -42,10 +48,7 @@ public class UserAuthenticationProvider {
     }
 
     public Authentication validateToken(String token) {
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
-        JWTVerifier verifier = JWT.require(algorithm)
-                .build();
 
         DecodedJWT decoded = verifier.verify(token);
         Set<String> roles = new HashSet<String>();
