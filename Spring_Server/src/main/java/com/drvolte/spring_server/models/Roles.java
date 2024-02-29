@@ -4,5 +4,9 @@ public enum Roles {
     COUNSELLOR,
     PATIENT,
     SENIORDR,
-    ADMIN
+    ADMIN,
+    ROLE_COUNSELLOR,
+    ROLE_PATIENT,
+    ROLE_SENIORDR,
+    ROLE_ADMIN
 }
