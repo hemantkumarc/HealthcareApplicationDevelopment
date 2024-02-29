@@ -3,6 +3,7 @@ package com.drvolte.spring_server.config;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.drvolte.spring_server.models.UserDto;
 import jakarta.annotation.PostConstruct;
@@ -20,17 +21,23 @@ import java.util.Set;
 public class UserAuthenticationProvider {
 
     private String secretKey = "SECRET";
+    private Algorithm algorithm;
+
+    private JWTVerifier verifier;
 
     @PostConstruct
     public void init() {
         this.secretKey = Base64.getEncoder().encodeToString(this.secretKey.getBytes());
+        this.algorithm = Algorithm.HMAC256(secretKey);
+        this.verifier = JWT.require(algorithm)
+                .build();
     }
 
     public String createToken(UserDto user) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000); // 1 hour
 
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+
         return JWT.create()
                 .withSubject(user.getUsername())
                 .withIssuedAt(now)
@@ -41,11 +48,8 @@ public class UserAuthenticationProvider {
                 .sign(algorithm);
     }
 
-    public Authentication validateToken(String token) {
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+    public Authentication validateToken(String token) throws JWTVerificationException {
 
-        JWTVerifier verifier = JWT.require(algorithm)
-                .build();
 
         DecodedJWT decoded = verifier.verify(token);
         Set<String> roles = new HashSet<String>();
@@ -60,5 +64,8 @@ public class UserAuthenticationProvider {
         return new UsernamePasswordAuthenticationToken(user, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
     }
 
+    public DecodedJWT getDecoded(String token) throws JWTVerificationException {
+        return verifier.verify(token);
+    }
 
 }
