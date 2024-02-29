@@ -1,0 +1,19 @@
+#logo {
+    height: 20px;
+    width: 20px;
+}
+
+.App {
+    font-family: sans-serif;
+    text-align: center;
+    height: 50%;
+    width: 700px;
+    margin-left: 10px;
+    margin-top: 15px;
+}
+
+.list {
+    margin-left: 100px;
+    width: 600px;
+    margin-top: 50px;
+}
