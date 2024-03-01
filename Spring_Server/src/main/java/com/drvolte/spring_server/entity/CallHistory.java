@@ -1,6 +1,8 @@
-package com.drvolte.spring_server.models;
+package com.drvolte.spring_server.entity;
 
 
+import com.drvolte.spring_server.entity.Counsellor;
+import com.drvolte.spring_server.entity.Patient;
 import jakarta.persistence.*;
 import lombok.Data;
 
