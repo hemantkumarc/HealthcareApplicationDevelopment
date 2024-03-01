@@ -1,4 +1,4 @@
-package com.drvolte.spring_server.models;
+package com.drvolte.spring_server.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,14 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class UserDto {
-    private long id;
-    private String firstName;
-    private String lastName;
-    private String username;
+public class PatientResponseDto {
+    private String phnumber;
+    private String id;
+    private String state;
     private String token;
     private String role;
 }

@@ -1,7 +1,7 @@
 package com.drvolte.spring_server.config;
 
 import com.drvolte.spring_server.models.WebSocketConnection;
-import com.drvolte.spring_server.service.SocketHandler;
+import com.drvolte.spring_server.service.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -25,6 +25,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         System.out.println("Adding a Websocket Handler");
-        registry.addHandler(new SocketHandler(this.webSocketConnections, this.jwtAuthProvider), "/socket").setAllowedOrigins("*");
+        registry.addHandler(new WebSocketHandler(this.webSocketConnections, this.jwtAuthProvider), "/socket").setAllowedOrigins("*");
     }
 }

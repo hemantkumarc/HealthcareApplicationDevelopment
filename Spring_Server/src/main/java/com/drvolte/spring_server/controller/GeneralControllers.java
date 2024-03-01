@@ -2,7 +2,7 @@ package com.drvolte.spring_server.controller;
 
 import com.drvolte.spring_server.config.UserAuthenticationProvider;
 import com.drvolte.spring_server.dtos.CredentialsDto;
-import com.drvolte.spring_server.models.UserDto;
+import com.drvolte.spring_server.dtos.UserDto;
 import com.drvolte.spring_server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

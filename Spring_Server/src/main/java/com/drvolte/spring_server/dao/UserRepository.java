@@ -1,6 +1,6 @@
 package com.drvolte.spring_server.dao;
 
-import com.drvolte.spring_server.models.User;
+import com.drvolte.spring_server.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

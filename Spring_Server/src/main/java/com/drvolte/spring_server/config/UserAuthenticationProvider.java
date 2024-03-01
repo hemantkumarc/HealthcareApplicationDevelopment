@@ -5,7 +5,8 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.drvolte.spring_server.models.UserDto;
+import com.drvolte.spring_server.dtos.PatientResponseDto;
+import com.drvolte.spring_server.dtos.UserDto;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,6 +55,15 @@ public class UserAuthenticationProvider {
         DecodedJWT decoded = verifier.verify(token);
         Set<String> roles = new HashSet<String>();
         roles.add(decoded.getClaim("role").asString());
+        if (roles.contains("ROLE_PATIENT")) {
+            PatientResponseDto patientResponseDto = PatientResponseDto.builder()
+                    .id(decoded.getKeyId())
+                    .token(token)
+                    .phnumber(decoded.getSubject())
+                    .role(decoded.getClaim("role").asString())
+                    .build();
+            return new UsernamePasswordAuthenticationToken(patientResponseDto, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
+        }
         UserDto user = UserDto.builder()
                 .username(decoded.getSubject())
                 .firstName(decoded.getClaim("firstName").asString())
@@ -66,6 +76,21 @@ public class UserAuthenticationProvider {
 
     public DecodedJWT getDecoded(String token) throws JWTVerificationException {
         return verifier.verify(token);
+    }
+
+
+    public String createTokenForPatient(PatientResponseDto patientResponseDto) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + 3600000); // 1 hour
+
+
+        return JWT.create()
+                .withSubject(patientResponseDto.getPhnumber())
+                .withIssuedAt(now)
+                .withExpiresAt(validity)
+                .withKeyId(patientResponseDto.getId())
+                .withClaim("role", "ROLE_PATIENT")
+                .sign(algorithm);
     }
 
 }

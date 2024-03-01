@@ -1,4 +1,4 @@
-package com.drvolte.spring_server.models;
+package com.drvolte.spring_server.entity;
 
 
 import jakarta.persistence.*;
