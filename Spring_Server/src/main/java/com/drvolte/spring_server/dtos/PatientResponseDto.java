@@ -14,4 +14,5 @@ public class PatientResponseDto {
     private String id;
     private String state;
     private String token;
+    private String role;
 }

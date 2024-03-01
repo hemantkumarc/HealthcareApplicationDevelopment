@@ -27,13 +27,17 @@ public class PatientService {
         if (existingPatientOptional.isPresent()) {
             Patient existingPatient = existingPatientOptional.get();
             System.out.println("Present" + existingPatient);
-            return patientMapper.patientToPatientResponseDto(existingPatient);
+            PatientResponseDto temp = patientMapper.patientToPatientResponseDto(existingPatient);
+            temp.setRole("ROLE_PATIENT");
+            return temp;
         } else {
             // Create a new patient
             System.out.println("Not Present");
             Patient newPatient = patientMapper.patientRequestDtoToPatient(patientRequest);
             Patient savedPatient = patientRepository.save(newPatient);
-            return patientMapper.patientToPatientResponseDto(savedPatient);
+            PatientResponseDto temp = patientMapper.patientToPatientResponseDto(savedPatient);
+            temp.setRole("ROLE_PATIENT");
+            return temp;
         }
     }
 }

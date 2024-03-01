@@ -1,3 +1,4 @@
- - handle login of patient
+ DONE - handle login of patient
  - handle multiple webrtc clients
  - record mapstruct learn
+ - handle patient authentication and authorization'

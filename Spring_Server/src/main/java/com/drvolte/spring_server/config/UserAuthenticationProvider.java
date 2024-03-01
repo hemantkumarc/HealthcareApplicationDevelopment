@@ -55,6 +55,15 @@ public class UserAuthenticationProvider {
         DecodedJWT decoded = verifier.verify(token);
         Set<String> roles = new HashSet<String>();
         roles.add(decoded.getClaim("role").asString());
+        if (roles.contains("ROLE_PATIENT")) {
+            PatientResponseDto patientResponseDto = PatientResponseDto.builder()
+                    .id(decoded.getKeyId())
+                    .token(token)
+                    .phnumber(decoded.getSubject())
+                    .role(decoded.getClaim("role").asString())
+                    .build();
+            return new UsernamePasswordAuthenticationToken(patientResponseDto, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
+        }
         UserDto user = UserDto.builder()
                 .username(decoded.getSubject())
                 .firstName(decoded.getClaim("firstName").asString())
