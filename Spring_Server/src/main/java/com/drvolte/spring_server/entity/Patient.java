@@ -1,4 +1,4 @@
-package com.drvolte.spring_server.models;
+package com.drvolte.spring_server.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,10 +11,10 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ph_no", nullable = false)
+    @Column(name = "ph_no", nullable = false, unique = true)
     private String phNumber;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = true)
     private String name;
 
     @Column(name = "location", nullable = true)
@@ -32,7 +32,10 @@ public class Patient {
     @Column(name = "blood_group", nullable = true)
     private String blood_group;
 
-    @Column(name = "languague", nullable = false)
+    @Column(name = "state", nullable = false)
+    private String state;
+
+    @Column(name = "languague", nullable = true)
     private String languague;
 
     @Column(name = "dob", nullable = true)

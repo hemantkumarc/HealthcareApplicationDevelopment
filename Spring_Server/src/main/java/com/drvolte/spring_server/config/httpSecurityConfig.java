@@ -25,7 +25,7 @@ public class httpSecurityConfig {
                 .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/login", "/patients_register").permitAll()
                         .requestMatchers("/socket").permitAll()
                         .requestMatchers("/counsellor/**").hasRole("COUNSELLOR")
                         .requestMatchers("/seniordr/**").hasRole("SENIORDR")

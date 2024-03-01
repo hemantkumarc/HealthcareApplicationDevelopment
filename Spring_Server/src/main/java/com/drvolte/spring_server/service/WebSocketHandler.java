@@ -17,14 +17,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class SocketHandler extends TextWebSocketHandler {
+public class WebSocketHandler extends TextWebSocketHandler {
     private static final String SET_TOKEN_EVENT = "settoken";
     private final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
     private final WebSocketConnection webSocketConnections;
     private final UserAuthenticationProvider jwtAuthProvider;
 
 
-    public SocketHandler(WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider) {
+    public WebSocketHandler(WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider) {
         System.out.println("Creating a new SocketHandler");
         this.webSocketConnections = webSocketConnections;
         this.jwtAuthProvider = jwtAuthProvider;
