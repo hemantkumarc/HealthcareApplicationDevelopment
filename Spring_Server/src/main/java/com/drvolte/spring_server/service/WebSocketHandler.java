@@ -68,7 +68,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
         System.out.println(webSocketConnections);
         webSocketConnections.getTokenToConnection().put(socketMessage.getToken(), session);
-        webSocketConnections.getTokenToState().put(socketMessage.getToken(), "Connected");
+        webSocketConnections.getTokenToState().put(socketMessage.getToken(), "connected");
         webSocketConnections.getSessionIdToToken().put(session.getId(), socketMessage.getToken());
 
         DecodedJWT decoder = jwtAuthProvider.getDecoded(socketMessage.getToken());
@@ -104,14 +104,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private void handleConnectForCounsellor(WebSocketSession sourceSession, String sourceToken) throws IOException {
         for (String counsellorToken : webSocketConnections.getRoleToToken().get(Roles.ROLE_COUNSELLOR)) {
             if ("connected".equals(webSocketConnections.getTokenToState().get(counsellorToken))) {
+                logger.info(sourceToken + " Connected to " + counsellorToken);
                 HashSet<String> temp = new HashSet<>();
                 temp.add(counsellorToken);
                 webSocketConnections.getTokenToTokenSet().put(sourceToken, temp);
                 sourceSession.sendMessage(new TextMessage("ConnectedToCounsellor"));
-                temp.clear();
+                temp = new HashSet<>();
                 temp.add(sourceToken);
                 webSocketConnections.getTokenToTokenSet().put(counsellorToken, temp);
                 webSocketConnections.getTokenToConnection().get(counsellorToken).sendMessage(new TextMessage("newConnection"));
+                webSocketConnections.getTokenToState().put(counsellorToken, "incall");
                 return;
             } else {
                 logger.info("no counsellot is in connected state");
@@ -129,12 +131,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void broadcastMessage(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
+        System.out.println(webSocketConnections.getTokenToTokenSet());
         String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
         if (webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)) {
             for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
                 if (webSocketConnections.getTokenToConnection().containsKey(destToken)) {
                     WebSocketSession destSession = webSocketConnections.getTokenToConnection().get(destToken);
-                    destSession.sendMessage(new TextMessage(socketMessage.getData()));
+                    destSession.sendMessage(new TextMessage(socketMessage.toString()));
                 } else {
                     sendTextMessage(sourceSession, "ConnectionError");
                 }
