@@ -1,7 +1,7 @@
 import React from "react";
 import "../css/Login.css";
 import videoBg from "../assets/bg.mp4";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
 import { useState, useContext } from "react";
 import AuthContext from "../context/AuthProvider";
@@ -13,9 +13,9 @@ const LOGIN_URL = "/login";
 const LOBBY_URL = "/counsellor";
 
 const Login = () => {
-  const { setAuth } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,17 +31,26 @@ const Login = () => {
       //console.log(JSON.stringify(response?.data));
       //console.log(JSON.stringify(response));
       const accessToken = response?.data?.token;
-      console.log(accessToken);
       localStorage.setItem("token", accessToken);
-      // const roles = response?.data?.roles;
-      setAuth({ username, password, accessToken });
+      const role = response?.data?.role;
+      console.log(role);
+
+      // const lobbyResponse = await api.get(LOBBY_URL);
+      if (role === "ROLE_COUNSELLOR") {
+        // Redirect to the counsellor dashboard
+        navigate("/counsellorDashboard");
+      } else {
+        setUsername("");
+        setPassword("");
+        console.log(
+          "You are not authorized to access Counsellor Dashboard Page !"
+        );
+      }
+
+      // console.log(lobbyResponse);
+    } catch (err) {
       setUsername("");
       setPassword("");
-
-      const lobbyResponse = await api.get(LOBBY_URL);
-
-      console.log(lobbyResponse);
-    } catch (err) {
       if (!err?.response) {
         console.log("No Server Response");
       } else if (err.response?.status === 400) {
