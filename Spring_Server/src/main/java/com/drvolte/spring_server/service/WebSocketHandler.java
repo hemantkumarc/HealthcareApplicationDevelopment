@@ -47,13 +47,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
             logger.info("socketmessage {}", socketMessage);
 
             if (SET_TOKEN_EVENT.equals(socketMessage.getEvent())) {
+                logger.debug("its an setToken event");
                 handleSetTokenEvent(sourceSession, socketMessage);
                 assert sourceSession != null;
                 sendTextMessage(sourceSession, "CreatedToken");
             } else if (SET_CONNECT_EVENT.equals(socketMessage.getEvent())) {
+                logger.debug("its an connect event");
                 assert sourceSession != null;
                 handleSetConnectEvent(sourceSession, socketMessage);
             } else {
+                logger.debug("broadcasting");
                 assert sourceSession != null;
                 broadcastMessage(sourceSession, socketMessage);
             }
@@ -63,6 +66,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
+        System.out.println(webSocketConnections);
         webSocketConnections.getTokenToConnection().put(socketMessage.getToken(), session);
         webSocketConnections.getTokenToState().put(socketMessage.getToken(), "Connected");
         webSocketConnections.getSessionIdToToken().put(session.getId(), socketMessage.getToken());
@@ -71,13 +75,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Roles role = Roles.valueOf(decoder.getClaim("role").asString());
 
         webSocketConnections.getRoleToToken().computeIfAbsent(role, k -> new HashSet<>()).add(socketMessage.getToken());
-        
+
     }
 
     private void handleSetConnectEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
         String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
-
+        System.out.println(webSocketConnections);
         if (webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)) {
+            logger.info("connextion exists, just sending to dest");
             for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
                 if (webSocketConnections.getTokenToConnection().containsKey(destToken)) {
                     WebSocketSession destSession = webSocketConnections.getTokenToConnection().get(destToken);
@@ -88,8 +93,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             }
         } else if (webSocketConnections.getRoleToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && !webSocketConnections.getRoleToToken().get(Roles.ROLE_COUNSELLOR).isEmpty()) {
+            logger.info("connect not present, creating a new connection...");
             handleConnectForCounsellor(sourceSession, sourceToken);
         } else {
+            logger.info("no counsellor is free or available to take the call");
             handleNoCounsellorAvailable(sourceSession);
         }
     }
@@ -106,6 +113,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 webSocketConnections.getTokenToTokenSet().put(counsellorToken, temp);
                 webSocketConnections.getTokenToConnection().get(counsellorToken).sendMessage(new TextMessage("newConnection"));
                 return;
+            } else {
+                logger.info("no counsellot is in connected state");
+                handleNoCounsellorAvailable(sourceSession);
             }
         }
     }
