@@ -24,4 +24,13 @@ public class WebSocketMessage {
         this.event = messageJSON.getString("event");
     }
 
+    @Override
+    public String toString() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("data", this.data);
+        jsonObject.put("event", this.event);
+        jsonObject.put("token", this.token);
+        return jsonObject.toString();
+    }
+
 }
