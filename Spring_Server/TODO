@@ -3,3 +3,4 @@
  - record mapstruct learn
  DONE - handle patient authentication and authorization'
   - handleConnectForCounsellor here the cousellor token set is created new instead of checking if already exiasts or not that have to be cheked and then the token set needs to be updatded
+  - Use the Roles model to set the role in the token and also use the same in authorization
