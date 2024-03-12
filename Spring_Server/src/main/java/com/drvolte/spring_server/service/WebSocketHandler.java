@@ -1,5 +1,6 @@
 package com.drvolte.spring_server.service;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.drvolte.spring_server.config.UserAuthenticationProvider;
 import com.drvolte.spring_server.models.Roles;
@@ -15,8 +16,9 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -24,7 +26,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private static final String SET_TOKEN_EVENT = "settoken";
     private static final String SET_CONNECT_EVENT = "connect";
 
-    private final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
+    private static final String STATE_CONNECTED = "connected";
+    private static final String STATE_INCALL = "incall";
+
+    private final Map<String, WebSocketSession> sessions = Collections.synchronizedMap(new HashMap<>());
     private final WebSocketConnection webSocketConnections;
     private final UserAuthenticationProvider jwtAuthProvider;
 
@@ -35,7 +40,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void handleTextMessage(@Nullable WebSocketSession sourceSession, @Nullable TextMessage message) {
+    public void handleTextMessage(@Nullable WebSocketSession sourceSession, @Nullable TextMessage message) throws IOException {
         try {
             if (message == null) {
                 logger.warn("Received a null message");
@@ -48,9 +53,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
             if (SET_TOKEN_EVENT.equals(socketMessage.getEvent())) {
                 logger.debug("its an setToken event");
-                handleSetTokenEvent(sourceSession, socketMessage);
                 assert sourceSession != null;
-                sendTextMessage(sourceSession, "CreatedToken");
+                handleSetTokenEvent(sourceSession, socketMessage);
             } else if (SET_CONNECT_EVENT.equals(socketMessage.getEvent())) {
                 logger.debug("its an connect event");
                 assert sourceSession != null;
@@ -58,8 +62,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
             } else {
                 logger.debug("broadcasting");
                 assert sourceSession != null;
-                broadcastMessage(sourceSession, socketMessage);
+                forwardMessage(sourceSession, socketMessage);
             }
+        } catch (JWTVerificationException e) {
+            logger.error("JWTVerificationException occuered");
+            sendTextMessage(sourceSession, "Invalid JWT token");
         } catch (IOException | NullPointerException e) {
             logger.error("Error handling WebSocket message", e);
         }
@@ -67,84 +74,120 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
         System.out.println(webSocketConnections);
-        webSocketConnections.getTokenToConnection().put(socketMessage.getToken(), session);
-        webSocketConnections.getTokenToState().put(socketMessage.getToken(), "connected");
-        webSocketConnections.getSessionIdToToken().put(session.getId(), socketMessage.getToken());
-
-        DecodedJWT decoder = jwtAuthProvider.getDecoded(socketMessage.getToken());
-        Roles role = Roles.valueOf(decoder.getClaim("role").asString());
-
-        webSocketConnections.getRoleToToken().computeIfAbsent(role, k -> new HashSet<>()).add(socketMessage.getToken());
-
+        /*
+        - when any client sends the set token request
+        - set the session to token and vice versa
+        - set the role to state to token for every one
+        * */
+        this.webSocketConnections.getSessionIdToToken().put(session.getId(), socketMessage.getToken());
+        this.webSocketConnections.getTokenToSessionId().put(socketMessage.getToken(), session.getId());
+        try {
+            DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(socketMessage.getToken());
+            Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
+            if (webSocketConnections.getRoleToStateToToken().containsKey(role)) {
+                if (webSocketConnections.getRoleToStateToToken().get(role).containsKey(STATE_CONNECTED)) {
+                    webSocketConnections.getRoleToStateToToken().get(role).get(STATE_CONNECTED).add(socketMessage.getToken());
+                } else {
+                    HashSet<String> set = new HashSet<String>();
+                    set.add(socketMessage.getToken());
+                    webSocketConnections.getRoleToStateToToken().get(role).put(STATE_CONNECTED, set);
+                }
+            } else {
+                HashSet<String> set = new HashSet<String>();
+                set.add(socketMessage.getToken());
+                Map<String, HashSet<String>> map = new HashMap<String, HashSet<String>>();
+                map.put(STATE_CONNECTED, set);
+                webSocketConnections.getRoleToStateToToken().put(role, map);
+            }
+            logger.info("added the token " + webSocketConnections.getSessionIdToToken());
+            logger.info("added the session " + webSocketConnections.getTokenToSessionId());
+            logger.info("added the state map" + webSocketConnections.getRoleToStateToToken());
+            sendTextMessage(session, "addedToken");
+        } catch (JWTVerificationException e) {
+            logger.error("JWTVerificationException occuered");
+            sendTextMessage(session, "Invalid JWT token");
+        } catch (Exception e) {
+            logger.error("Some errror occured" + e);
+            sendTextMessage(session, "Some ERROR");
+        }
     }
 
     private void handleSetConnectEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
-        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
-        System.out.println(webSocketConnections);
-        if (webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)) {
-            logger.info("connextion exists, just sending to dest");
-            for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
-                if (webSocketConnections.getTokenToConnection().containsKey(destToken)) {
-                    WebSocketSession destSession = webSocketConnections.getTokenToConnection().get(destToken);
-                    destSession.sendMessage(new TextMessage(socketMessage.getData()));
-                } else {
-                    sendTextMessage(sourceSession, "ConnectionError");
-                }
-            }
-        } else if (webSocketConnections.getRoleToToken().containsKey(Roles.ROLE_COUNSELLOR)
-                && !webSocketConnections.getRoleToToken().get(Roles.ROLE_COUNSELLOR).isEmpty()) {
-            logger.info("connect not present, creating a new connection...");
-            handleConnectForCounsellor(sourceSession, sourceToken);
+       /*
+       - when patient sends to connect (initiates the call) token to token set must be updated or set accordingly
+       - check for available counsellor and update the token to token set
+       - based on the result reply the patient and counsellor
+       * */
+        String destToken = getAvailableCounsellorToken();
+
+        if (destToken != null) {
+            updateTheSate(destToken, STATE_CONNECTED, STATE_INCALL);
+            addTokenToTokenSet(
+                    webSocketConnections.getSessionIdToToken().get(sourceSession.getId())
+                    , destToken
+            );
+            addTokenToTokenSet(
+                    destToken,
+                    webSocketConnections.getSessionIdToToken().get(sourceSession.getId())
+
+            );
+            sendTextMessage(sourceSession, "CounsellorConnected");
+            sendTextMessage(sessions.get(
+                            webSocketConnections.getTokenToSessionId().get(destToken)
+                    )
+                    , "NewPatientConnect"
+            );
         } else {
-            logger.info("no counsellor is free or available to take the call");
-            handleNoCounsellorAvailable(sourceSession);
-        }
-    }
-
-    private void handleConnectForCounsellor(WebSocketSession sourceSession, String sourceToken) throws IOException {
-        for (String counsellorToken : webSocketConnections.getRoleToToken().get(Roles.ROLE_COUNSELLOR)) {
-            if ("connected".equals(webSocketConnections.getTokenToState().get(counsellorToken))) {
-                logger.info(sourceToken + " Connected to " + counsellorToken);
-                HashSet<String> temp = new HashSet<>();
-                temp.add(counsellorToken);
-                webSocketConnections.getTokenToTokenSet().put(sourceToken, temp);
-                sourceSession.sendMessage(new TextMessage("ConnectedToCounsellor"));
-                temp = new HashSet<>();
-                temp.add(sourceToken);
-                webSocketConnections.getTokenToTokenSet().put(counsellorToken, temp);
-                webSocketConnections.getTokenToConnection().get(counsellorToken).sendMessage(new TextMessage("newConnection"));
-                webSocketConnections.getTokenToState().put(counsellorToken, "incall");
-                return;
-            } else {
-                logger.info("no counsellot is in connected state");
-                handleNoCounsellorAvailable(sourceSession);
-            }
-        }
-    }
-
-    private void handleNoCounsellorAvailable(WebSocketSession sourceSession) throws IOException {
-        if (sourceSession.isOpen()) {
             sendTextMessage(sourceSession, "NoCounsellorAvailable");
-        } else {
-            sourceSession.close();
         }
     }
 
-    private void broadcastMessage(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
-        System.out.println(webSocketConnections.getTokenToTokenSet());
-        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
-        if (webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)) {
-            for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
-                if (webSocketConnections.getTokenToConnection().containsKey(destToken)) {
-                    WebSocketSession destSession = webSocketConnections.getTokenToConnection().get(destToken);
-                    destSession.sendMessage(new TextMessage(socketMessage.toString()));
-                } else {
-                    sendTextMessage(sourceSession, "ConnectionError");
-                }
-            }
+    private void addTokenToTokenSet(String sourceToken, String destToken) {
+        webSocketConnections.getTokenToTokenSet().computeIfAbsent(
+                sourceToken
+                , k -> new HashSet<>()
+        ).add(destToken);
+    }
+
+    private void updateTheSate(String token, String FromSTATE, String ToSTATE) {
+
+        DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+        Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
+        webSocketConnections.getRoleToStateToToken().get(role).get(FromSTATE).remove(token);
+        webSocketConnections.getRoleToStateToToken().get(role).computeIfAbsent(
+                ToSTATE,
+                k -> new HashSet<String>()
+        ).add(token);
+    }
+
+    private String getAvailableCounsellorToken() {
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey(STATE_CONNECTED)
+                && !webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED).isEmpty()
+        ) {
+            return webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED).iterator().next();
         } else {
-            sourceSession.sendMessage(new TextMessage("CreateAConnectionFirst"));
+            return null;
         }
+    }
+
+    private void forwardMessage(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
+        System.out.println(webSocketConnections.getTokenToTokenSet());
+        /*
+        - when the message needs to be forwarded
+        - check for the token to token set and send accordingly
+        * */
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        if (!webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)
+                || webSocketConnections.getTokenToTokenSet().get(sourceToken).isEmpty()
+        ) {
+            sendTextMessage(sourceSession, "NoCounsellorConnected");
+        }
+        for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
+            String destSessionId = webSocketConnections.getTokenToSessionId().get(destToken);
+            sendTextMessage(sessions.get(destSessionId), socketMessage.toString());
+        }
+        sendTextMessage(sourceSession, "forwardSuccess");
     }
 
     private void sendTextMessage(WebSocketSession session, String payload) throws IOException {
@@ -158,7 +201,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@Nullable WebSocketSession session) {
         if (session != null) {
-            sessions.add(session);
+            sessions.put(session.getId(), session);
         }
     }
 }
