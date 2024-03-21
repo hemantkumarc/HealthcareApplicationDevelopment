@@ -1,89 +1,113 @@
 import React from "react";
 import "../css/Login.css";
+import videoBg from "../assets/bg.mp4";
+import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
-import {useState} from 'react'
-import axios from 'axios';
-import {ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState, useContext } from "react";
+import AuthContext from "../context/AuthProvider";
+import api from "../api/axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const LOGIN_URL = "/login";
+const LOBBY_URL = "/counsellor";
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const [data, setData] = useState({
-        username: "",
-        password: ""
-      });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-      const handleChange = (e) => {
-        const value = e.target.value;
-        setData({
-          ...data,
-          [e.target.name]: value
-        });
-      };
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        const userData = {
-          username: data.username,
-          password: data.password
-        };
-
-        const cred = JSON.stringify(userData);
-        console.log(cred);
-        axios.post("http://localhost:8080/auth/generateToken", cred, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }).then((response) => {
-          if (response != "") {
-            window.localStorage.setItem("auth_token", response.data)
-            window.location.href = "http://localhost:3000/courseCatalog";
-            
-          }
-          console.log(response.status, response.data);
+    try {
+      const response = await api.post(
+        LOGIN_URL,
+        JSON.stringify({ username, password }),
+        {
+          headers: { "Content-Type": "application/json" },
         }
-        )
-        .catch((error) => {
-          console.log(error.message);
-          toast.error(error.message, {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-        })
-      };
+      );
+      //console.log(JSON.stringify(response?.data));
+      //console.log(JSON.stringify(response));
+      const accessToken = response?.data?.token;
+      localStorage.setItem("token", accessToken);
+      const role = response?.data?.role;
+      console.log(role);
+
+      // const lobbyResponse = await api.get(LOBBY_URL);
+      if (role === "ROLE_COUNSELLOR") {
+        // Redirect to the counsellor dashboard
+        navigate("/counsellorDashboard");
+      } else {
+        setUsername("");
+        setPassword("");
+        console.log(
+          "You are not authorized to access Counsellor Dashboard Page !"
+        );
+      }
+
+      // console.log(lobbyResponse);
+    } catch (err) {
+      setUsername("");
+      setPassword("");
+      if (!err?.response) {
+        console.log("No Server Response");
+      } else if (err.response?.status === 400) {
+        console.log("Missing Username or Password");
+      } else if (err.response?.status === 401) {
+        console.log("Unauthorized");
+      } else {
+        console.log("Login Failed");
+      }
+    }
+  };
+
   return (
-    
-    <div className="Wrapper">
-      <div className="logo">
-        <img src={require("../assets/drVolteLogo.png")} alt="logo" className="Logo-img"/>
+    <div className="main">
+      <video src={videoBg} autoPlay muted loop />
+      <div className="wrapper-container">
+        <div className="wrapper">
+          <div className="logo">
+            <img
+              src={require("../assets/drVolteLogo.png")}
+              alt="logo"
+              className="Logo-img"
+            />
+          </div>
+          <form onSubmit={handleSubmit}>
+            <h1>LOGIN</h1>
+            <div className="Input-box">
+              <input
+                type="text"
+                placeholder="username"
+                autoComplete="off"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <FaUser className="icon" />
+            </div>
+            <div className="Input-box">
+              <input
+                type="password"
+                placeholder="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <FaLock className="icon" />
+            </div>
+            <div className="forgot">
+              <a class="link" href="#">
+                Forgot Password?
+              </a>
+            </div>
+            <div class="login-button">
+              <button onClick={handleSubmit}>login</button>
+            </div>
+          </form>
+        </div>
       </div>
-      <form action="">
-        <h1>LOGIN</h1>
-        <div className="Input-box">
-          <input type="text" placeholder="username" onChange={e => setData({
-            ...data,
-            username: e.target.value
-            })} />
-          <FaUser className="icon" />
-        </div>
-        <div className="Input-box">
-          <input type="password" placeholder="password" onChange={e => setData({
-            ...data,
-            password: e.target.value
-            })} />
-          <FaLock className="icon" />
-        </div>
-        <div className="forgot">
-          <a class="link" href="#">
-            Forgot Password?
-          </a>
-          {/* <label htmlFor="rem">
-            <input type="checkbox" id="rem" /> Remember me
-          </label> */}
-        </div>
-        <div class="login-button">
-          <button onClick={handleSubmit}>login</button>
-        </div>
-      </form>
     </div>
   );
 };
