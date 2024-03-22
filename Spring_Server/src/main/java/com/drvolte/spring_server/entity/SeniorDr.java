@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 @PrimaryKeyJoinColumn(name = "doctor_id")
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Senior_Dr extends Doctor {
+public class SeniorDr extends Doctor {
 
 
 }
