@@ -1,10 +1,10 @@
 import React from "react";
-import "../css/Login.css";
-import videoBg from "../assets/bg.mp4";
+import "./Login.css";
+import videoBg from "../../assets/bg.mp4";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
 import { useState, useContext } from "react";
-import api from "../api/axios";
+import api from "../../api/axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,7 +69,7 @@ const Login = () => {
         <div className="wrapper">
           <div className="logo">
             <img
-              src={require("../assets/drVolteLogo.png")}
+              src={require("../../assets/drVolteLogo.png")}
               alt="logo"
               className="Logo-img"
             />

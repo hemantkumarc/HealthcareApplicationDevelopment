@@ -4,7 +4,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../css/counsellorDashStyle.css";
+import "./counsellorDashStyle.css";
 import { Button } from "react-bootstrap";
 import { IoIosNotifications } from "react-icons/io";
 import FullCalendar from "@fullcalendar/react";
@@ -12,7 +12,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ReactBigCalendar from "./ReactBigCalendar";
 import SwipeToRevealActions from "react-swipe-to-reveal-actions";
-import api from "../api/axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 
 export default function CounsellorDashboard() {
@@ -36,7 +36,7 @@ export default function CounsellorDashboard() {
         <Container>
           <div id="logo">
             <img
-              src={require("../assets/drVolteLogo.png")}
+              src={require("../../assets/drVolteLogo.png")}
               alt="logo"
               style={{
                 height: "70px",
