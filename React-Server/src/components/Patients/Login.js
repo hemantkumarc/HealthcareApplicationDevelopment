@@ -37,6 +37,9 @@ const PatientLogin = () => {
             const accessToken = response?.data?.token;
             localStorage.setItem("token", accessToken);
             const role = response?.data?.role;
+            if (response.status === 200) {
+                navigate("/patientscalldashboard");
+            }
             console.log(role);
         } catch (err) {
             if (!err?.response) {
@@ -93,23 +96,32 @@ const PatientLogin = () => {
                             />
                             <FaUser className="icon" />
                         </div>
-                        <label>State</label>
-                        <div className="state-div">
-                            <button onClick={() => setOpen(!open)}>
-                                {selected ? selected.label : "Select an Option"}
-                            </button>
-                            {open && (
-                                <ul>
-                                    {options.map((option) => (
-                                        <li
-                                            key={option.value}
-                                            onClick={() => handleSelect(option)}
-                                        >
-                                            {option.label}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                        <div className="label-option row align-items-center">
+                            <label className="col-4">State</label>
+                            <div className="state-div col-8">
+                                <button
+                                    className="btn state-button"
+                                    onClick={() => setOpen(!open)}
+                                >
+                                    {selected
+                                        ? selected.label
+                                        : "Select an Option"}
+                                </button>
+                                {open && (
+                                    <ul>
+                                        {options.map((option) => (
+                                            <li
+                                                key={option.value}
+                                                onClick={() =>
+                                                    handleSelect(option)
+                                                }
+                                            >
+                                                {option.label}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         </div>
                         <div className="login-button">
                             <button onClick={handleSubmit}>login</button>

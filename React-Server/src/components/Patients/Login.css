@@ -66,11 +66,11 @@ video {
 
 .Input-box input {
   font-size: 16px;
+  width: 300px;
   border: none;
   background: transparent;
   outline: none;
   color: black;
-  width: 300px;
 
   padding: 15px 20px;
 }
@@ -100,4 +100,20 @@ video {
 
 .forgot {
   margin-bottom: 20px;
+}
+
+
+.label-option{
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.state-button{
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 30px;
+  margin-top: 20px;
+  margin-bottom: 35px;
+  font-size: 16px;
+  width: auto;
 }
