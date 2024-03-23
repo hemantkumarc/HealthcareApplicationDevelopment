@@ -2,7 +2,7 @@ import React from "react";
 import "./Login.css";
 import videoBg from "../../assets/bg.mp4";
 import { useNavigate } from "react-router-dom";
-import { FaPhoenixFramework, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../api/axios";
 import "react-toastify/dist/ReactToastify.css";
