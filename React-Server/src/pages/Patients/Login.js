@@ -46,7 +46,7 @@ const PatientLogin = () => {
                 console.log("No Server Response");
             } else if (err.response?.status === 400) {
                 console.log("Missing phnumber or Password");
-            } else if (err.response?.status === 401) {
+            } else if (err.response?.status >= 401) {
                 console.log("Unauthorized");
             } else {
                 console.log("Login Failed");
