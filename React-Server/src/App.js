@@ -1,6 +1,6 @@
 import "./App.css";
-import CounsellorDashboard from "./components/CounsellorDashboard";
-import Login from "./components/Login";
+import CounsellorDashboard from "./pages/counsellorDashboard/CounsellorDashboard";
+import Login from "./pages/login/Login";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
