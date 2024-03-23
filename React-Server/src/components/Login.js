@@ -4,7 +4,6 @@ import videoBg from "../assets/bg.mp4";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
 import { useState, useContext } from "react";
-import AuthContext from "../context/AuthProvider";
 import api from "../api/axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
