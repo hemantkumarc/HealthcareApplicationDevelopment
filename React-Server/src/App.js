@@ -2,6 +2,7 @@ import "./App.css";
 import CounsellorDashboard from "./pages/counsellorDashboard/CounsellorDashboard";
 import Login from "./pages/login/Login";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SrDrDashboard from "./pages/srDocDashboard/component/SrDrDashboard";
 import PatientLogin from "./pages/Patients/Login";
 
 function App() {
@@ -13,6 +14,10 @@ function App() {
                 <Route
                     path="/counsellorDashboard"
                     element={<CounsellorDashboard />}
+                />
+                <Route
+                    path="/SrDrDashboard"
+                    element={<SrDrDashboard />}
                 />
             </Routes>
         </BrowserRouter>

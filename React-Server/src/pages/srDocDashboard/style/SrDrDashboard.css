@@ -1,0 +1,16 @@
+#logo img {
+    height: 70px;
+    width: 87px;
+    margin-top: -25px;
+    margin-left: -60px;
+}
+.container{
+  display: inline-flex;
+  justify-content: flex-end;
+}
+#lg-button {
+  float: right;
+  margin-top: 3px;
+  margin-right: 8px;
+  margin-left: auto; 
+}
