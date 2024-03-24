@@ -1,12 +1,34 @@
 import React, { useState } from "react";
 import "./RestBody.css";
 import DialerDial from "./DialerDial";
+import { initiateWebRTC, initiateWebsocket } from "../../utils/utils";
 
 const RestBody = () => {
     const [dial, setDial] = useState("");
+    const drVoltePhnumber = "9899000123";
+
     const addnumber = (number) => {
         setDial((prevDial) => prevDial + number);
     };
+
+    const decreaseNumber = () => {
+        setDial((prevDial) => prevDial.slice(0, -1));
+    };
+
+    const initiateCall = () => {
+        if (
+            !dial.includes(drVoltePhnumber) ||
+            !dial.endsWith(drVoltePhnumber)
+        ) {
+            alert(
+                "This is not actual pHone Okay.....\nShut up and dial Tollfree number only"
+            );
+            return;
+        }
+        const conn = initiateWebsocket();
+        initiateWebRTC(conn);
+    };
+
     console.log(dial);
     return (
         <div className="row">
@@ -95,6 +117,7 @@ const RestBody = () => {
                                 <button
                                     type="button"
                                     className="btn btn-success"
+                                    onClick={() => initiateCall()}
                                 >
                                     Call
                                     <br />
@@ -105,6 +128,7 @@ const RestBody = () => {
                                 <button
                                     type="button"
                                     className="btn btn-secondary"
+                                    onClick={() => decreaseNumber()}
                                 >
                                     Clear<br></br>
                                     <i className="material-icons">backspace</i>
