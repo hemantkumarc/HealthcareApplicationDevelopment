@@ -38,7 +38,7 @@ const PatientLogin = () => {
             localStorage.setItem("token", accessToken);
             const role = response?.data?.role;
             if (response.status === 200) {
-                navigate("/patientscalldashboard");
+                navigate("/patientdialer");
             }
             console.log(role);
         } catch (err) {
