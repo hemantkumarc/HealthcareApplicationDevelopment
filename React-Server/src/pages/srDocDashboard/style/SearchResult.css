@@ -1,0 +1,20 @@
+.results-list{
+    width: 300px;
+    background-color: aqua;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 0px 8px #ddd;
+    border-radius: 10px;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.result-item {
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.result-item:hover {
+    background-color: lightblue;
+}

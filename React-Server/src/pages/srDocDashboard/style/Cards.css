@@ -1,0 +1,58 @@
+.card_item {
+  padding: 15px 30px;
+  width: 24%;
+  text-align: center;
+}
+
+.container .card_item:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.container .card_inner {
+  background: rgba(253, 253, 253, 0.808);
+  border-radius: 10px;
+  padding: 35px 20px;
+  min-width: 225px;
+  min-height: 315px;
+  max-height: 370px;
+  width: 100%;
+  box-shadow: 5px 5px 10px 2px rgba(95, 95, 95, 0.24);
+}
+
+.container .card_item img {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.container .card_item .userName {
+  color: #203150;
+  font-weight: 600;
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.container .card_item .userUrl {
+  font-size: 12px;
+  font-weight: 100;
+  margin: 5px 0 10px;
+  word-wrap: break-word;
+  color: #888b9e;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container .card_item .gitDetail {
+  font-size: 14px;
+  line-height: 24px;
+  color: #7b8ca0;
+  display: flex;
+  flex-direction: column;
+}

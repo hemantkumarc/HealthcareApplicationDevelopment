@@ -14,3 +14,7 @@
   margin-right: 8px;
   margin-left: auto; 
 }
+.counsellor-list{
+  display: flex;
+  justify-content: space-between;
+}
