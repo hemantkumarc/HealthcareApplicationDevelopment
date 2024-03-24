@@ -1,9 +1,16 @@
-.container {
-    /* padding: 40px 20px 20px 20px; */
-    width: 99%;
-    margin: auto;
-    flex-wrap: wrap;
-    
-    /*  */
-    flex-wrap: wrap;
-  }
+
+.counsellor-container {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.card {
+  margin: 10px;
+}

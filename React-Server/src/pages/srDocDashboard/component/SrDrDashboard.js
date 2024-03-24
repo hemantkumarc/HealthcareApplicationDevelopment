@@ -6,7 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import SrDocNavBar from "./SrDocNavBar";
 import FilterSection from "./FilterSection";
 import SearchCounsellor from "./SearchCounsellor";
-import {SearchResult} from "./SearchResult";
+import { SearchResult } from "./SearchResult";
 import SortCounsellor from "./SortCounsellor";
 import Counsellor from "./Counsellor";
 import drVolteLogo from "../../../assets/drVolteLogo.png";
@@ -14,7 +14,7 @@ import drVolteLogo from "../../../assets/drVolteLogo.png";
 
 export default function SrDrDashboard() {
   const navigate = useNavigate();
-  const [search, setSearch]=useState([]);
+  const [search, setSearch] = useState([]);
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
@@ -26,20 +26,24 @@ export default function SrDrDashboard() {
         <SrDocNavBar />
       </header>
       <main>
-        <div className="container grid grid-filter-column">
-          <div>
-            <FilterSection />
-            <SortCounsellor />
+        <div className="container grid grid-filter-column row">
+          <div className="col-3">
+            <div className="sidebar">
+              <FilterSection />
+              <SortCounsellor />
+            </div>
           </div>
-          <section className="counsellor-view--sort">
-            <div className="searchCounsellor">
-                <SearchCounsellor setSearch={setSearch}/>
+          <div className="col-9">
+            <div className="wrapperSearchCounsellor">
+              <div className="searchCounsellor">
+                <SearchCounsellor setSearch={setSearch} />
                 <SearchResult search={search} />
+              </div>
+              <div className="counsellor-list">
+                <Counsellor />
+              </div>
             </div>
-            <div className="counsellor-list">
-              <Counsellor />
-            </div>
-          </section>
+          </div>
         </div>
       </main>
     </div>

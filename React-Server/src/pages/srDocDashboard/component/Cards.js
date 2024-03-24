@@ -3,27 +3,18 @@ import "../style/Cards.css";
 
 export default function Cards({ counsellor }) {
   return (
-    <div className="container">
+    <div className="containers">
       <div className="card_item">
         <div className="card_inner">
-          <img src={counsellor.avatar_url} alt="avatar" />
-          <div className="userName">{counsellor.login}</div>
-          <div className="userUrl">{counsellor.url}</div>
-          <div className="detail-box">
-            <div className="gitDetail">
-              <span>Articles</span>
-              23
-            </div>
-            <div className="gitDetail">
-              <span>Following</span>
-              45
-            </div>
-            <div className="gitDetail">
-              <span>Followers</span>
-              11
-            </div>
+          <img src={counsellor.profile_photo} alt="counsellor" />
+          <div className="name">{counsellor.name}</div>
+          <div className="qualification">{counsellor.qualification}</div>
+          <div className="hospital_name">{counsellor.hospital_name}</div>
+          <div className="specialization">{counsellor.specialization}</div>
+          <div className="buttons">
+            <button className="listen">Listen</button>
+            <button className="join">Join</button>
           </div>
-          <button className="seeMore">See More</button>
         </div>
       </div>
     </div>
