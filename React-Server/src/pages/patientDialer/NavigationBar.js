@@ -7,7 +7,7 @@ const NavigationBar = () => {
     const navigate = useNavigate();
     const handleLogout = () => {
         localStorage.removeItem("token");
-        navigate("/");
+        navigate("/patientlogin");
     };
 
     return (
