@@ -25,6 +25,7 @@ const RestBody = () => {
             );
             return;
         }
+        console.log(dial, "Hi");
         const conn = initiateWebsocket();
         initiateWebRTC(conn);
     };
