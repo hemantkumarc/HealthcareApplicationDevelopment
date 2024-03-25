@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./Login.css";
 import videoBg from "../../assets/bg.mp4";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import { FaUser } from "react-icons/fa";
 import { useState } from "react";
 import api from "../../api/axios";
 import "react-toastify/dist/ReactToastify.css";
+import { userLoggedIn } from "../../utils/utils";
 
 const LOGIN_URL = "/patients_register";
 
@@ -15,6 +16,17 @@ const PatientLogin = () => {
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState(null);
     const navigate = useNavigate();
+
+    // use this ti check if user is logged in
+    useEffect(() => {
+        console.log(
+            "this is what i got",
+            userLoggedIn().then((loggedIn) => {
+                if (loggedIn) navigate("/patientdialer");
+                else localStorage.clear();
+            })
+        );
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
