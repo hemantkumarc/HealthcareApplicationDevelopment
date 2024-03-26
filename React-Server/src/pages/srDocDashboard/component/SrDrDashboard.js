@@ -21,7 +21,7 @@ export default function SrDrDashboard() {
 
   return (
     <div>
-      <header>
+      <header className="srdocnavbar-header">
         <SrDocNavBar />
       </header>
       <main>
@@ -33,10 +33,10 @@ export default function SrDrDashboard() {
           </div>
           <div className="col-9">
             <div className="wrapperSearchCounsellor">
-              <div className="searchCounsellor">
+              {/* <div className="searchCounsellor">
                 <SearchCounsellor setSearch={setSearch} />
                 <SearchResult search={search} />
-              </div>
+              </div> */}
               <div className="counsellor-list">
                 <Counsellor />
               </div>

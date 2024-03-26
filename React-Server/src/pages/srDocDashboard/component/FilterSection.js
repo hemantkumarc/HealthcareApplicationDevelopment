@@ -55,11 +55,6 @@ export default function FilterSection({ handleChange }) {
         </label>
 
         <label className="checkbox-container">
-          <input onChange={handleChange} type="checkbox" value="Marathi" name="language" />
-          <span className="checkmark"></span>Marathi
-        </label>
-
-        <label className="checkbox-container">
           <input onChange={handleChange} type="checkbox" value="Gujrati" name="language" />
           <span className="checkmark"></span>Gujrati
         </label>

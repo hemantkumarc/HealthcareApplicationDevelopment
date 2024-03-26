@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../style/SortCounsellor.css';
 
 export default function SortCounsellor({ handleSort }) {
   const [arrangeBy, setArrangeBy] = useState('ascending');
@@ -13,18 +14,18 @@ export default function SortCounsellor({ handleSort }) {
   };
 
   return (
-    <div>
-      <label>
+    <div className="sort-section">
+      <label className="sort-label">
         Arrange by:
-        <select value={arrangeBy} onChange={handleArrangeChange}>
+        <select className="sort-select" value={arrangeBy} onChange={handleArrangeChange}>
           <option value="ascending">Ascending</option>
           <option value="descending">Descending</option>
         </select>
       </label>
       <br />
-      <label>
+      <label className="sort-label">
         Sort by:
-        <select value={sortBy} onChange={handleSortByChange}>
+        <select className="sort-select" value={sortBy} onChange={handleSortByChange}>
           <option value="name">Name</option>
           <option value="specialization">Specialization</option>
           <option value="language">Language</option>

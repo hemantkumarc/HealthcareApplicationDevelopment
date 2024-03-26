@@ -4,11 +4,15 @@
   margin-top: -25px;
   margin-left: -60px;
 }
+.srdocnavbar-header{
+  margin-bottom: 60px;
+}
 .container {
   display: inline-flex;
   justify-content: flex-end;
   align-items: flex-start;
 }
+
 #lg-button {
   float: right;
   margin-top: 3px;
@@ -16,6 +20,7 @@
   margin-left: auto;
 }
 .counsellor-list {
+  padding-top: 15px;
   display: flex;
   justify-content: space-between;
   flex-grow: 1;
@@ -29,4 +34,11 @@
   width: 350px;
   align-self: flex-end; 
   margin-left: auto;
+}
+/* .sidebar{
+  padding-top: 20px;
+} */
+
+body{
+  background: gray;
 }
