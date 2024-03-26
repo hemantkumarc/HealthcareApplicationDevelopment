@@ -1,6 +1,6 @@
 .card_item {
-    width: 300px;
-  }
+  width: 300px;
+}
 
 .card-container .card_item:hover {
   transform: scale(1.02);
