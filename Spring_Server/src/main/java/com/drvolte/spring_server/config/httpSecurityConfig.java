@@ -27,6 +27,12 @@ public class httpSecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.POST, "/login", "/patients_register").permitAll()
                         .requestMatchers("/socket").permitAll()
+                        .requestMatchers("/hello").hasAnyRole(
+                                Roles.PATIENT.toString(),
+                                Roles.COUNSELLOR.toString(),
+                                Roles.ADMIN.toString(),
+                                Roles.SENIORDR.toString()
+                        )
                         .requestMatchers("/counsellor/**").hasRole(Roles.COUNSELLOR.toString())
                         .requestMatchers("/seniordr/**").hasRole(Roles.SENIORDR.toString())
                         .requestMatchers("/patient/**").hasRole(Roles.PATIENT.toString())
