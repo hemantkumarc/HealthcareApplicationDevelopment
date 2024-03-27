@@ -66,6 +66,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             }
         } catch (JWTVerificationException e) {
             logger.error("JWTVerificationException occuered");
+            assert sourceSession != null;
             sendTextMessage(sourceSession, "Invalid JWT token");
         } catch (IOException | NullPointerException e) {
             logger.error("Error handling WebSocket message", e);
