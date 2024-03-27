@@ -39,5 +39,10 @@ public class Doctor {
     @Column(name = "dob", nullable = false)
     private Date date;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    @Column(name = "languagues", nullable = true)
+    private String languages;
 
 }
