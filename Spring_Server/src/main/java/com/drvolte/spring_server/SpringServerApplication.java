@@ -15,6 +15,21 @@ public class SpringServerApplication {
     private int httpPort;
 
     public static void main(String[] args) {
+
+        if (args.length == 2) {
+
+            // Extract MySQL username and password from command line arguments
+            String username = args[0];
+            String password = args[1];
+
+            // Set MySQL username and password as system properties
+            System.setProperty("spring.datasource.username", username);
+            System.setProperty("spring.datasource.password", password);
+            
+        } else {
+            System.out.println("Usage: java -jar application.jar <mysql_username> <mysql_password>");
+        }
+
         SpringApplication.run(SpringServerApplication.class, args);
     }
 

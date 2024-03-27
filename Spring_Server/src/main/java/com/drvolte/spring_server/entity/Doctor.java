@@ -18,6 +18,9 @@ public class Doctor {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
     @Column(name = "specialization", nullable = false)
     private String specialization;
 
@@ -36,5 +39,10 @@ public class Doctor {
     @Column(name = "dob", nullable = false)
     private Date date;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    @Column(name = "languagues", nullable = true)
+    private String languages;
 
 }
