@@ -40,7 +40,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void handleTextMessage(@Nullable WebSocketSession sourceSession, @Nullable TextMessage message) throws IOException {
+    public void handleTextMessage(@Nullable WebSocketSession sourceSession, @Nullable TextMessage message)
+            throws IOException {
         try {
             if (message == null) {
                 logger.warn("Received a null message");
@@ -67,7 +68,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (JWTVerificationException e) {
             logger.error("JWTVerificationException occuered");
             assert sourceSession != null;
-
             sendTextMessage(sourceSession, tempWebsocketMessage.setItems("Invalid JWT token", "reply", "").toString());
         } catch (IOException | NullPointerException e) {
             logger.error("Error handling WebSocket message", e);
@@ -77,10 +77,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
         System.out.println(webSocketConnections);
         /*
-        - when any client sends the set token request
-        - set the session to token and vice versa
-        - set the role to state to token for every one
-        * */
+         * - when any client sends the set token request
+         * - set the session to token and vice versa
+         * - set the role to state to token for every one
+         */
         this.webSocketConnections.getSessionIdToToken().put(session.getId(), socketMessage.getToken());
         this.webSocketConnections.getTokenToSessionId().put(socketMessage.getToken(), session.getId());
         try {
@@ -88,7 +88,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
             if (webSocketConnections.getRoleToStateToToken().containsKey(role)) {
                 if (webSocketConnections.getRoleToStateToToken().get(role).containsKey(STATE_CONNECTED)) {
-                    webSocketConnections.getRoleToStateToToken().get(role).get(STATE_CONNECTED).add(socketMessage.getToken());
+                    webSocketConnections.getRoleToStateToToken().get(role).get(STATE_CONNECTED)
+                            .add(socketMessage.getToken());
                 } else {
                     HashSet<String> set = new HashSet<>();
                     set.add(socketMessage.getToken());
@@ -114,41 +115,39 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleSetConnectEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
-       /*
-       - when patient sends to connect (initiates the call) token to token set must be updated or set accordingly
-       - check for available counsellor and update the token to token set
-       - based on the result reply the patient and counsellor
-       * */
+    private void handleSetConnectEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage)
+            throws IOException {
+        /*
+         * - when patient sends to connect (initiates the call) token to token set must
+         * be updated or set accordingly
+         * - check for available counsellor and update the token to token set
+         * - based on the result reply the patient and counsellor
+         */
         String destToken = getAvailableCounsellorToken();
 
         if (destToken != null) {
             updateTheSate(destToken, STATE_CONNECTED, STATE_INCALL);
             addTokenToTokenSet(
-                    webSocketConnections.getSessionIdToToken().get(sourceSession.getId())
-                    , destToken
-            );
+                    webSocketConnections.getSessionIdToToken().get(sourceSession.getId()), destToken);
             addTokenToTokenSet(
                     destToken,
                     webSocketConnections.getSessionIdToToken().get(sourceSession.getId())
 
             );
-            sendTextMessage(sourceSession, tempWebsocketMessage.setItems("CounsellorConnected", "reply", "").toString());
+            sendTextMessage(sourceSession,
+                    tempWebsocketMessage.setItems("CounsellorConnected", "reply", "").toString());
             sendTextMessage(sessions.get(
-                            webSocketConnections.getTokenToSessionId().get(destToken)
-                    )
-                    , tempWebsocketMessage.setItems("NewPatientConnect", "reply", "").toString()
-            );
+                    webSocketConnections.getTokenToSessionId().get(destToken)),
+                    tempWebsocketMessage.setItems("NewPatientConnect", "reply", "").toString());
         } else {
-            sendTextMessage(sourceSession, tempWebsocketMessage.setItems("NoCounsellorAvailable", "reply", "").toString());
+            sendTextMessage(sourceSession,
+                    tempWebsocketMessage.setItems("NoCounsellorAvailable", "reply", "").toString());
         }
     }
 
     private void addTokenToTokenSet(String sourceToken, String destToken) {
         webSocketConnections.getTokenToTokenSet().computeIfAbsent(
-                sourceToken
-                , k -> new HashSet<>()
-        ).add(destToken);
+                sourceToken, k -> new HashSet<>()).add(destToken);
     }
 
     private void updateTheSate(String token, String FromSTATE, String ToSTATE) {
@@ -158,16 +157,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
         webSocketConnections.getRoleToStateToToken().get(role).get(FromSTATE).remove(token);
         webSocketConnections.getRoleToStateToToken().get(role).computeIfAbsent(
                 ToSTATE,
-                k -> new HashSet<>()
-        ).add(token);
+                k -> new HashSet<>()).add(token);
     }
 
     private String getAvailableCounsellorToken() {
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey(STATE_CONNECTED)
-                && !webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED).isEmpty()
-        ) {
-            return webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED).iterator().next();
+                && !webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED)
+                        .isEmpty()) {
+            return webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED)
+                    .iterator().next();
         } else {
             return null;
         }
@@ -176,14 +175,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private void forwardMessage(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
         System.out.println(webSocketConnections.getTokenToTokenSet());
         /*
-        - when the message needs to be forwarded
-        - check for the token to token set and send accordingly
-        * */
+         * - when the message needs to be forwarded
+         * - check for the token to token set and send accordingly
+         */
         String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
         if (!webSocketConnections.getTokenToTokenSet().containsKey(sourceToken)
-                || webSocketConnections.getTokenToTokenSet().get(sourceToken).isEmpty()
-        ) {
-            sendTextMessage(sourceSession, tempWebsocketMessage.setItems("NoCounsellorConnected", "reply", "").toString());
+                || webSocketConnections.getTokenToTokenSet().get(sourceToken).isEmpty()) {
+            sendTextMessage(sourceSession,
+                    tempWebsocketMessage.setItems("NoCounsellorConnected", "reply", "").toString());
         }
         for (String destToken : webSocketConnections.getTokenToTokenSet().get(sourceToken)) {
             String destSessionId = webSocketConnections.getTokenToSessionId().get(destToken);

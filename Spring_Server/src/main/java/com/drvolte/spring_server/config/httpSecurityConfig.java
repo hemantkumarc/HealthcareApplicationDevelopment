@@ -1,5 +1,6 @@
 package com.drvolte.spring_server.config;
 
+import com.drvolte.spring_server.models.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +27,16 @@ public class httpSecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.POST, "/login", "/patients_register").permitAll()
                         .requestMatchers("/socket").permitAll()
-                        .requestMatchers("/counsellor/**").hasRole("COUNSELLOR")
-                        .requestMatchers("/seniordr/**").hasRole("SENIORDR")
-                        .requestMatchers("/patient/**").hasRole("PATIENT")
-                        .requestMatchers("/patienthistory/**").hasRole("PATIENT")
-                        .requestMatchers("/patient/**").hasRole("PATIENT")
+                        .requestMatchers("/hello").hasAnyRole(
+                                Roles.PATIENT.toString(),
+                                Roles.COUNSELLOR.toString(),
+                                Roles.ADMIN.toString(),
+                                Roles.SENIORDR.toString()
+                        )
+                        .requestMatchers("/counsellor/**").hasRole(Roles.COUNSELLOR.toString())
+                        .requestMatchers("/seniordr/**").hasRole(Roles.SENIORDR.toString())
+                        .requestMatchers("/patient/**").hasRole(Roles.PATIENT.toString())
+                        .requestMatchers("/patienthistory/**").hasRole(Roles.PATIENT.toString())
                         .anyRequest().authenticated());
         return http.build();
     }

@@ -1,8 +1,6 @@
 package com.drvolte.spring_server.entity;
 
 
-import com.drvolte.spring_server.entity.Counsellor;
-import com.drvolte.spring_server.entity.Patient;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,11 +17,11 @@ public class CallHistory {
 
 
     @ManyToOne
-    @JoinColumn(name = "counsellor_id", nullable = false)
+    @JoinColumn(name = "counsellor_id", referencedColumnName = "doctor_id", nullable = false)
     private Counsellor counsellorId;
 
     @ManyToOne
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patientId;
 
     @Column(name = "call_start", nullable = false)
