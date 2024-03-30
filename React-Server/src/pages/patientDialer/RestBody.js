@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import "./RestBody.css";
 import DialerDial from "./DialerDial";
-import { initiateWebRTC, initiateWebsocket } from "../../utils/utils";
+import {
+    getSocketJson,
+    initiateWebRTC,
+    initiateWebsocket,
+    send,
+} from "../../utils/utils";
 
 const RestBody = () => {
     const [dial, setDial] = useState("");
+    const [remoteStream, setRemoteStream] = useState(null);
     const drVoltePhnumber = "9899000123";
-
+    let conn, peerconnection;
     const addnumber = (number) => {
         setDial((prevDial) => prevDial + number);
     };
@@ -25,9 +31,54 @@ const RestBody = () => {
             );
             return;
         }
-        console.log(dial, "Hi");
-        const conn = initiateWebsocket();
-        initiateWebRTC(conn);
+        console.log(dial, "Hi patient haha");
+        conn = initiateWebsocket();
+        conn.onopen = () => {
+            conn.onclose = (msg) => {
+                console.log("socket connection closed", msg.data);
+            };
+
+            const token = localStorage.getItem("token");
+            conn.addEventListener("message", async (e) => {
+                console.log("received", e);
+                let data;
+                try {
+                    data = JSON.parse(e.data);
+                } catch (error) {
+                    console.log("Error:", error);
+                    return;
+                }
+                if (data.event === "reply") {
+                    if (data.data === "addedToken") {
+                        send(conn, getSocketJson("", "connect", token));
+                    }
+                    if (data.data === "CounsellorConnected") {
+                        console.log(
+                            "patient : its time to initiate webRTC hehe"
+                        );
+                        peerconnection = await initiateWebRTC(conn);
+                        peerconnection.ontrack = (e) => {
+                            console.log("setting the remote stream", e);
+                            setRemoteStream(e.streams[0]);
+                            const audio = new Audio();
+                            audio.autoplay = true;
+                            audio.srcObject = e.streams[0];
+
+                            // audioEle.current.sourceo
+                        };
+                        console.log("peerconnection :", peerconnection);
+                    }
+                    if (data.data === "NoCounsellorAvailable") {
+                        console.log(
+                            "its time to give up and buy rope and stool (not that costly, think about it). theres no counsellor avaialble "
+                        );
+                    }
+                }
+            });
+
+            send(conn, getSocketJson("", "settoken", token));
+            // initiateWebRTC(conn);
+        };
     };
 
     console.log(dial);

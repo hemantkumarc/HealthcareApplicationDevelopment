@@ -47,9 +47,11 @@ const PatientLogin = () => {
             );
             console.log(response);
             const accessToken = response?.data?.token;
-            localStorage.setItem("token", accessToken);
             const role = response?.data?.role;
             if (response.status === 200) {
+                localStorage.setItem("token", accessToken);
+                localStorage.setItem("state", selected.value);
+
                 navigate("/patientdialer");
             }
             console.log(role);

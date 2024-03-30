@@ -1,30 +1,83 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import NavDropdown from "react-bootstrap/NavDropdown";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./counsellorDashStyle.css";
 import { Button } from "react-bootstrap";
 import { IoIosNotifications } from "react-icons/io";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
 import ReactBigCalendar from "./ReactBigCalendar";
 import SwipeToRevealActions from "react-swipe-to-reveal-actions";
-import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import {
+    getSocketJson,
+    handleStreamingAudio,
+    initiateWebRTC,
+    initiateWebsocket,
+    userLoggedIn,
+} from "../../utils/utils";
 
 export default function CounsellorDashboard() {
     const navigate = useNavigate();
+    const [remoteStream, setRemoteStream] = useState(null);
+    const createWebsocketAndWebRTC = () => {
+        console.log("Hi caounsellor haha");
+        const conn = initiateWebsocket();
+        conn.onopen = () => {
+            conn.onclose = (msg) => {
+                console.log("socket connection closed", msg.data);
+            };
+
+            function send(message) {
+                conn.send(JSON.stringify(message));
+            }
+            const token = localStorage.getItem("token");
+            send(getSocketJson("", "settoken", token));
+            conn.addEventListener("message", async (e) => {
+                console.log("received3", e);
+                let data;
+                try {
+                    data = JSON.parse(e.data);
+                } catch (error) {
+                    console.log("Error:", error);
+                    return;
+                }
+                if (data.data === "addedToken") {
+                    console.log("adding token Successfull");
+                }
+                if (data.data === "NewPatientConnect") {
+                    console.log("Counsellor: its time to initiate webRTC hehe");
+                    let peerconnection = await initiateWebRTC(conn);
+                    peerconnection.ontrack = (e) => {
+                        console.log("setting the remote stream", e);
+                        setRemoteStream(e.streams[0]);
+
+                        // const audio = new Audio();
+                        // audio.autoplay = true;
+                        // audio.srcObject = e.streams[0];
+                    };
+                }
+            });
+        };
+    };
+    useEffect(() => {
+        console.log(
+            "this is what i got",
+            userLoggedIn().then((loggedIn) => {
+                if (loggedIn) {
+                    createWebsocketAndWebRTC();
+                } else {
+                    localStorage.clear();
+                    navigate("/");
+                }
+            })
+        );
+    }, []);
     const handleLogout = () => {
-        localStorage.removeItem("token");
+        localStorage.clear();
         navigate("/");
     };
 
-    const handleDateClick = (arg) => {
-        alert(arg.dateStr);
-    };
     const patients = [
         { name: "Pappu", reason: "Bhulaaa", date: "14th Feb", time: "5:00 pm" },
         {
@@ -139,6 +192,7 @@ export default function CounsellorDashboard() {
                     ))}
                 </div>
             </div>
+            <audio id="remoteAudio" autoPlay srcobject={remoteStream}></audio>
         </div>
     );
 }
