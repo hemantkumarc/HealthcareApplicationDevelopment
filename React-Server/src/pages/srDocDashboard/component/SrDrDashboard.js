@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState }  from "react";
 import "../style/SrDrDashboard.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import SrDocNavBar from "./SrDocNavBar";
@@ -6,10 +6,11 @@ import SideBar from "./SideBar";
 import Counsellor from "./Counsellor";
 
 export default function SrDrDashboard() {
+  const [search, setSearch] = useState([]);
   return (
     <div>
       <header className="srdocnavbar-header">
-        <SrDocNavBar />
+        <SrDocNavBar setSearch={setSearch}/>
       </header>
       <main>
         <div className="outterbox">
@@ -21,7 +22,7 @@ export default function SrDrDashboard() {
             </div>
             <div className="col-10">
               <div className="counsellor-list">
-                <Counsellor />
+                <Counsellor search={search} />
               </div>
             </div>
           </div>

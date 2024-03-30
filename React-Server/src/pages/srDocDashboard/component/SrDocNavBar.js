@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import "../style/SrDocNavBar.css";
 import drVolteLogo from "../../../assets/drVolteLogo.png";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import SearchCounsellor from "./SearchCounsellor";
 import SearchResult from "./SearchResult";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 
-export default function SrDocNavBar() {
+export default function SrDocNavBar({ setSearch }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,7 +14,6 @@ export default function SrDocNavBar() {
     navigate("/");
   };
 
-  const [search, setSearch] = useState([]);
 
   return (
     <Navbar
@@ -35,7 +34,7 @@ export default function SrDocNavBar() {
             <Nav.Link>
               <div className="search-container">
                 <SearchCounsellor setSearch={setSearch} />
-                <SearchResult search={search} />
+                {/* <SearchResult search={search} /> */}
               </div>
             </Nav.Link>
             <Nav.Link eventKey={2}>
