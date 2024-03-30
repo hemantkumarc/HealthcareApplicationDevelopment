@@ -9,6 +9,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English", "Hindi"],
   },
   {
     id: "2",
@@ -20,6 +21,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["Gujarati", "Hindi"],
   },
   {
     id: "3",
@@ -31,6 +33,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English", "Hindi","Kannada"],
   },
   {
     id: "4",
@@ -42,6 +45,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English", "Hindi"],
   },
   {
     id: "5",
@@ -53,6 +57,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English", "Kannada"],
   },
   {
     id: "6",
@@ -64,6 +69,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["kannada", "Hindi"],
   },
   {
     id: "7",
@@ -75,6 +81,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["kannada", "Gujarati"],
   },
   {
     id: "8",
@@ -86,9 +93,10 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English", "Hindi", "Kannada", "Gujarati"],
   },
   {
-    id: "1",
+    id: "9",
     dob: "31/10/2000",
     profile_photo:
       "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
@@ -97,6 +105,43 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Desperation and Anxiety",
+    languages_spoken: ["English"],
+  },
+  {
+    id: "10",
+    dob: "31/10/2000",
+    profile_photo:
+      "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
+    name: "Dr. Doland Trump",
+    qualification: "Ph.D. in Construction",
+    hospital_name: "Mexico district Hospital",
+    hospital_address: "US-Mexico border",
+    specialization: "Dividing and rule",
+    languages_spoken: ["English"],
+  },
+  {
+    id: "11",
+    dob: "31/10/2000",
+    profile_photo:
+      "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
+    name: "Dr. Arvind kejruddin",
+    qualification: "Ph.D. in Lies",
+    hospital_name: "mohalla clinic",
+    hospital_address: "daaru theka",
+    specialization: "cold and cough",
+    languages_spoken: ["English", "Hindi"],
+  },
+  {
+    id: "11",
+    dob: "31/10/2000",
+    profile_photo:
+      "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
+    name: "Dr. Rahul gandu",
+    qualification: "Ph.D. in caste divide",
+    hospital_name: "kon se jaat hai hospital",
+    hospital_address: "jaat-paat",
+    specialization: "Dividing Hindus",
+    languages_spoken: ["English", "Hindi", "Italian"],
   },
 ];
 export default data;

@@ -13,6 +13,9 @@ export default function SideBar() {
       <section className="sidebar">
         <FilterSection handleChange={handleChange} />
         <SortCounsellor handleChange={handleChange} />
+        <div className="buttons">
+            <button className="Apply-Changes">Save</button>
+        </div>
       </section>
     </div>
   );

@@ -1,6 +1,18 @@
 .sidebar {
-    position: fixed;
-    height: 100%;
-    padding-left: 15px;
-    padding-top: 11px;
-  }
+  position: fixed;
+  height: 100%;
+  padding-left: 15px;
+  padding-top: 11px;
+}
+.Apply-Changes {
+  margin-top: 15px;
+  margin-left: 25%;
+  border: none;
+  background: rgb(255, 196, 87);
+  font-weight: 700;
+  color: gray;
+  height: 45px;
+  width: 45%;
+  border-radius: 40px;
+  margin-bottom: 50px;
+}
