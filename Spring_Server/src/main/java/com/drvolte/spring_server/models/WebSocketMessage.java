@@ -6,14 +6,17 @@ import org.springframework.web.socket.TextMessage;
 
 @Data
 public class WebSocketMessage {
-    private final String data;
-    private final String event;
-    private final String token;
+    private String data;
+    private String event;
+    private String token;
 
     public WebSocketMessage(String data, String event, String token) {
         this.data = data;
         this.event = event;
         this.token = token;
+    }
+
+    public WebSocketMessage() {
     }
 
     public WebSocketMessage(TextMessage message) {
@@ -22,6 +25,13 @@ public class WebSocketMessage {
         this.token = messageJSON.getString("token");
         this.data = messageJSON.getString("data");
         this.event = messageJSON.getString("event");
+    }
+
+    public WebSocketMessage setItems(String data, String event, String token) {
+        this.data = data;
+        this.event = event;
+        this.token = token;
+        return this;
     }
 
     @Override
