@@ -24,7 +24,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
 
     // If the error status is 401, it means the token has expired and we need to redirect to login
     if (error.response.status === 401) {
