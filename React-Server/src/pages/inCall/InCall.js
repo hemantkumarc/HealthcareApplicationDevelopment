@@ -10,8 +10,14 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import FormGroup from '@mui/material/FormGroup';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
 import SelectBox from 'devextreme-react/select-box';
 import List from 'devextreme-react/list';
+import LiveIsland from 'react-live-island';
+import DynamicIsland from './DynamicIsland.js';
 import { products, searchModeLabel } from './data.js';
 import "./inCallStyle.css";
 import "react-datepicker/dist/react-datepicker.css";
@@ -29,10 +35,22 @@ function InCall() {
     const date = today. getDate();
     const currentDate = date + "/" + month + "/" + year;
 
+    const showTime = today.getHours() 
+        + ':' + today.getMinutes() 
+        + ":" + today.getSeconds();
+
     const [show, setShow] = useState(false);
+    const [showCard, setCardModal] = useState(false);
+    const [showSchedule, setScheduleModal] = useState(false);
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+
+    const showCardModal = () => setCardModal(true);
+    const closeCardModal = () => setCardModal(false);
+
+    const showScheduleModal = () => setScheduleModal(true);
+    const closeScheduleModal = () => setScheduleModal(false);
 
     function ItemTemplate(data) {
         return <div><FaCircle style={{
@@ -76,6 +94,12 @@ function InCall() {
             <Nav className="me-auto">
               <Nav.Link href="#features">Patient ID</Nav.Link>
             </Nav>
+            {/* <LiveIsland>
+                
+            </LiveIsland> */}
+            <div style={{height: "30px", zIndex: "2", marginRight: "320px"}}>
+            <DynamicIsland />
+            </div>
             <Nav>
               <Nav.Link href="#deets">
                 <FaMicrophone
@@ -174,9 +198,65 @@ function InCall() {
                         <Form.Control as="textarea" rows={3} placeholder="..." />
                     </Form.Group>
 
-                    <Button variant="info" type="submit" className='btnCard'>
+                    <Button variant="info" className='btnCard' onClick={showScheduleModal}>
                         Schedule Callback
                     </Button>
+
+                    <Modal show={showSchedule} onHide={closeScheduleModal}>
+                        <Modal.Header closeButton>
+                        <Modal.Title>Schedule Callback</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <div className='row'>
+                                <div className='col'>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DemoContainer components={['DatePicker']}>
+                                            <DatePicker label="Choose Date" />
+                                        </DemoContainer>
+                                    </LocalizationProvider>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DemoContainer components={['TimePicker']}>
+                                            <TimePicker label="Select Time" />
+                                        </DemoContainer>
+                                    </LocalizationProvider>
+                                    <FormGroup>
+                                        <Form.Label style={{paddingTop: "20px"}}>Follow Up:</Form.Label>
+                                        <Box
+                                            style={{marginLeft: "-10px"}}
+                                            component="form"
+                                            sx={{
+                                                '& > :not(style)': { m: 1, width: '25ch' },
+                                            }}
+                                            noValidate
+                                            autoComplete="off"
+                                        >
+                                            <TextField id="filled-basic" label="Reason" variant="filled" />
+                                        </Box>
+                                    </FormGroup>
+                                </div>
+                                <div className='col'>
+                                    <ListGroup as="ul">
+                                        <ListGroup.Item as="li" active style={{top: "6px"}}>
+                                            Upcoming Appointments
+                                        </ListGroup.Item>
+                                        <ListGroup.Item as="li">Date: {currentDate} Time: {showTime}</ListGroup.Item>
+                                        <ListGroup.Item as="li">
+                                            Date: {currentDate} Time: {showTime}
+                                        </ListGroup.Item>
+                                        <ListGroup.Item as="li">Date: {currentDate} Time: {showTime}</ListGroup.Item>
+                                    </ListGroup>
+                                </div>
+                            </div>
+                        </Modal.Body>
+                        <Modal.Footer>
+                        <Button variant="secondary" onClick={closeScheduleModal}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={closeScheduleModal}>
+                            Schedule
+                        </Button>
+                        </Modal.Footer>
+                    </Modal>
 
                     <Button variant="info" type="submit" className='btnCard'>
                         Ask Consent
@@ -206,6 +286,7 @@ function InCall() {
                                 searchExpr="Name"
                                 searchEnabled={true}
                                 searchMode={searchMode}
+                                onItemClick={showCardModal}
                                 />
                             </div>
                             <div className="options">
@@ -225,7 +306,35 @@ function InCall() {
                         <Button variant="secondary" onClick={handleClose}>
                             Close
                         </Button>
-                        <Button variant="primary" onClick={handleClose}>
+                        </Modal.Footer>
+                    </Modal>
+
+                    <Modal show={showCard} onHide={closeCardModal}>
+                        <div style={{backgroundColor: "lightgreen", height: "10px"}}></div>
+                        <Modal.Body style={{padding: "0px"}}>
+                            <Card style={{ width: '100%' }}>
+                                <Card.Img 
+                                    variant="top" src={require("../../assets/shinchanDoctor.jpeg")} 
+                                    style={{height: "340px"}}
+                                />
+                                <Card.Body>
+                                    <Card.Title>Dr. Shinchan</Card.Title>
+                                    <Card.Text>
+                                        Specialization: <b> Humourologist </b>
+                                    </Card.Text>
+                                </Card.Body>
+                                <ListGroup className="list-group-flush">
+                                    <ListGroup.Item>Hospital: Osaka Bin Laten</ListGroup.Item>
+                                    <ListGroup.Item>12+ years experience</ListGroup.Item>
+                                    <ListGroup.Item>Funny AF Award</ListGroup.Item>
+                                </ListGroup>
+                            </Card>
+                        </Modal.Body>
+                        <Modal.Footer>
+                        <Button variant="secondary" onClick={closeCardModal}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={closeCardModal}>
                             Connect
                         </Button>
                         </Modal.Footer>

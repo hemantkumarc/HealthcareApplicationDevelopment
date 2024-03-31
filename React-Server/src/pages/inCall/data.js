@@ -1,31 +1,31 @@
 export const products = [
     {
       ID: 1,
-      Name: 'Dr. Karnadevsinh Zala | Medicine',
+      Name: 'Dr. Karnadevsinh Zala | Neurologist',
       Specialization: 'Medicine',
       Status: "lightgreen"
     },
     {
       ID: 3,
-      Name: 'SuperPlasma 50',
+      Name: 'Dr. Zarna Zala | Cardiologist',
       Specialization: 'Medicine',
       Status: "grey"
     },
     {
       ID: 4,
-      Name: 'SuperLED 50',
+      Name: 'Dr. Bhagirathsinh Zala | Orthologist',
       Specialization: 'Medicine',
       Status: "red"
     },
     {
       ID: 5,
-      Name: 'SuperLED 42',
+      Name: 'Dr. Kavya Zala | Radiologist',
       Specialization: 'Medicine',
       Status: "lightgreen"
     },
     {
       ID: 6,
-      Name: 'SuperLCD 55',
+      Name: 'Dr. Shachi Zala | Psycologist',
       Specialization: 'Medicine',
       Status: "lightgreen"
     },

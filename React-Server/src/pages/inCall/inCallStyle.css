@@ -4,11 +4,16 @@ margin: 20px 60% auto 20px;
 
 .cards {
     margin: 10px;
+    /* background: rgba(255, 255, 255, 0.5); */
+    background: rgba(255, 255, 255, 0.192);
+    backdrop-filter: blur(10px);
 }
 
 .btnCard {
     margin: 10px;
     margin-left: 45px;
+    background:cadetblue;
+    color: aliceblue;
 }
 
 .listHistory {
@@ -21,7 +26,10 @@ margin: 20px 60% auto 20px;
 }
 
 #parentElement {
-    background-color: aliceblue;
+    /* background-color: rgb(240, 248, 255); */
+    background: url(../../assets/photo-1508614999368-9260051292e5.webp);
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .dx-list-item-content > div {
