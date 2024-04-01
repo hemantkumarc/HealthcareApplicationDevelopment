@@ -1,21 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FilterSection from "./FilterSection";
 import SortCounsellor from "./SortCounsellor"; 
 import "../style/SideBar.css";
-
-export default function SideBar() {
-  const handleChange = (event) => {
-    
-  };
-
+export default function SideBar( {setFilters} ) {
   return (
     <div>
       <section className="sidebar">
-        <FilterSection handleChange={handleChange} />
-        <SortCounsellor handleChange={handleChange} />
-        <div className="buttons">
+        <FilterSection setFilters={setFilters} /> 
+        <SortCounsellor setFilters={setFilters} />
+        {/* <div className="buttons">
             <button className="Apply-Changes">Save</button>
-        </div>
+        </div> */}
       </section>
     </div>
   );

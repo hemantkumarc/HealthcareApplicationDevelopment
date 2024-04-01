@@ -6,23 +6,24 @@ import SideBar from "./SideBar";
 import Counsellor from "./Counsellor";
 
 export default function SrDrDashboard() {
-  const [search, setSearch] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({ specialization: [], language: [] });
   return (
     <div>
       <header className="srdocnavbar-header">
-        <SrDocNavBar setSearch={setSearch}/>
+        <SrDocNavBar search={search} setSearch={setSearch}/>
       </header>
       <main>
         <div className="outterbox">
           <div className="row">
             <div className="col-2">
               <div className="sidebar">
-                <SideBar />
+                <SideBar setFilters={setFilters} />
               </div>
             </div>
             <div className="col-10">
               <div className="counsellor-list">
-                <Counsellor search={search} />
+                <Counsellor filters={filters} search={search} />
               </div>
             </div>
           </div>

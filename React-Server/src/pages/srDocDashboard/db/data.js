@@ -8,7 +8,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "Radiologist",
     languages_spoken: ["English", "Hindi"],
   },
   {
@@ -20,7 +20,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "Orthopaedics",
     languages_spoken: ["Gujarati", "Hindi"],
   },
   {
@@ -32,7 +32,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "Radiologist",
     languages_spoken: ["English", "Hindi","Kannada"],
   },
   {
@@ -56,7 +56,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "Radiologist",
     languages_spoken: ["English", "Kannada"],
   },
   {
@@ -68,8 +68,8 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
-    languages_spoken: ["kannada", "Hindi"],
+    specialization: "Orthopaedics",
+    languages_spoken: ["Kannada", "Hindi"],
   },
   {
     id: "7",
@@ -80,8 +80,8 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
-    languages_spoken: ["kannada", "Gujarati"],
+    specialization: "General Medicine",
+    languages_spoken: ["Kannada", "Gujarati"],
   },
   {
     id: "8",
@@ -104,7 +104,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "General Medicine",
     languages_spoken: ["English"],
   },
   {
@@ -117,17 +117,17 @@ const data = [
     hospital_name: "Mexico district Hospital",
     hospital_address: "US-Mexico border",
     specialization: "Dividing and rule",
-    languages_spoken: ["English"],
+    languages_spoken: ["English","Tamil"],
   },
   {
     id: "11",
     dob: "31/10/2000",
     profile_photo:
       "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
-    name: "Dr. Arvind kejruddin",
+    name: "Dr. Arbindo kejri",
     qualification: "Ph.D. in Lies",
     hospital_name: "mohalla clinic",
-    hospital_address: "daaru theka",
+    hospital_address: "tihar",
     specialization: "cold and cough",
     languages_spoken: ["English", "Hindi"],
   },
@@ -136,12 +136,12 @@ const data = [
     dob: "31/10/2000",
     profile_photo:
       "https://media.istockphoto.com/id/525882213/vector/crazy-doctor.jpg?s=612x612&w=0&k=20&c=2dapPSHBjpiuPdCTyrJBk6YD_k8Hlwp9SD-BJOOeius=",
-    name: "Dr. Rahul gandu",
-    qualification: "Ph.D. in caste divide",
-    hospital_name: "kon se jaat hai hospital",
-    hospital_address: "jaat-paat",
-    specialization: "Dividing Hindus",
-    languages_spoken: ["English", "Hindi", "Italian"],
+    name: "Dr. Rahul gaznavi",
+    qualification: "Ph.D. in phd",
+    hospital_name: "italy district hospital",
+    hospital_address: "vayanad",
+    specialization: "General Surgery",
+    languages_spoken: ["English", "Hindi"],
   },
 ];
 export default data;
