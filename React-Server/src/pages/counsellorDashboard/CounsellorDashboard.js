@@ -28,7 +28,6 @@ export default function CounsellorDashboard() {
             conn.onclose = (msg) => {
                 console.log("socket connection closed", msg.data);
             };
-
             function send(message) {
                 conn.send(JSON.stringify(message));
             }

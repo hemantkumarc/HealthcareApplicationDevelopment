@@ -1,4 +1,7 @@
+import 'devextreme/dist/css/dx.light.css';
 import "./App.css";
+import CounsellorDashboard from "./pages/counsellorDashboard/CounsellorDashboard";
+import InCall from "./pages/inCall/InCall";
 import Login from "./pages/login/Login";
 import PatientLogin from "./pages/Patients/Login";
 import PatientDialer from "./pages/patientDialer/PatientDialer";
@@ -13,6 +16,7 @@ function App() {
         <Route path="/patientlogin" element={<PatientLogin />} />
         <Route path="/patientdialer" element={<PatientDialer />} />
         <Route path="/counsellorDashboard" element={<CounsellorDashboard />} />
+        <Route path="/inCall" element={<InCall />} />
       </Routes>
     </BrowserRouter>
   );

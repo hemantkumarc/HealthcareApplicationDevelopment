@@ -1,0 +1,65 @@
+/* #cardForm {
+margin: 20px 60% auto 20px;
+} */
+
+.cards {
+    margin: 10px;
+    /* background: rgba(255, 255, 255, 0.5); */
+    background: rgba(255, 255, 255, 0.192);
+    backdrop-filter: blur(10px);
+}
+
+.btnCard {
+    margin: 10px;
+    margin-left: 45px;
+    background:cadetblue;
+    color: aliceblue;
+}
+
+.listHistory {
+    margin: 10px;
+}
+
+.items {
+    margin: 0px;
+    padding: 0px;
+}
+
+#parentElement {
+    /* background-color: rgb(240, 248, 255); */
+    background: url(../../assets/photo-1508614999368-9260051292e5.webp);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.dx-list-item-content > div {
+    padding: 5px;
+    font-size: 15px;
+  }
+  
+  .options {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(191, 191, 191, 0.15);
+  }
+  
+  .options .caption {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .option {
+    margin-top: 10px;
+  }
+  
+  .option > span {
+    margin-right: 10px;
+  }
+  
+  .option > .dx-selectbox {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 350px;
+    width: 100%;
+  }
+  
