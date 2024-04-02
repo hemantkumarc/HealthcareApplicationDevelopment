@@ -7,25 +7,31 @@ import { useState } from "react";
 import api from "../../api/axios";
 import "react-toastify/dist/ReactToastify.css";
 import { userLoggedIn } from "../../utils/utils";
+import { jwtDecode } from "jwt-decode";
 
 const LOGIN_URL = "/patients_register";
 
 const PatientLogin = () => {
     const [phnumber, setPhnumber] = useState("");
-
+    const token = localStorage.getItem("token");
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState(null);
     const navigate = useNavigate();
 
     // use this ti check if user is logged in
     useEffect(() => {
-        console.log(
-            "this is what i got",
-            userLoggedIn().then((loggedIn) => {
-                if (loggedIn) navigate("/patientdialer");
-                else localStorage.clear();
-            })
-        );
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            if (loggedIn) {
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role === "ROLE_PATIENT") {
+                    navigate("/patientdialer");
+                }
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
     }, []);
 
     const handleSubmit = async (e) => {

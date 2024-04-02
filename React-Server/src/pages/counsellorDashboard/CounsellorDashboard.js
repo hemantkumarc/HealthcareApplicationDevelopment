@@ -9,9 +9,9 @@ import { IoIosNotifications } from "react-icons/io";
 import ReactBigCalendar from "./ReactBigCalendar";
 import SwipeToRevealActions from "react-swipe-to-reveal-actions";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import {
     getSocketJson,
-    handleStreamingAudio,
     initiateWebRTC,
     initiateWebsocket,
     userLoggedIn,
@@ -19,6 +19,7 @@ import {
 
 export default function CounsellorDashboard() {
     const navigate = useNavigate();
+    const token = localStorage.getItem("token");
     const [remoteStream, setRemoteStream] = useState(null);
     const createWebsocketAndWebRTC = () => {
         console.log("Hi caounsellor haha");
@@ -61,17 +62,21 @@ export default function CounsellorDashboard() {
         };
     };
     useEffect(() => {
-        console.log(
-            "this is what i got",
-            userLoggedIn().then((loggedIn) => {
-                if (loggedIn) {
-                    createWebsocketAndWebRTC();
-                } else {
-                    localStorage.clear();
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            if (loggedIn) {
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role !== "ROLE_COUNSELLOR") {
                     navigate("/");
                 }
-            })
-        );
+                createWebsocketAndWebRTC();
+            } else {
+                navigate("/");
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
     }, []);
     const handleLogout = () => {
         localStorage.clear();

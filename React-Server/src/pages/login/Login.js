@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./Login.css";
 import videoBg from "../../assets/bg.mp4";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,14 +7,33 @@ import { useState, useContext } from "react";
 import api from "../../api/axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { userLoggedIn } from "../../utils/utils";
+import { jwtDecode } from "jwt-decode";
 
 const LOGIN_URL = "/login";
-const LOBBY_URL = "/counsellor";
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const token = localStorage.getItem("token");
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            if (loggedIn) {
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role === "ROLE_COUNSELLOR") {
+                    navigate("/counsellorDashboard");
+                }
+            } else {
+                navigate("/");
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
