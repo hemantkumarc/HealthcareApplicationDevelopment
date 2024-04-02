@@ -30,4 +30,6 @@ public class CallHistory {
     @Column(name = "call_end", nullable = false)
     private Date callEnd;
 
+    @Column(name = "status", nullable = false)
+    private String status;
 }
