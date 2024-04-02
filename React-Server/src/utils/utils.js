@@ -184,13 +184,20 @@ export const getResponseGet = async (url, headers) => {
 export const userLoggedIn = () => {
     // // use this below useeffect to check if user is logged in
     // useEffect(() => {
-    //     console.log(
-    //         "this is what i got",
-    //         userLoggedIn().then((loggedIn) => {
-    //             if (loggedIn) navigate("/patientdialer");
-    //             else localStorage.clear();
-    //         })
-    //     );
+    //     const checkLoggedIn = async () => {
+    //         const loggedIn = await userLoggedIn();
+    //         if (loggedIn) {
+    //             const jwtdecoded = jwtDecode(token);
+    //             console.log("this is the jwtDecode after decoding", jwtdecoded);
+    //             if (jwtdecoded.role !== "ROLE_COUNSELLOR") {
+    //                 navigate("/");
+    //             }
+    //         } else {
+    //             navigate("/");
+    //         }
+    //         // if(loggedIn)
+    //     };
+    //     checkLoggedIn();
     // }, []);
     console.log("this is local storage ", localStorage);
     if (localStorage.getItem("token") !== undefined) {
@@ -211,6 +218,9 @@ export const userLoggedIn = () => {
                 return false;
             }
         );
+    } else {
+        localStorage.clear();
+        return false;
     }
 };
 
