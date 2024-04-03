@@ -53,15 +53,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             logger.info("socketmessage {}", socketMessage);
 
             if (SET_TOKEN_EVENT.equals(socketMessage.getEvent())) {
-                logger.debug("its an setToken event");
+                logger.info("its an setToken event");
                 assert sourceSession != null;
                 handleSetTokenEvent(sourceSession, socketMessage);
             } else if (SET_CONNECT_EVENT.equals(socketMessage.getEvent())) {
-                logger.debug("its an connect event");
+                logger.info("its an connect event");
                 assert sourceSession != null;
                 handleSetConnectEvent(sourceSession, socketMessage);
             } else {
-                logger.debug("broadcasting");
+                logger.info("broadcasting");
                 assert sourceSession != null;
                 forwardMessage(sourceSession, socketMessage);
             }
@@ -137,7 +137,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             sendTextMessage(sourceSession,
                     tempWebsocketMessage.setItems("CounsellorConnected", "reply", "").toString());
             sendTextMessage(sessions.get(
-                    webSocketConnections.getTokenToSessionId().get(destToken)),
+                            webSocketConnections.getTokenToSessionId().get(destToken)),
                     tempWebsocketMessage.setItems("NewPatientConnect", "reply", "").toString());
         } else {
             sendTextMessage(sourceSession,
@@ -164,7 +164,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey(STATE_CONNECTED)
                 && !webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED)
-                        .isEmpty()) {
+                .isEmpty()) {
             return webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get(STATE_CONNECTED)
                     .iterator().next();
         } else {
