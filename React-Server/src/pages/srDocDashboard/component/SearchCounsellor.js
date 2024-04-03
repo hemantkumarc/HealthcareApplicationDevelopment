@@ -9,10 +9,10 @@ export default function SearchCounsellor({ setSearch }) {
 
   const handleChange = (e) => {
     const value = e.target.value;
-    setSearch(value); 
+    setSearch(value);
     setSearchTerm(value);
   };
-  
+
   return (
     <div className="search-counsellor">
       <input

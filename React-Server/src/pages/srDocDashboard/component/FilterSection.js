@@ -113,7 +113,7 @@ export default function FilterSection({ setFilters }) {
           />
           <span className="checkmark"></span>Gujarati
         </label>
-        
+
         <label className="checkbox-container">
           <input
             onChange={handleChange}

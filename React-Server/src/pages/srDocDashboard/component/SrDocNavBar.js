@@ -14,7 +14,6 @@ export default function SrDocNavBar({ setSearch }) {
     navigate("/");
   };
 
-
   return (
     <Navbar
       collapseOnSelect

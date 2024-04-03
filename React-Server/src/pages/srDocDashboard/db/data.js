@@ -33,7 +33,7 @@ const data = [
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
     specialization: "Radiologist",
-    languages_spoken: ["English", "Hindi","Kannada"],
+    languages_spoken: ["English", "Hindi", "Kannada"],
   },
   {
     id: "4",
@@ -44,7 +44,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "General Medicine",
     languages_spoken: ["English", "Hindi"],
   },
   {
@@ -92,7 +92,7 @@ const data = [
     qualification: "Ph.D. in Home Science",
     hospital_name: "Nala-Supara district Hospital",
     hospital_address: "Nala-supara",
-    specialization: "Desperation and Anxiety",
+    specialization: "General Surgery",
     languages_spoken: ["English", "Hindi", "Kannada", "Gujarati"],
   },
   {
@@ -116,8 +116,8 @@ const data = [
     qualification: "Ph.D. in Construction",
     hospital_name: "Mexico district Hospital",
     hospital_address: "US-Mexico border",
-    specialization: "Dividing and rule",
-    languages_spoken: ["English","Tamil"],
+    specialization: "General Surgery",
+    languages_spoken: ["English", "Tamil"],
   },
   {
     id: "11",
@@ -128,7 +128,7 @@ const data = [
     qualification: "Ph.D. in Lies",
     hospital_name: "mohalla clinic",
     hospital_address: "tihar",
-    specialization: "cold and cough",
+    specialization: "Orthopaedics",
     languages_spoken: ["English", "Hindi"],
   },
   {

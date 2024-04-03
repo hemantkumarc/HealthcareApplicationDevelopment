@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from "react";
 import FilterSection from "./FilterSection";
-import SortCounsellor from "./SortCounsellor"; 
+import SortCounsellor from "./SortCounsellor";
 import "../style/SideBar.css";
-export default function SideBar( {setFilters} ) {
+export default function SideBar({ setFilters, setSorts }) {
   return (
     <div>
       <section className="sidebar">
-        <FilterSection setFilters={setFilters} /> 
-        <SortCounsellor setFilters={setFilters} />
+        <FilterSection setFilters={setFilters} />
+        <SortCounsellor setSorts={setSorts} />
         {/* <div className="buttons">
             <button className="Apply-Changes">Save</button>
         </div> */}
