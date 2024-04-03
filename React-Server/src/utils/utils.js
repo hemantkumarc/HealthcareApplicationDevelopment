@@ -1,11 +1,9 @@
 // import React from "react";
 import api from "../api/axios";
-
-const serverip = "localhost";
-const httpserverurl = "http://localhost";
+import { SERVERIP } from "../api/axios";
 
 export const initiateWebsocket = () => {
-    const conn = new WebSocket("ws://" + serverip + "/socket");
+    const conn = new WebSocket("ws://" + SERVERIP + "/socket");
     console.log(conn);
     return conn;
 };
@@ -133,6 +131,7 @@ export const initiateWebRTC = async (conn) => {
  *
  */
 export const handleRenegotiation = async (conn, peerConnection) => {
+    console.log("Renegotiation needed, sooooooo");
     const token = localStorage.getItem("token");
     try {
         const offer = await peerConnection.createOffer();
@@ -150,10 +149,12 @@ export const handleRenegotiation = async (conn, peerConnection) => {
  * @param {RTCPeerConnection} peerconnection The Peerconnection
  */
 export const handleStreamingAudio = (peerconnection) => {
+    console.log("adding the local track to the peerconnection");
     navigator.mediaDevices
         .getUserMedia({ audio: true, video: false })
         .then(function (stream) {
             stream.getAudioTracks().forEach((track) => {
+                console.log("this is the track adding now", track);
                 peerconnection.addTrack(track, stream);
             });
         });
@@ -229,6 +230,6 @@ export const getSocketJson = (data, event, token) => {
 };
 
 export function send(conn, message) {
-    console.log("this is send fucntion data:", message);
+    console.log("this is send fucntion data:", message, conn);
     conn.send(JSON.stringify(message));
 }

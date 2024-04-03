@@ -1,9 +1,9 @@
 import axios from "axios";
-
-
+export const SERVERIP = "localhost"
+export const baseURL = "http://localhost"
 
 const api = axios.create({
-  baseURL: "http://localhost",
+  baseURL:baseURL,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*", // Allow requests from any origin

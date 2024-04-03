@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "./Login.css";
+import "./login.css";
 import videoBg from "../../assets/bg.mp4";
 import { useNavigate } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
@@ -8,6 +8,7 @@ import api from "../../api/axios";
 import "react-toastify/dist/ReactToastify.css";
 import { userLoggedIn } from "../../utils/utils";
 import { jwtDecode } from "jwt-decode";
+import Select from "react-select";
 
 const LOGIN_URL = "/patients_register";
 
@@ -15,7 +16,7 @@ const PatientLogin = () => {
     const [phnumber, setPhnumber] = useState("");
     const token = localStorage.getItem("token");
     const [open, setOpen] = useState(false);
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState("Karnataka");
     const navigate = useNavigate();
 
     // use this ti check if user is logged in
@@ -32,21 +33,16 @@ const PatientLogin = () => {
             // if(loggedIn)
         };
         checkLoggedIn();
-    }, []);
+    }, [navigate, token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selected) {
-            // alert("Please select state");
-            return;
-        }
-        console.log(
-            JSON.stringify({ phnumber: phnumber, state: selected.value })
-        );
+
+        console.log(JSON.stringify({ phnumber: phnumber, state: selected }));
         try {
             const response = await api.post(
                 LOGIN_URL,
-                JSON.stringify({ phnumber: phnumber, state: selected.value }),
+                JSON.stringify({ phnumber: phnumber, state: selected }),
                 {
                     headers: { "Content-Type": "application/json" },
                 }
@@ -56,7 +52,7 @@ const PatientLogin = () => {
             const role = response?.data?.role;
             if (response.status === 200) {
                 localStorage.setItem("token", accessToken);
-                localStorage.setItem("state", selected.value);
+                localStorage.setItem("state", selected);
 
                 navigate("/patientdialer");
             }
@@ -116,31 +112,28 @@ const PatientLogin = () => {
                             />
                             <FaUser className="icon" />
                         </div>
-                        <div className="label-option row align-items-center">
+                        <div className="state-selection g-0 row align-items-center">
                             <label className="col-4">State</label>
                             <div className="state-div col-8">
-                                <button
-                                    className="btn state-button"
-                                    onClick={() => setOpen(!open)}
+                                <select
+                                    name="statesDropDown"
+                                    className="statesDropDown"
+                                    onChange={(e) => {
+                                        console.log("onchange ", e);
+                                        handleSelect(e.target.value);
+                                    }}
+                                    defaultValue="Karnataka"
                                 >
-                                    {selected
-                                        ? selected.label
-                                        : "Select an Option"}
-                                </button>
-                                {open && (
-                                    <ul>
-                                        {options.map((option) => (
-                                            <li
-                                                key={option.value}
-                                                onClick={() =>
-                                                    handleSelect(option)
-                                                }
-                                            >
-                                                {option.label}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                                    {options.map((option) => (
+                                        <option
+                                            className="statesOption"
+                                            value={option.value}
+                                            // onClick={() => handleSelect(option)}
+                                        >
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <div className="login-button">
