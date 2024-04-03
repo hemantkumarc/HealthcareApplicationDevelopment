@@ -50,11 +50,10 @@ export default function CounsellorDashboard() {
                     let peerconnection = await initiateWebRTC(conn);
                     peerconnection.ontrack = (e) => {
                         console.log("setting the remote stream", e);
-                        setRemoteStream(e.streams[0]);
 
-                        // const audio = new Audio();
-                        // audio.autoplay = true;
-                        // audio.srcObject = e.streams[0];
+                        const audio = new Audio();
+                        audio.autoplay = true;
+                        audio.srcObject = e.streams[0];
                     };
                 }
             });
