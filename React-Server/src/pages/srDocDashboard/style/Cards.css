@@ -1,0 +1,67 @@
+.card_item {
+  width: 300px;
+}
+
+.card-container .card_item:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.card-container .card_inner {
+  background: rgba(253, 253, 253, 0.808);
+  border-radius: 10px;
+  padding: 35px 20px;
+  min-width: 250px;
+  min-height: 315px;
+  max-height: 370px;
+  width: 100%;
+  box-shadow: 5px 5px 10px 2px rgba(95, 95, 95, 0.24);
+}
+
+.card-container .card_item img {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.card-container .card_item .name {
+  color: #203150;
+  font-weight: 600;
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 230px;
+}
+
+.card-container .card_item .qualification,
+.card-container .card_item .hospital_name,
+.card-container .card_item .specialization {
+  font-size: 12px;
+  font-weight: 100;
+  margin: 5px 0 10px;
+  color: #888b9e;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listen,
+.join {
+  border: none;
+  background: rgb(174, 255, 124);
+  font-weight: 700;
+  color: gray;
+  height: 45px;
+  width: 45%;
+  border-radius: 40px;
+  margin-bottom: 50px;
+}
+.join {
+  background: rgb(251, 90, 90);
+  margin-left: 9px;
+}
