@@ -1,16 +1,7 @@
-/* * {
-  box-sizing: border-box;
-} */
-/* 
-body {
-  background: rgb(2, 0, 36);
-  background: linear-gradient(
-    90deg,
-    rgba(2, 0, 36, 1) 0%,
-    rgba(232, 221, 203, 1) 0%,
-    rgba(252, 235, 181, 1) 100%
-  );
-} */
+#logo {
+  height: 20px;
+  width: 20px;
+}
 
 .admin-container {
   height: 100vh;
