@@ -44,7 +44,7 @@ export default function FilterSection({ setFilters }) {
 
   return (
     <div className="srdoc-sidebar">
-      <div className="filter-section">
+      {/* <div className="filter-section">
         <h2 className="sidebar-title">Specialization</h2>
 
         <label className="checkbox-container">
@@ -86,7 +86,7 @@ export default function FilterSection({ setFilters }) {
           />
           <span className="checkmark"></span>General Surgery
         </label>
-      </div>
+      </div> */}
 
       <div className="filter-section">
         <h2 className="sidebar-title">Language</h2>
@@ -98,6 +98,7 @@ export default function FilterSection({ setFilters }) {
           value={selectedLanguages}
           onChange={handleLanguageChange}
           classNamePrefix="select"
+          maxMenuHeight={150}
         />
       </div>
 
