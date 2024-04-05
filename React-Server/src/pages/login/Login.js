@@ -18,22 +18,25 @@ const Login = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkLoggedIn = async () => {
-      const loggedIn = await userLoggedIn();
-      if (loggedIn) {
-        const jwtdecoded = jwtDecode(token);
-        console.log("this is the jwtDecode after decoding", jwtdecoded);
-        if (jwtdecoded.role === "ROLE_COUNSELLOR") {
-          navigate("/counsellorDashboard");
-        }
-      } else {
-        navigate("/");
-      }
-      // if(loggedIn)
-    };
-    checkLoggedIn();
-  }, []);
+    useEffect(() => {
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            if (loggedIn) {
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role === "ROLE_COUNSELLOR") {
+                    navigate("/counsellorDashboard");
+                }
+                else if (jwtdecoded.role === "ROLE_SENIORDR") {
+                    navigate("/SrDrDashboard");
+                } 
+            } else {
+                navigate("/");
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
+    }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,26 +56,27 @@ const Login = () => {
       const role = response?.data?.role;
       console.log(role);
 
-      // const lobbyResponse = await api.get(LOBBY_URL);
-      if (role === "ROLE_COUNSELLOR") {
-        // Redirect to the counsellor dashboard
-        navigate("/counsellorDashboard");
-      } else {
-        setUsername("");
-        setPassword("");
-        console.log(
-          "You are not authorized to access Counsellor Dashboard Page !"
-        );
-      }
-
-      if (role == "ROLE_ADMIN") {
+            // const lobbyResponse = await api.get(LOBBY_URL);
+            if (role === "ROLE_COUNSELLOR") {
+                // Redirect to the counsellor dashboard
+                navigate("/counsellorDashboard");
+            } 
+            else if (role === "ROLE_SENIORDR") {
+                // Redirect to the counsellor dashboard
+                navigate("/SrDrDashboard");
+            } 
+    else  if (role == "ROLE_ADMIN") {
         // Redirect to the Admin Dashboard
         navigate("/adminDashboard");
-      } else {
-        setUsername("");
-        setPassword("");
-        console.log("You are not authorized to access Admin Dashboard Page !");
-      }
+      } 
+            else {
+                setUsername("");
+                setPassword("");
+                console.log(
+                    "You are not authorized to access Counsellor Dashboard Page !"
+                );
+            }
+
 
       // console.log(lobbyResponse);
     } catch (err) {
