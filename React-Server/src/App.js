@@ -5,8 +5,8 @@ import PatientLogin from "./pages/patients/Login";
 import PatientDialer from "./pages/patientDialer/PatientDialer";
 import CounsellorDashboard from "./pages/counsellorDashboard/CounsellorDashboard";
 import InCall from "./pages/inCall/InCall";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminCreateCounsellor from "./pages/admin/AdminCreateCounsellor";
+import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
+import AdminCreateCounsellor from "./pages/admin/create-counsellor-seniordr/AdminCreateCounsellor";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {

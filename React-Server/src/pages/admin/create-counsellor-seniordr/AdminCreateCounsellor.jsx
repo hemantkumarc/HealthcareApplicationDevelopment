@@ -1,6 +1,6 @@
 import React from "react";
 import "./AdminCreateCounsellor.css";
-import api from "../../api/axios";
+import api from "../../../api/axios.jsx";
 import { counsellorLanguages } from "./languages.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
