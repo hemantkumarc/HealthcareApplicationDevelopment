@@ -71,11 +71,6 @@ function Doctor({ filters, search, sorts }) {
           filters.language.includes(language)
         );
 
-      // const matchesStatus = counsellor.status.some(
-      //   (status) =>
-      //     filters.status.length === 0 || filters.status.includes(status)
-      // );
-
       const matchesStatus =
         filters.status.length === 0 ||
         filters.status.includes(counsellor.status);
