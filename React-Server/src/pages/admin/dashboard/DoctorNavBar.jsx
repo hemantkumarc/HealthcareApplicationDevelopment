@@ -3,10 +3,13 @@ import "./DoctorNavBar.css";
 import drVolteLogo from "../../../assets/drVolteLogo.png";
 import { useNavigate } from "react-router-dom";
 import SearchDoctor from "./SearchDoctor";
+import AdminCreateCounsellorModal from "../create-counsellor-seniordr/AdminCreateCounsellorModal";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 
 export default function DoctorNavBar({ setSearch }) {
   const navigate = useNavigate();
+
+  const [modalShow, setModalShow] = React.useState(false);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -25,23 +28,23 @@ export default function DoctorNavBar({ setSearch }) {
           <img src={drVolteLogo} alt="logo" className="img-logo" />
           Dr.VoLTE
         </Navbar.Brand>
-
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
-          <Nav className="ml-auto" style={{ alignItems: "center" }}>
+          <Nav className="me-auto">
+            <Nav.Link href="/adminCreateCounsellor">
+              Create Counsellor / Senior Doctor
+            </Nav.Link>
+          </Nav>
+          <Nav>
             <Nav.Link>
               <div className="search-container">
                 <SearchDoctor setSearch={setSearch} />
               </div>
             </Nav.Link>
             <Nav.Link eventKey={2}>
-              <Button
-                onClick={handleLogout}
-                variant="dark"
-                className="lg-button"
-              >
+              <Button onClick={handleLogout} variant="dark">
                 Logout
-              </Button>
+              </Button>{" "}
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

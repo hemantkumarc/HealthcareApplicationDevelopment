@@ -26,6 +26,8 @@ const Login = () => {
                 console.log("this is the jwtDecode after decoding", jwtdecoded);
                 if (jwtdecoded.role === "ROLE_COUNSELLOR") {
                     navigate("/counsellorDashboard");
+                } else if (jwtdecoded.role === "ROLE_SENIORDR") {
+                    navigate("/SrDrDashboard");
                 }
             } else {
                 navigate("/");
@@ -57,22 +59,17 @@ const Login = () => {
             if (role === "ROLE_COUNSELLOR") {
                 // Redirect to the counsellor dashboard
                 navigate("/counsellorDashboard");
-            } else {
-                setUsername("");
-                setPassword("");
-                console.log(
-                    "You are not authorized to access Counsellor Dashboard Page !"
-                );
-            }
-
-            if (role === "ROLE_ADMIN") {
+            } else if (role === "ROLE_SENIORDR") {
+                // Redirect to the counsellor dashboard
+                navigate("/SrDrDashboard");
+            } else if (role == "ROLE_ADMIN") {
                 // Redirect to the Admin Dashboard
                 navigate("/adminDashboard");
             } else {
                 setUsername("");
                 setPassword("");
                 console.log(
-                    "You are not authorized to access Admin Dashboard Page !"
+                    "You are not authorized to access Counsellor Dashboard Page !"
                 );
             }
 
