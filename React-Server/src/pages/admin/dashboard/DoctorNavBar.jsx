@@ -19,7 +19,7 @@ export default function DoctorNavBar({ setSearch }) {
     <Navbar
       collapseOnSelect
       expand="lg"
-      className="bg-body-tertiary"
+      className="bg-body-tertiary adnavbar-align"
       fixed="top"
     >
       <Container>
