@@ -27,6 +27,9 @@ const Login = () => {
                 if (jwtdecoded.role === "ROLE_COUNSELLOR") {
                     navigate("/counsellorDashboard");
                 }
+                else if (jwtdecoded.role === "ROLE_SENIORDR") {
+                    navigate("/SrDrDashboard");
+                } 
             } else {
                 navigate("/");
             }
@@ -57,7 +60,12 @@ const Login = () => {
             if (role === "ROLE_COUNSELLOR") {
                 // Redirect to the counsellor dashboard
                 navigate("/counsellorDashboard");
-            } else {
+            } 
+            else if (role === "ROLE_SENIORDR") {
+                // Redirect to the counsellor dashboard
+                navigate("/SrDrDashboard");
+            } 
+            else {
                 setUsername("");
                 setPassword("");
                 console.log(
