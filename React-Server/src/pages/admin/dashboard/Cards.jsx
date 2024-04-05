@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
 
-export default function Cards({ doctor }) {
+export default function Cards({ doctor, updateDoctorStatus }) {
   const DISABLE_DOCTOR_ENDPOINT = "http://localhost/springdatarest/doctors/";
 
   const [status, setStatus] = useState(doctor.status);
@@ -43,6 +43,8 @@ export default function Cards({ doctor }) {
       } else {
         setStatus("enabled");
       }
+
+      updateDoctorStatus({ ...doctor, status: obj.status });
     } catch (err) {
       console.log(err);
       console.log("Disable functionality did not work !!");

@@ -46,6 +46,14 @@ function Doctor({ filters, search, sorts }) {
     fetchData();
   }, []);
 
+  const updateDoctorStatus = (updatedDoctor) => {
+    setSortedDoctors((prevDoctors) =>
+      prevDoctors.map((doctor) =>
+        doctor.email === updatedDoctor.email ? updatedDoctor : doctor
+      )
+    );
+  };
+
   // const sorted_Counsellors = data
   //   .filter((counselor) => {
   //     const matchesSpecialization =
@@ -105,7 +113,7 @@ function Doctor({ filters, search, sorts }) {
       <section className="card-container">
         {sorted_doctors.map((doctor) => (
           <div key={doctor.email} className="card">
-            <Cards doctor={doctor} />
+            <Cards doctor={doctor} updateDoctorStatus={updateDoctorStatus} />
           </div>
         ))}
       </section>
