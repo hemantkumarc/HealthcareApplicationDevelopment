@@ -2,86 +2,12 @@
 import api from "../api/axios";
 import { SERVERIP } from "../api/axios";
 
+let token = localStorage.getItem("token");
+var peerConnection, conn;
+
 export const initiateWebsocket = () => {
-    const conn = new WebSocket("ws://" + SERVERIP + "/socket");
+    conn = new WebSocket("ws://" + SERVERIP + "/socket");
     console.log(conn);
-    return conn;
-};
-
-/**
- * @param {WebSocket} conn The date
- * @returns {RTCPeerConnection} The created RTCPeerConnection object
- */
-export const initiateWebRTC = async (conn) => {
-    const token = localStorage.getItem("token");
-    var peerConnection = new RTCPeerConnection();
-    // {
-    // iceServers: [
-    //     {
-    //         url: "stun:stun4.1.google.com:19302",
-    //     },
-    // ],
-    //  }
-    const handleReceivedIceCandidate = (candidate) => {
-        // Assuming 'peerConnection' is your WebRTC peer connection object
-
-        peerConnection
-            .addIceCandidate(new RTCIceCandidate(candidate))
-            .then(() => {
-                console.log("ICE candidate added successfully.");
-            })
-            .catch((error) => {
-                console.error("Error adding ICE candidate:", error);
-            });
-    };
-
-    peerConnection.onicecandidate = function (event) {
-        // if (event.candidate) {
-        //     send(conn, {
-        //         event: "candidate",
-        //         data: JSON.stringify(event.candidate),
-        //         token: token,
-        //     });
-        // }
-    };
-
-    const handleReceivedOffer = async (offer) => {
-        try {
-            // Set the received offer as the remote description
-            await peerConnection.setRemoteDescription(
-                new RTCSessionDescription(offer)
-            );
-
-            // Create an answer
-            const answer = await peerConnection.createAnswer();
-
-            // Set the answer as the local description
-            await peerConnection.setLocalDescription(answer);
-
-            // Send the answer to the initiating peer
-            send(conn, {
-                event: "answer",
-                data: JSON.stringify(answer),
-                token: token,
-            });
-        } catch (error) {
-            console.error("Error handling received offer:", error);
-        }
-    };
-
-    const handleReceivedAnswer = async (answer) => {
-        console.log(
-            "This the corrent state of connection",
-            peerConnection.connectionState
-        );
-        try {
-            // Set the received answer as the remote description
-            await peerConnection.setRemoteDescription(answer);
-        } catch (error) {
-            console.error("Error handling received answer:", error);
-        }
-    };
-
     conn.addEventListener("message", (e) => {
         let data;
         try {
@@ -105,6 +31,86 @@ export const initiateWebRTC = async (conn) => {
             handleReceivedAnswer(JSON.parse(data.data));
         }
     });
+
+    return conn;
+};
+
+const handleReceivedOffer = async (offer) => {
+    token = localStorage.getItem("token");
+    try {
+        // Set the received offer as the remote description
+        await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(offer)
+        );
+
+        // Create an answer
+        const answer = await peerConnection.createAnswer();
+
+        // Set the answer as the local description
+        await peerConnection.setLocalDescription(answer);
+
+        // Send the answer to the initiating peer
+        send(conn, {
+            event: "answer",
+            data: JSON.stringify(answer),
+            token: token,
+        });
+    } catch (error) {
+        console.error("Error handling received offer:", error);
+    }
+};
+
+const handleReceivedAnswer = async (answer) => {
+    console.log(
+        "This the corrent state of connection",
+        peerConnection.connectionState
+    );
+    try {
+        // Set the received answer as the remote description
+        await peerConnection.setRemoteDescription(answer);
+    } catch (error) {
+        console.error("Error handling received answer:", error);
+    }
+};
+
+const handleReceivedIceCandidate = (candidate) => {
+    // Assuming 'peerConnection' is your WebRTC peer connection object
+
+    peerConnection
+        .addIceCandidate(new RTCIceCandidate(candidate))
+        .then(() => {
+            console.log("ICE candidate added successfully.");
+        })
+        .catch((error) => {
+            console.error("Error adding ICE candidate:", error);
+        });
+};
+
+/**
+ * @param {WebSocket} conn The date
+ * @returns {RTCPeerConnection} The created RTCPeerConnection object
+ */
+export const initiateWebRTC = async (socketConn) => {
+    // {
+    // iceServers: [
+    //     {
+    //         url: "stun:stun4.1.google.com:19302",
+    //     },
+    // ],
+    //  }
+    token = localStorage.getItem("token");
+    conn = socketConn;
+    peerConnection = new RTCPeerConnection();
+
+    peerConnection.onicecandidate = function (event) {
+        // if (event.candidate) {
+        //     send(conn, {
+        //         event: "candidate",
+        //         data: JSON.stringify(event.candidate),
+        //         token: token,
+        //     });
+        // }
+    };
 
     peerConnection.addEventListener("negotiationneeded", () => {
         handleRenegotiation(conn, peerConnection);
@@ -145,6 +151,42 @@ export const handleRenegotiation = async (conn, peerConnection) => {
     }
 };
 
+export const handlePeerConnectionClose = (
+    conn,
+    peerConnection,
+    functionToCall
+) => {
+    console.log(
+        "inside the handlePeerConnectionClose function",
+        conn,
+        peerConnection,
+        functionToCall
+    );
+    peerConnection.addEventListener("connectionstatechange", (ev) => {
+        console.log("peer connection state change", ev, peerConnection);
+        switch (peerConnection.connectionState) {
+            case "new":
+            case "connecting":
+                console.log("Connecting…");
+                break;
+            case "connected":
+                console.log("Online");
+                break;
+            case "disconnected":
+                console.log("Disconnecting…");
+            case "closed":
+                console.log("Offline");
+            case "failed":
+                console.log("Error");
+                functionToCall();
+                break;
+            default:
+                console.log("Unknown");
+                break;
+        }
+    });
+};
+
 /**
  * @param {RTCPeerConnection} peerconnection The Peerconnection
  */
@@ -154,7 +196,7 @@ export const handleStreamingAudio = (peerconnection) => {
         .getUserMedia({ audio: true, video: false })
         .then(function (stream) {
             stream.getAudioTracks().forEach((track) => {
-                console.log("this is the track adding now", track);
+                console.log("this is the local track adding now", track);
                 peerconnection.addTrack(track, stream);
             });
         });

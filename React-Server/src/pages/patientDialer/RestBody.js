@@ -4,6 +4,7 @@ import "./RestBody.css";
 import DialerDial from "./DialerDial";
 import {
     getSocketJson,
+    handlePeerConnectionClose,
     initiateWebRTC,
     initiateWebsocket,
     send,
@@ -17,7 +18,7 @@ const RestBody = () => {
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
     const [modalBody, setModalBody] = useState();
     const [isMuted, setIsMuted] = useState(false);
-    const drVoltePhnumber = "9899000123";
+    const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
@@ -70,6 +71,11 @@ const RestBody = () => {
                             setIsWebRTCConnected(true);
                             // audioEle.current.sourceo
                         };
+                        handlePeerConnectionClose(
+                            conn,
+                            peerconnection,
+                            disconnectCall
+                        );
                         console.log("peerconnection :", peerconnection);
                     }
                     if (data.data === "NoCounsellorAvailable") {
@@ -159,11 +165,15 @@ const RestBody = () => {
         ) {
             console.log("peerconnection connected, Now disconnecting");
             peerconnection.close();
-            peerconnection = undefined;
         }
         if (peerconnection) {
             peerconnection.close();
             peerconnection = undefined;
+            setShowCallConnectingModal(true);
+            setModalBody("Call Disconnected");
+            setTimeout(() => {
+                setShowCallConnectingModal(false);
+            }, 2000);
         }
     };
     console.log(dial);
