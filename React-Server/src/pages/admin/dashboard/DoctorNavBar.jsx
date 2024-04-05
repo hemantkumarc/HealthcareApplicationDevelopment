@@ -3,7 +3,6 @@ import "./DoctorNavBar.css";
 import drVolteLogo from "../../../assets/drVolteLogo.png";
 import { useNavigate } from "react-router-dom";
 import SearchDoctor from "./SearchDoctor";
-import AdminCreateCounsellorModal from "../create-counsellor-seniordr/AdminCreateCounsellorModal";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
 
 export default function DoctorNavBar({ setSearch }) {
