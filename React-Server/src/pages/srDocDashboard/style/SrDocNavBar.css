@@ -1,17 +1,23 @@
 .img-logo {
-    height: 70px;
-    width: 87px;
-    margin-top: -5px;
-    margin-left: -50px;
+	height: 70px;
+	width: 87px;
+	margin-top: -5px;
+	margin-left: -50px;
 }
 .lg-button {
-    float: right;
-    margin-top: 3px;
-    margin-right: 8px;
-    margin-left: auto;
+	float: right;
+	margin-top: 3px;
+	margin-right: 8px;
+	margin-left: auto;
 }
 .search-container {
-    display: flex;
-    flex-direction: column;
-    width: 350px;
+	display: flex;
+	flex-direction: column;
+	width: 350px;
+}
+.bg-body-tertiary {
+	padding: 0px;
+}
+.navbar-align {
+	margin-bottom: -25px;
 }

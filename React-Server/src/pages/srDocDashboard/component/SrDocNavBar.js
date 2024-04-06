@@ -18,7 +18,7 @@ export default function SrDocNavBar({ setSearch }) {
     <Navbar
       collapseOnSelect
       expand="lg"
-      className="bg-body-tertiary"
+      className="bg-body-tertiary .navbar-align"
       fixed="top"
     >
       <Container>

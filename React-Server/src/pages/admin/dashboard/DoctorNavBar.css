@@ -15,3 +15,10 @@
     flex-direction: column;
     width: 350px;
 }
+
+.bg-body-tertiary {
+	padding: 0px;
+}
+.adnavbar-align {
+	margin-bottom: -25px;
+}
