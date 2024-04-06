@@ -9,16 +9,6 @@ const PatientDialer = () => {
     const token = localStorage.getItem("token");
     // use this ti check if user is logged in
     useEffect(() => {
-        // console.log(
-        //     "this is what i got",
-        //     userLoggedIn().then((loggedIn) => {
-        //         if (loggedIn) {
-        //         } else {
-        //             localStorage.clear();
-        //             navigate("/patientlogin");
-        //         }
-        //     })
-        // );
         const checkLoggedIn = async () => {
             const loggedIn = await userLoggedIn();
             if (loggedIn) {

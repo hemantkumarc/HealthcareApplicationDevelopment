@@ -34,11 +34,14 @@ const RestBody = () => {
         console.log("Creating a new WebSocket connection...");
         conn = initiateWebsocket();
         conn.onclose = (msg) => {
-            setIsWebSocketConnected(true);
+            setShowCallConnectingModal(true);
             console.log("socket connection closed", msg.data);
+            setModalBody("Not connected to Server");
+            setTimeout(() => {
+                setShowCallConnectingModal(false);
+            }, 3000);
         };
         conn.onopen = (e) => {
-            setIsWebSocketConnected(true);
             console.log("socket connection opened", conn, e);
             console.log("set timeout inside");
             send(conn, getSocketJson("", "settoken", token));
@@ -184,17 +187,10 @@ const RestBody = () => {
                     <Modal.Title>Call Status</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>{modalBody}</Modal.Body>
-                <Modal.Footer></Modal.Footer>
             </Modal>
             <div className="row">
                 <div className="col-3"></div>
-                <div
-                    className="col-6"
-                    style={{
-                        border: "5px solid",
-                        borderColor: isWebSocketConnected ? "green" : "red",
-                    }}
-                >
+                <div className="col-6">
                     <div className="container mt-5">
                         <div className="phone-dialer">
                             <input

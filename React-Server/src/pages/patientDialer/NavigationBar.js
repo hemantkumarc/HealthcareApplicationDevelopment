@@ -35,7 +35,7 @@ const NavigationBar = () => {
                     <Navbar.Brand href="#home">Dr.VoLTE</Navbar.Brand>
                     <Button
                         onClick={() => showModal()}
-                        className="callHistoryModalButton"
+                        className="btn btn-light callHistoryModalButton"
                     >
                         Call Logs
                     </Button>

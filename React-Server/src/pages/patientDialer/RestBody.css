@@ -1,12 +1,8 @@
-.btn{
+.btn {
     width: inherit;
     height: -webkit-fill-available;
     margin: 3px;
 }
-.row .btn{
-    min-height: 100px;
-    /* font-size: 55px; */
-}
-.phone-dialer .form-control{
+.phone-dialer .form-control {
     min-height: 70px;
 }
