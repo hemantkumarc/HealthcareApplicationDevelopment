@@ -25,10 +25,10 @@ insert into patient (id, allergies, blood_group, dob, languague, location, major
 insert into patient (id, allergies, blood_group, dob, languague, location, major_issues, minor_issues, name, ph_no, state) values(4, 'Nut Allergy, Dust Allergy', 'O+', '01 Aug 1972', 'English', 'Kolkata', 'Mental Health Disorders', 'Blood Pressure', 'Barack Obama', '9743657687', 'West Bengal');
 
 
-insert into callback (id, followup_reason, schedule, counsellor_id, status) values(1, "Followup callback to see how the patient is responding to the treatment", '2024-04-30 12:00:00.000000', 1, "complete");
-insert into callback (id, followup_reason, schedule, counsellor_id, status) values(2, "Followup callback to see how the patient is responding to the prescribed medicine", '2024-10-01 12:00:00.000000', 2, "missed");
-insert into callback (id, followup_reason, schedule, counsellor_id, status) values(3, "Followup callback for the patients routine checkup.", '2024-04-15 12:00:00.000000', 3, "scheduled");
-insert into callback (id, followup_reason, schedule, counsellor_id, status) values(4, "Followup callback to see how the patient is responding to change in treatment", '2024-05-01 12:00:00.000000', 4, "complete");
+insert into callback (id, followup_reason, schedule, counsellor_id, status, patient_id) values(1, "Followup callback to see how the patient is responding to the treatment", '2024-04-30 12:00:00.000000', 1, "complete", 1);
+insert into callback (id, followup_reason, schedule, counsellor_id, status, patient_id) values(2, "Followup callback to see how the patient is responding to the prescribed medicine", '2024-10-01 12:00:00.000000', 2, "missed",2);
+insert into callback (id, followup_reason, schedule, counsellor_id, status, patient_id) values(3, "Followup callback for the patients routine checkup.", '2024-04-15 12:00:00.000000', 3, "scheduled",3);
+insert into callback (id, followup_reason, schedule, counsellor_id, status, patient_id) values(4, "Followup callback to see how the patient is responding to change in treatment", '2024-05-01 12:00:00.000000', 4, "complete",4);
 
 
 insert into call_history(id, call_end, call_start, counsellor_id, patient_id, status) values(1, '2024-04-01 12:00:00.000000', '2024-04-01 11:30:00.000000', 1, 1,"complete");

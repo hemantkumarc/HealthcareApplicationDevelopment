@@ -16,7 +16,11 @@ public class CallBack {
 
     @ManyToOne
     @JoinColumn(name = "counsellor_id", nullable = false)
-    private Counsellor counsellorId;
+    private Counsellor counsellor;
+
+    @ManyToOne
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Counsellor patient;
 
     @Column(name = "followup_reason", nullable = true)
     private String followupReason;

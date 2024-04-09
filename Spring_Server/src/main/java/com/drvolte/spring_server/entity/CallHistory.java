@@ -18,11 +18,11 @@ public class CallHistory {
 
     @ManyToOne
     @JoinColumn(name = "counsellor_id", referencedColumnName = "doctor_id", nullable = false)
-    private Counsellor counsellorId;
+    private Counsellor counsellor;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
-    private Patient patientId;
+    private Patient patient;
 
     @Column(name = "call_start", nullable = false)
     private Date callStart;
