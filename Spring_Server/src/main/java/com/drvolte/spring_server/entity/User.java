@@ -1,5 +1,6 @@
 package com.drvolte.spring_server.entity;
 
+import com.drvolte.spring_server.models.Roles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,7 @@ public class User {
     private String password;
 
     @Column(name = "role", nullable = false)
-    private String role;
+    private Roles role;
 
     @Column(name = "enable", nullable = false)
     private boolean enable;

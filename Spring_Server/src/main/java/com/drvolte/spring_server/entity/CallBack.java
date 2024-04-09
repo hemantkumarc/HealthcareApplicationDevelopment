@@ -1,6 +1,5 @@
 package com.drvolte.spring_server.entity;
 
-import com.drvolte.spring_server.entity.Counsellor;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,8 +7,8 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "callbacks")
-public class CallBacks {
+@Table(name = "callback")
+public class CallBack {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,5 +23,8 @@ public class CallBacks {
 
     @Column(name = "schedule", nullable = false)
     private Date schedule;
+
+    @Column(name = "status", nullable = false)
+    private String status;
 
 }

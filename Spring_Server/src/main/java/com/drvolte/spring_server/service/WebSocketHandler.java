@@ -26,6 +26,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private static final String SET_TOKEN_EVENT = "settoken";
     private static final String SET_CONNECT_EVENT = "connect";
     private static final String STATE_CONNECTED = "connected";
+    private static final String STATE_DISCONNECT = "disconnect";
     private static final String STATE_INCALL = "incall";
     private final Map<String, WebSocketSession> sessions = Collections.synchronizedMap(new HashMap<>());
     private final WebSocketConnection webSocketConnections;
