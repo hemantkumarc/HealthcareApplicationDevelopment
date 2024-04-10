@@ -42,9 +42,9 @@ public class UserAuthenticationProvider {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000); // 1 hour
 
-
         return JWT.create()
                 .withSubject(user.getUsername())
+                .withClaim("id", user.getId())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .withClaim("firstName", user.getFirstName())
