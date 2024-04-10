@@ -14,14 +14,14 @@ public class WebSocketConnection {
     private Map<String, String> tokenToSessionId;
     private Map<String, String> sessionIdToToken;
     private Map<Roles, Map<String, HashSet<String>>> roleToStateToToken;
-    private Map<String, HashSet<String>> tokenToTokenSet;
+    private Map<String, Map<Roles, String>> tokenToRoleToToken;
 
 
     public WebSocketConnection() {
         this.tokenToSessionId = new HashMap<String, String>();
         this.sessionIdToToken = new HashMap<String, String>();
         this.roleToStateToToken = new HashMap<Roles, Map<String, HashSet<String>>>();
-        this.tokenToTokenSet = new HashMap<String, HashSet<String>>();
+        this.tokenToRoleToToken = new HashMap<String, Map<Roles, String>>();
 
     }
 

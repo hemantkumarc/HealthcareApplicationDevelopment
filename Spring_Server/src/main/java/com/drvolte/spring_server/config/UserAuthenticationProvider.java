@@ -8,6 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.drvolte.spring_server.dtos.PatientResponseDto;
 import com.drvolte.spring_server.dtos.UserDto;
 import jakarta.annotation.PostConstruct;
+import lombok.Data;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -19,11 +20,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@Data
 public class UserAuthenticationProvider {
 
     private String secretKey = "SECRET";
     private Algorithm algorithm;
 
+    private HashSet<String> invalidTokens;
     private JWTVerifier verifier;
 
     @PostConstruct
@@ -32,6 +35,7 @@ public class UserAuthenticationProvider {
         this.algorithm = Algorithm.HMAC256(secretKey);
         this.verifier = JWT.require(algorithm)
                 .build();
+        this.invalidTokens = new HashSet<String>();
     }
 
     public String createToken(UserDto user) {
@@ -51,7 +55,9 @@ public class UserAuthenticationProvider {
 
     public Authentication validateToken(String token) throws JWTVerificationException {
 
-
+        if (this.invalidTokens.contains(token)) {
+            throw new JWTVerificationException("Invalid token " + token);
+        }
         DecodedJWT decoded = verifier.verify(token);
         Set<String> roles = new HashSet<String>();
         roles.add(decoded.getClaim("role").asString());
@@ -75,6 +81,9 @@ public class UserAuthenticationProvider {
     }
 
     public DecodedJWT getDecoded(String token) throws JWTVerificationException {
+        if (this.invalidTokens.contains(token)) {
+            throw new JWTVerificationException("Invalid token " + token);
+        }
         return verifier.verify(token);
     }
 
