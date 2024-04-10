@@ -31,4 +31,8 @@ public class CallBack {
     @Column(name = "status", nullable = false)
     private String status;
 
+    public Long getResourceId(){
+        return id;
+    }
+
 }

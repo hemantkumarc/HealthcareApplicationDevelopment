@@ -32,4 +32,9 @@ public class User {
 
     @Column(name = "enable", nullable = false)
     private boolean enable;
+
+    public Long getResourceId(){
+        return id;
+    }
+
 }

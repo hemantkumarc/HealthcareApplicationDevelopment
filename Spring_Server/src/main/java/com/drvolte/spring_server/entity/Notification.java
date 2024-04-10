@@ -19,5 +19,8 @@ public class Notification {
     @Column(name = "message", nullable = false)
     private String message;
 
+    public Long getResourceId(){
+        return id;
+    }
 
 }

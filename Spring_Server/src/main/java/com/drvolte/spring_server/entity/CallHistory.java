@@ -15,7 +15,6 @@ public class CallHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne
     @JoinColumn(name = "counsellor_id", referencedColumnName = "doctor_id", nullable = false)
     private Counsellor counsellor;
@@ -32,4 +31,8 @@ public class CallHistory {
 
     @Column(name = "status", nullable = false)
     private String status;
+
+    public Long getResourceId(){
+        return id;
+    }
 }

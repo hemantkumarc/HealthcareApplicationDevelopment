@@ -37,5 +37,9 @@ public class PatientHistory {
     @Column(name = "created", nullable = false)
     private Date created;
 
+    public Long getResourceId(){
+        return id;
+    }
+
 
 }
