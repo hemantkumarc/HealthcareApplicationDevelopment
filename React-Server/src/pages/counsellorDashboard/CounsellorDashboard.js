@@ -22,6 +22,7 @@ let conn, peerconnection;
 export default function CounsellorDashboard() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
     const [showCallConnectingModal, setShowCallConnectingModal] =
         useState(false);
     const [showInCall, setShowIncall] = useState(false);
@@ -54,8 +55,7 @@ export default function CounsellorDashboard() {
             function send(message) {
                 conn.send(JSON.stringify(message));
             }
-            const token = localStorage.getItem("token");
-            send(getSocketJson("", "settoken", token));
+            send(getSocketJson("", "settoken", token, role));
             conn.addEventListener("message", async (e) => {
                 console.log("received3", e);
                 let data;

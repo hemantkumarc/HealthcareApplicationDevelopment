@@ -267,8 +267,20 @@ export const userLoggedIn = () => {
     }
 };
 
-export const getSocketJson = (data, event, token) => {
-    return { data: data, event: event, token: token };
+export const getSocketJson = (
+    data,
+    event,
+    token,
+    source = "",
+    destination = ""
+) => {
+    return {
+        data: data,
+        event: event,
+        token: token,
+        source: source,
+        destination: destination,
+    };
 };
 
 export function send(conn, message) {
