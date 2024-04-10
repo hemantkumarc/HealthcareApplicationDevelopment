@@ -41,5 +41,8 @@ public class Patient {
     @Column(name = "dob", nullable = true)
     private String dob;
 
+    public Long getResourceId(){
+        return id;
+    }
 
 }

@@ -45,4 +45,8 @@ public class Doctor {
     @Column(name = "languagues", nullable = true)
     private String languages;
 
+    public Long getResourceId(){
+        return id;
+    }
+
 }
