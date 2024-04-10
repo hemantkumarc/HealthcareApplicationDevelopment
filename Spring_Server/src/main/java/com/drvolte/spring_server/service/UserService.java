@@ -2,10 +2,10 @@ package com.drvolte.spring_server.service;
 
 import com.drvolte.spring_server.dao.UserRepository;
 import com.drvolte.spring_server.dtos.CredentialsDto;
+import com.drvolte.spring_server.dtos.UserDto;
+import com.drvolte.spring_server.entity.User;
 import com.drvolte.spring_server.exceptions.AppException;
 import com.drvolte.spring_server.mappers.UserMapper;
-import com.drvolte.spring_server.entity.User;
-import com.drvolte.spring_server.dtos.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,9 +1,15 @@
 package com.drvolte.spring_server.controller;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.drvolte.spring_server.config.UserAuthenticationProvider;
 import com.drvolte.spring_server.dtos.CredentialsDto;
 import com.drvolte.spring_server.dtos.UserDto;
+import com.drvolte.spring_server.models.Roles;
+import com.drvolte.spring_server.models.WebSocketConnection;
 import com.drvolte.spring_server.service.UserService;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +24,14 @@ public class GeneralControllers {
     private final UserService userService;
     @Autowired
     private final UserAuthenticationProvider userAuthProvider;
+    private final WebSocketConnection webSocketConnections;
+    private final UserAuthenticationProvider jwtAuthProvider;
 
-    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider) {
+    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider, WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider) {
         this.userService = userService;
         this.userAuthProvider = userAuthProvider;
+        this.webSocketConnections = webSocketConnections;
+        this.jwtAuthProvider = jwtAuthProvider;
     }
 
     @PostMapping("/login")
@@ -49,5 +59,87 @@ public class GeneralControllers {
     @GetMapping("/patient")
     public ResponseEntity<String> sayHellopatient() {
         return ResponseEntity.ok("Hello brother patient");
+    }
+
+    @GetMapping("/onlinestatus")
+    public ResponseEntity<String> getOnlineUsers() {
+        JSONObject retJson = new JSONObject()
+                .put(Roles.ROLE_COUNSELLOR + "_online", new JSONArray())
+                .put(Roles.ROLE_SENIORDR + "_online", new JSONArray())
+                .put(Roles.ROLE_COUNSELLOR + "_incall", new JSONArray())
+                .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray());
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("connected")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("connected")) {
+                System.out.println(token);
+                try {
+
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    Long id = decodedJWT.getClaim("id").asLong();
+                    retJson.getJSONArray(Roles.ROLE_COUNSELLOR + "_online").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No counsellor in online state" + webSocketConnections.getRoleToStateToToken());
+        }
+
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("incall")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("incall")) {
+                System.out.println(token);
+                try {
+
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    Long id = decodedJWT.getClaim("id").asLong();
+                    retJson.getJSONArray(Roles.ROLE_COUNSELLOR + "_incall").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No counsellor in incall state" + webSocketConnections.getRoleToStateToToken());
+        }
+
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).containsKey("connected")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).get("connected")) {
+                System.out.println(token);
+                try {
+
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    String id = decodedJWT.getClaim("id").asString();
+                    retJson.getJSONArray(Roles.ROLE_SENIORDR + "_online").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No counsellor in online state" + webSocketConnections.getRoleToStateToToken());
+        }
+
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).containsKey("incall")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).get("incall")) {
+                System.out.println(token);
+                try {
+
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    String id = decodedJWT.getClaim("id").asString();
+                    retJson.getJSONArray(Roles.ROLE_SENIORDR + "_incall").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No counsellor in incall state" + webSocketConnections.getRoleToStateToToken());
+        }
+        System.out.println("this is retjson:" + retJson);
+        return ResponseEntity.ok(retJson.toString());
     }
 }
