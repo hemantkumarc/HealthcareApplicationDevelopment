@@ -3,10 +3,11 @@ import api from "../api/axios";
 import { SERVERIP } from "../api/axios";
 
 let token = localStorage.getItem("token");
-var peerConnection, conn;
+var conn;
 
-export const initiateWebsocket = () => {
+export const initiateWebsocket = (sourceRole, connections) => {
     conn = new WebSocket("ws://" + SERVERIP + "/socket");
+    connections.conn = conn;
     console.log(conn);
     conn.addEventListener("message", (e) => {
         let data;
@@ -17,26 +18,27 @@ export const initiateWebsocket = () => {
             return;
         }
         console.log("recieved 1", data);
-        if (data.event === "candidate") {
-            // Handle the received ICE candidate
-            handleReceivedIceCandidate(JSON.parse(data.data));
-        }
         if (data.event === "offer") {
             // Handle the received offer
-            handleReceivedOffer(JSON.parse(data.data));
+            handleReceivedOffer(JSON.parse(data.data), sourceRole, connections);
         }
         if (data.event === "answer") {
             // Handle the received answer
             // console.log("this is the parsed answer:", JSON.parse(data.data));
-            handleReceivedAnswer(JSON.parse(data.data));
+            handleReceivedAnswer(
+                JSON.parse(data.data),
+                sourceRole,
+                connections
+            );
         }
     });
 
     return conn;
 };
 
-const handleReceivedOffer = async (offer) => {
+const handleReceivedOffer = async (offer, sourceRole, connections) => {
     token = localStorage.getItem("token");
+    let peerConnection = connections.peerConnection;
     try {
         // Set the received offer as the remote description
         await peerConnection.setRemoteDescription(
@@ -50,17 +52,23 @@ const handleReceivedOffer = async (offer) => {
         await peerConnection.setLocalDescription(answer);
 
         // Send the answer to the initiating peer
-        send(conn, {
-            event: "answer",
-            data: JSON.stringify(answer),
-            token: token,
-        });
+        send(
+            conn,
+            getSocketJson(
+                JSON.stringify(answer),
+                "answer",
+                token,
+                sourceRole,
+                conn.destRole
+            )
+        );
     } catch (error) {
         console.error("Error handling received offer:", error);
     }
 };
 
-const handleReceivedAnswer = async (answer) => {
+const handleReceivedAnswer = async (answer, sourceRole, connections) => {
+    let peerConnection = connections.peerConnection;
     console.log(
         "This the corrent state of connection",
         peerConnection.connectionState
@@ -73,24 +81,11 @@ const handleReceivedAnswer = async (answer) => {
     }
 };
 
-const handleReceivedIceCandidate = (candidate) => {
-    // Assuming 'peerConnection' is your WebRTC peer connection object
-
-    peerConnection
-        .addIceCandidate(new RTCIceCandidate(candidate))
-        .then(() => {
-            console.log("ICE candidate added successfully.");
-        })
-        .catch((error) => {
-            console.error("Error adding ICE candidate:", error);
-        });
-};
-
 /**
  * @param {WebSocket} conn The date
  * @returns {RTCPeerConnection} The created RTCPeerConnection object
  */
-export const initiateWebRTC = async (socketConn) => {
+export const initiateWebRTC = async (socketConn, sourceRole, connections) => {
     // {
     // iceServers: [
     //     {
@@ -100,27 +95,27 @@ export const initiateWebRTC = async (socketConn) => {
     //  }
     token = localStorage.getItem("token");
     conn = socketConn;
-    peerConnection = new RTCPeerConnection();
-
-    peerConnection.onicecandidate = function (event) {
-        // if (event.candidate) {
-        //     send(conn, {
-        //         event: "candidate",
-        //         data: JSON.stringify(event.candidate),
-        //         token: token,
-        //     });
-        // }
-    };
+    let peerConnection = new RTCPeerConnection();
+    connections.peerConnection = peerConnection;
 
     peerConnection.addEventListener("negotiationneeded", () => {
-        handleRenegotiation(conn, peerConnection);
+        handleRenegotiation(conn, peerConnection, sourceRole);
     });
 
     try {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
 
-        send(conn, getSocketJson(JSON.stringify(offer), "offer", token));
+        send(
+            conn,
+            getSocketJson(
+                JSON.stringify(offer),
+                "offer",
+                token,
+                sourceRole,
+                conn.destRole
+            )
+        );
         console.log("Offer sent");
     } catch (error) {
         // Handle error here
@@ -136,14 +131,23 @@ export const initiateWebRTC = async (socketConn) => {
  * @param {RTCPeerConnection} peerconnection The date
  *
  */
-export const handleRenegotiation = async (conn, peerConnection) => {
+export const handleRenegotiation = async (conn, peerConnection, sourceRole) => {
     console.log("Renegotiation needed, sooooooo");
     const token = localStorage.getItem("token");
     try {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
 
-        send(conn, getSocketJson(JSON.stringify(offer), "offer", token));
+        send(
+            conn,
+            getSocketJson(
+                JSON.stringify(offer),
+                "offer",
+                token,
+                sourceRole,
+                conn.destRole
+            )
+        );
         console.log("Offer sent");
     } catch (error) {
         // Handle error here
@@ -267,8 +271,20 @@ export const userLoggedIn = () => {
     }
 };
 
-export const getSocketJson = (data, event, token) => {
-    return { data: data, event: event, token: token };
+export const getSocketJson = (
+    data,
+    event,
+    token,
+    source = "",
+    destination = ""
+) => {
+    return {
+        data: data,
+        event: event,
+        token: token,
+        source: source,
+        destination: destination,
+    };
 };
 
 export function send(conn, message) {

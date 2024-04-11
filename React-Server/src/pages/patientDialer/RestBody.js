@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./RestBody.css";
 import DialerDial from "./DialerDial";
 import {
+    getResponseGet,
     getSocketJson,
     handlePeerConnectionClose,
     initiateWebRTC,
@@ -10,7 +11,13 @@ import {
     send,
 } from "../../utils/utils";
 import { Button, Modal, ModalBody } from "react-bootstrap";
-let conn, peerconnection;
+import { deprecationHandler } from "moment";
+
+const adminRole = "ROLE_ADMIN",
+    counsellorRole = "ROLE_COUNSELLOR";
+let conn, counsellorPeerConnection;
+const connections = { conn: {}, peerConnection: {} };
+
 const RestBody = () => {
     const [dial, setDial] = useState("");
     const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
@@ -20,6 +27,9 @@ const RestBody = () => {
     const [isMuted, setIsMuted] = useState(false);
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role") || "ROLE_PATIENT";
+    let onlineStatus,
+        declinedCounsellors = new Set();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,7 +42,8 @@ const RestBody = () => {
 
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
-        conn = initiateWebsocket();
+        conn = initiateWebsocket(role, connections);
+        connections.conn = conn;
         conn.onclose = (msg) => {
             setShowCallConnectingModal(true);
             console.log("socket connection closed", msg.data);
@@ -44,7 +55,7 @@ const RestBody = () => {
         conn.onopen = (e) => {
             console.log("socket connection opened", conn, e);
             console.log("set timeout inside");
-            send(conn, getSocketJson("", "settoken", token));
+            send(conn, getSocketJson("", "settoken", token, role));
             conn.addEventListener("message", async (e) => {
                 console.log("received", e);
                 let data;
@@ -55,43 +66,6 @@ const RestBody = () => {
                     return;
                 }
                 if (data.event === "reply") {
-                    if (data.data === "CounsellorConnected") {
-                        console.log(
-                            "patient : its time to initiate webRTC hehe"
-                        );
-                        peerconnection = await initiateWebRTC(conn);
-                        peerconnection.ontrack = (e) => {
-                            console.log("setting the remote stream", e);
-                            // const audio = new Audio();
-                            // audio.autoplay = true;
-                            // audio.srcObject = e.streams[0];
-                            setIsMuted(false);
-                            setModalBody("Connected");
-                            setTimeout(
-                                () => setShowCallConnectingModal(false),
-                                2000
-                            );
-                            setIsWebRTCConnected(true);
-                            // audioEle.current.sourceo
-                        };
-                        handlePeerConnectionClose(
-                            conn,
-                            peerconnection,
-                            disconnectCall
-                        );
-                        console.log("peerconnection :", peerconnection);
-                    }
-                    if (data.data === "NoCounsellorAvailable") {
-                        console.log(
-                            "its time to give up and buy rope and stool (not that costly, think about it). theres no counsellor avaialble "
-                        );
-                        setModalBody(
-                            "No Counsellor Available\nDont Check the console message"
-                        );
-                        setTimeout(() => {
-                            setShowCallConnectingModal(false);
-                        }, 3000);
-                    }
                     if (data.data === "Invalid JWT token") {
                         console.log(
                             "Invalid JWT token, idont know why, logging out now"
@@ -99,6 +73,50 @@ const RestBody = () => {
                         localStorage.clear();
                         navigate("/patientlogin");
                     }
+
+                    if (data.data === "NoCounsellorAvailable") {
+                        contactCounsellor();
+                    }
+                }
+                if (data.event === "accept") {
+                    declinedCounsellors.clear();
+                    console.log("patient : its time to initiate webRTC hehe");
+                    counsellorPeerConnection = await initiateWebRTC(
+                        conn,
+                        role,
+                        connections
+                    );
+                    connections.peerConnection = counsellorPeerConnection;
+                    counsellorPeerConnection.ontrack = (e) => {
+                        console.log("setting the remote stream", e);
+                        // const audio = new Audio();
+                        // audio.autoplay = true;
+                        // audio.srcObject = e.streams[0];
+                        setIsMuted(false);
+                        setModalBody("Connected");
+                        setTimeout(
+                            () => setShowCallConnectingModal(false),
+                            2000
+                        );
+                        setIsWebRTCConnected(true);
+                        // audioEle.current.sourceo
+                    };
+                    handlePeerConnectionClose(
+                        conn,
+                        counsellorPeerConnection,
+                        disconnectCall
+                    );
+                    console.log(
+                        "counsellorPeerConnection :",
+                        counsellorPeerConnection
+                    );
+                }
+                if (data.event === "decline") {
+                    console.log(
+                        "counsellor declined the call, trying the different counsellor",
+                        declinedCounsellors
+                    );
+                    contactCounsellor();
                 }
             });
         };
@@ -114,7 +132,7 @@ const RestBody = () => {
 
     const toggleMute = () => {
         setIsMuted((state) => !state);
-        console.log(peerconnection);
+        console.log(counsellorPeerConnection);
         // navigator.mediaDevices
         //     .getUserMedia({ audio: true, video: false })
         //     .then(function (stream) {
@@ -123,8 +141,11 @@ const RestBody = () => {
         //             track.enabled = !isMuted;
         //         });
         //     });
-        console.log("this is the getSenders", peerconnection.getSenders());
-        const audioTracks = peerconnection.getSenders();
+        console.log(
+            "this is the getSenders",
+            counsellorPeerConnection.getSenders()
+        );
+        const audioTracks = counsellorPeerConnection.getSenders();
         audioTracks.forEach((track) => {
             console.log("track", track);
             track.track.enabled = !isMuted;
@@ -132,7 +153,59 @@ const RestBody = () => {
         });
     };
 
+    const whosAvailable = () => {
+        let onlineCounsellors = new Set(onlineStatus?.ROLE_COUNSELLOR_online);
+        console.log(
+            "this is the available counsellor: ",
+            onlineCounsellors,
+            "these are declined coundellors",
+            declinedCounsellors
+        );
+        return onlineCounsellors.difference(declinedCounsellors) || null;
+    };
+
+    const contactCounsellor = async () => {
+        let response = await getResponseGet("/onlinestatus");
+        console.log("response", response);
+        onlineStatus = response?.data ? response.data : {};
+        let id = Array.from(whosAvailable());
+        console.log("id", id);
+
+        console.log("onlineStatus", onlineStatus);
+        if (id.length > 0) {
+            declinedCounsellors.add(id[0]);
+            console.log("added the id into the declined counsellors", id[0]);
+            send(
+                conn,
+                getSocketJson(
+                    String(id[0]),
+                    "connect",
+                    token,
+                    role,
+                    counsellorRole
+                )
+            );
+        } else {
+            console.log(
+                "its time to give up and buy rope and stool (not that costly, think about it). theres no counsellor avaialble "
+            );
+            setShowCallConnectingModal(true);
+            setModalBody(
+                "No Counsellor Available\nDon't Check the console message"
+            );
+            setTimeout(() => {
+                setShowCallConnectingModal(false);
+            }, 3000);
+        }
+    };
+
     const initiateCall = () => {
+        declinedCounsellors.clear();
+        setTimeout(() => {
+            if (!isWebRTCConnected) {
+                disconnectCall();
+            }
+        }, 60000);
         setShowCallConnectingModal(true);
         setModalBody("Connecting");
         if (
@@ -154,31 +227,39 @@ const RestBody = () => {
         }
 
         setShowCallConnectingModal(true);
-        send(conn, getSocketJson("", "connect", token));
-        // initiateWebRTC(conn);
+        setModalBody("Connecting");
+        conn.destRole = counsellorRole;
+        contactCounsellor();
+        // setShowCallConnectingModal(false);
     };
 
     const disconnectCall = () => {
         setIsWebRTCConnected(false);
-        console.log("this is peerconnection", peerconnection);
+        console.log(
+            "this is counsellorPeerConnection",
+            counsellorPeerConnection
+        );
         if (
-            peerconnection &&
-            (peerconnection.connectionState === "connected" ||
-                peerconnection.connectionState === "connecting")
+            counsellorPeerConnection &&
+            (counsellorPeerConnection.connectionState === "connected" ||
+                counsellorPeerConnection.connectionState === "connecting")
         ) {
-            console.log("peerconnection connected, Now disconnecting");
-            peerconnection.close();
+            console.log(
+                "counsellorPeerConnection connected, Now disconnecting"
+            );
+            counsellorPeerConnection.close();
         }
-        if (peerconnection) {
-            peerconnection.close();
-            peerconnection = undefined;
-            setShowCallConnectingModal(true);
-            setModalBody("Call Disconnected");
-            setTimeout(() => {
-                setShowCallConnectingModal(false);
-            }, 2000);
+        if (counsellorPeerConnection) {
+            counsellorPeerConnection.close();
+            counsellorPeerConnection = undefined;
         }
+        setShowCallConnectingModal(true);
+        setModalBody("Call Disconnected");
+        setTimeout(() => {
+            setShowCallConnectingModal(false);
+        }, 2000);
     };
+
     console.log(dial);
     return (
         <>
