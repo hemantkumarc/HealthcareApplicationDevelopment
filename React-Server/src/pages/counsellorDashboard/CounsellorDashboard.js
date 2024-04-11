@@ -14,11 +14,16 @@ import {
     getSocketJson,
     initiateWebRTC,
     initiateWebsocket,
+    send,
     userLoggedIn,
 } from "../../utils/utils";
 import InCall from "../inCall/InCall";
 
-let conn, peerconnection;
+const adminRole = "ROLE_ADMIN",
+    counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT";
+let conn, patientPeerConnection;
+const connections = { conn: {}, peerConnection: {} };
 export default function CounsellorDashboard() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -27,13 +32,17 @@ export default function CounsellorDashboard() {
         useState(false);
     const [showInCall, setShowIncall] = useState(false);
 
-    const redirectToInCall = async () => {
+    const acceptIncommingCall = async () => {
         setTimeout(() => {
             setShowIncall(true);
             setShowCallConnectingModal(false);
         }, 3000);
-        peerconnection = await initiateWebRTC(conn);
-        peerconnection.ontrack = (e) => {
+        conn.destRole = patientRole;
+        send(conn, getSocketJson("", "accept", token, role, patientRole));
+
+        patientPeerConnection = await initiateWebRTC(conn, role, connections);
+        connections.peerConnection = patientPeerConnection;
+        patientPeerConnection.ontrack = (e) => {
             console.log("setting the remote stream", e);
             const audio = new Audio();
             audio.autoplay = true;
@@ -45,9 +54,14 @@ export default function CounsellorDashboard() {
         };
     };
 
+    const declineIcommingCall = () => {
+        send(conn, getSocketJson("", "decline", token, role, patientRole));
+        setShowCallConnectingModal(false);
+    };
     const createWebsocketAndWebRTC = () => {
         console.log("Hi caounsellor haha");
-        conn = initiateWebsocket();
+        conn = initiateWebsocket(role, connections);
+        connections.conn = conn;
         conn.onopen = () => {
             conn.onclose = (msg) => {
                 console.log("socket connection closed", msg.data);
@@ -70,8 +84,8 @@ export default function CounsellorDashboard() {
                 }
                 if (data.data === "NewPatientConnect") {
                     // console.log("Counsellor: its time to initiate webRTC hehe");
-                    // let peerconnection = await initiateWebRTC(conn);
-                    // peerconnection.ontrack = (e) => {
+                    // let patientPeerConnection = await initiateWebRTC(conn);
+                    // patientPeerConnection.ontrack = (e) => {
                     //     console.log("setting the remote stream", e);
                     //     const audio = new Audio();
                     //     audio.autoplay = true;
@@ -86,6 +100,7 @@ export default function CounsellorDashboard() {
             });
         };
     };
+
     useEffect(() => {
         const checkLoggedIn = async () => {
             const loggedIn = await userLoggedIn();
@@ -103,6 +118,7 @@ export default function CounsellorDashboard() {
         };
         checkLoggedIn();
     }, []);
+
     const handleLogout = () => {
         localStorage.clear();
         navigate("/");
@@ -127,7 +143,7 @@ export default function CounsellorDashboard() {
         <>
             <InCall
                 conn={conn}
-                peerconnection={peerconnection}
+                peerconnection={patientPeerConnection}
                 setShowIncall={setShowIncall}
             />
         </>
@@ -142,11 +158,15 @@ export default function CounsellorDashboard() {
                     <Button
                         className="btn btn-success"
                         variant="secondary"
-                        onClick={redirectToInCall}
+                        onClick={acceptIncommingCall}
                     >
                         Accept
                     </Button>
-                    <Button className="btn btn-danger" variant="primary">
+                    <Button
+                        className="btn btn-danger"
+                        variant="primary"
+                        onClick={declineIcommingCall}
+                    >
                         Decline
                     </Button>
                 </Modal.Footer>
