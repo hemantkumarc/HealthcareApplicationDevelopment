@@ -25,7 +25,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private static final String SET_TOKEN_EVENT = "settoken";
     private static final String CONNECT_EVENT = "connect";
-    private static final String DISCONNECT_EVENT = "disconnect";
+    private static final String DECLINE_EVENT = "decline";
     private static final String STATE_CONNECTED = "connected";
     private static final String STATE_INCALL = "incall";
     private final Map<String, WebSocketSession> sessions = Collections.synchronizedMap(new HashMap<>());
@@ -62,11 +62,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 logger.info("its an connect event");
                 assert sourceSession != null;
                 handleConnectEvent(sourceSession, socketMessage);
-            } else if (DISCONNECT_EVENT.equals(socketMessage.getEvent())) {
-                logger.info("its an disconnect event");
+            } else if (DECLINE_EVENT.equals(socketMessage.getEvent())) {
+                logger.info("its an decline event");
                 assert sourceSession != null;
                 forwardMessage(sourceSession, socketMessage);
-                handleDisconnectEvent(sourceSession, socketMessage);
+                handleDeclineEvent(sourceSession, socketMessage);
 
             } else {
                 logger.info("broadcasting");
@@ -82,7 +82,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleDisconnectEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
+    private void handleDeclineEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
         String token = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
         updateTheSate(token, STATE_INCALL, STATE_CONNECTED);
         webSocketConnections.getTokenToRoleToToken()
@@ -91,7 +91,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         Roles.valueOf(socketMessage.getSource())
                 );
 
-        logger.info("User disconnected", token);
+        logger.info("User connection declined", token);
     }
 
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
