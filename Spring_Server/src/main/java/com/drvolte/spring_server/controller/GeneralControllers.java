@@ -68,9 +68,6 @@ public class GeneralControllers {
                 .put(Roles.ROLE_SENIORDR + "_online", new JSONArray())
                 .put(Roles.ROLE_COUNSELLOR + "_incall", new JSONArray())
                 .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray());
-
-        System.out.println("this the webscoketconenction setRoletostatetotoken value: "
-                + webSocketConnections.getRoleToStateToToken());
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("connected")
         ) {

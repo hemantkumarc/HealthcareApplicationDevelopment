@@ -94,7 +94,7 @@ public class UserAuthenticationProvider {
 
 
         return JWT.create()
-                .withClaim("id", patientResponseDto.getId())
+                .withSubject(patientResponseDto.getId())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .withKeyId(patientResponseDto.getId())
