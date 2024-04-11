@@ -11,7 +11,6 @@ import {
     send,
 } from "../../utils/utils";
 import { Button, Modal, ModalBody } from "react-bootstrap";
-import { deprecationHandler } from "moment";
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR";
@@ -47,7 +46,17 @@ const RestBody = () => {
         conn.onclose = (msg) => {
             setShowCallConnectingModal(true);
             console.log("socket connection closed", msg.data);
-            setModalBody("Not connected to Server");
+            setModalBody(
+                <>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/yildykzu.json"
+                        trigger="loop"
+                        delay="1000"
+                        style={{ width: "100px", height: "100px" }}
+                    ></lord-icon>
+                    Broken Connection to Server
+                </>
+            );
             setTimeout(() => {
                 setShowCallConnectingModal(false);
             }, 3000);
@@ -93,7 +102,17 @@ const RestBody = () => {
                         // audio.autoplay = true;
                         // audio.srcObject = e.streams[0];
                         setIsMuted(false);
-                        setModalBody("Connected");
+                        setModalBody(
+                            <>
+                                <lord-icon
+                                    src="https://cdn.lordicon.com/jbsedsma.json"
+                                    trigger="loop"
+                                    delay="2000"
+                                    style={{ width: "100px", height: "100px" }}
+                                ></lord-icon>
+                                Connected
+                            </>
+                        );
                         setTimeout(
                             () => setShowCallConnectingModal(false),
                             2000
@@ -148,7 +167,7 @@ const RestBody = () => {
         const audioTracks = counsellorPeerConnection.getSenders();
         audioTracks.forEach((track) => {
             console.log("track", track);
-            track.track.enabled = !isMuted;
+            track.track.enabled = isMuted;
             // track.enabled = !isMuted; // Toggle the track's enabled state
         });
     };
@@ -191,7 +210,15 @@ const RestBody = () => {
             );
             setShowCallConnectingModal(true);
             setModalBody(
-                "No Counsellor Available\nDon't Check the console message"
+                <>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/usownftb.json"
+                        trigger="loop"
+                        delay="1000"
+                        style={{ width: "100px", height: "100px" }}
+                    ></lord-icon>
+                    No Counsellor Available\nDon't Check the console message
+                </>
             );
             setTimeout(() => {
                 setShowCallConnectingModal(false);
@@ -201,19 +228,34 @@ const RestBody = () => {
 
     const initiateCall = () => {
         declinedCounsellors.clear();
-        setTimeout(() => {
-            if (!isWebRTCConnected) {
-                disconnectCall();
-            }
-        }, 60000);
+
         setShowCallConnectingModal(true);
-        setModalBody("Connecting");
+        setModalBody(
+            <>
+                <lord-icon
+                    src="https://cdn.lordicon.com/iauexvsm.json"
+                    trigger="loop"
+                    delay="1000"
+                    style={{ width: "50px", height: "50px" }}
+                ></lord-icon>
+                Connecting
+            </>
+        );
         if (
             !dial.includes(drVoltePhnumber) ||
             !dial.endsWith(drVoltePhnumber)
         ) {
             setModalBody(
-                'Please Provide the valid Ph Number\n "Please" note that this is not a fucking real feature phone '
+                <>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/usownftb.json"
+                        trigger="loop"
+                        delay="1000"
+                        style={{ width: "100px", height: "100px" }}
+                    ></lord-icon>
+                    Please Provide the valid Ph Number\n "Please" note that this
+                    is not a fucking real feature phone
+                </>
             );
             setTimeout(() => setShowCallConnectingModal(false), 5000);
             return;
@@ -227,7 +269,28 @@ const RestBody = () => {
         }
 
         setShowCallConnectingModal(true);
-        setModalBody("Connecting");
+        setTimeout(() => {
+            if (!isWebRTCConnected) {
+                disconnectCall();
+            }
+        }, 60000);
+        setModalBody(
+            <>
+                <lord-icon
+                    src="https://cdn.lordicon.com/pxwxddbb.json"
+                    trigger="loop"
+                    state="loop-rotation"
+                    style={{ width: "50px", height: "50px" }}
+                ></lord-icon>
+                Connecting
+                <lord-icon
+                    src="https://cdn.lordicon.com/lqxfrxad.json"
+                    trigger="loop"
+                    state="loop-line"
+                    style={{ width: "50px", height: "50px" }}
+                ></lord-icon>
+            </>
+        );
         conn.destRole = counsellorRole;
         contactCounsellor();
         // setShowCallConnectingModal(false);
@@ -254,7 +317,17 @@ const RestBody = () => {
             counsellorPeerConnection = undefined;
         }
         setShowCallConnectingModal(true);
-        setModalBody("Call Disconnected");
+        setModalBody(
+            <>
+                <lord-icon
+                    src="https://cdn.lordicon.com/usownftb.json"
+                    trigger="loop"
+                    delay="1000"
+                    style={{ width: "100px", height: "100px" }}
+                ></lord-icon>
+                Call Disconnected
+            </>
+        );
         setTimeout(() => {
             setShowCallConnectingModal(false);
         }, 2000);
@@ -267,7 +340,9 @@ const RestBody = () => {
                 <Modal.Header>
                     <Modal.Title>Call Status</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>{modalBody}</Modal.Body>
+                <Modal.Body className="align-items-center d-inline-flex">
+                    {modalBody}
+                </Modal.Body>
             </Modal>
             <div className="row">
                 <div className="col-3"></div>
@@ -354,18 +429,26 @@ const RestBody = () => {
                                 <div className="col">
                                     <button
                                         type="button"
-                                        className="btn btn-success"
+                                        className="btn btn-success fs-4"
                                         onClick={() => initiateCall()}
                                     >
                                         Call
                                         <br />
-                                        <i className="material-icons">call</i>
+                                        <lord-icon
+                                            src="https://cdn.lordicon.com/rsvfayfn.json"
+                                            trigger="hover"
+                                            colors="primary:#ffffff"
+                                            style={{
+                                                width: "30px",
+                                                height: "30px",
+                                            }}
+                                        ></lord-icon>
                                     </button>
                                 </div>
                                 <div className="col">
                                     <button
                                         type="button"
-                                        className="btn btn-secondary"
+                                        className="btn btn-secondary fs-4"
                                         onClick={() => decreaseNumber()}
                                     >
                                         Clear<br></br>
@@ -378,12 +461,33 @@ const RestBody = () => {
                                     <div className="col">
                                         <button
                                             type="button"
-                                            className="btn btn-light"
+                                            className="btn btn-light fs-4"
                                             onClick={() => toggleMute()}
                                         >
-                                            <i className="material-icons">
-                                                {isMuted ? "mic" : "mic_off"}
-                                            </i>
+                                            {!isMuted ? (
+                                                <lord-icon
+                                                    src="https://cdn.lordicon.com/jibstvae.json"
+                                                    trigger="in"
+                                                    delay="200"
+                                                    state="in-reveal"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                    }}
+                                                ></lord-icon>
+                                            ) : (
+                                                <lord-icon
+                                                    src="https://cdn.lordicon.com/jibstvae.json"
+                                                    trigger="loop-on-hover"
+                                                    delay="1000"
+                                                    state="hover-cross"
+                                                    colors="primary:#121331,secondary:#c71f16"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                    }}
+                                                ></lord-icon>
+                                            )}
                                         </button>
                                     </div>
                                 )}
@@ -391,12 +495,12 @@ const RestBody = () => {
                                 <div className="col">
                                     <button
                                         type="button"
-                                        className="btn btn-danger"
+                                        className="btn btn-danger fs-4"
                                         onClick={() => disconnectCall()}
                                     >
                                         Exit
                                         <br />
-                                        <i className="material-icons">
+                                        <i className="material-icons-outlined">
                                             call_end
                                         </i>
                                     </button>
