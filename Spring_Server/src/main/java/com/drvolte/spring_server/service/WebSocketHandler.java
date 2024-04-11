@@ -69,7 +69,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 handleDeclineEvent(sourceSession, socketMessage);
 
             } else {
-                logger.info("broadcasting");
+                logger.info("forwarding");
                 assert sourceSession != null;
                 forwardMessage(sourceSession, socketMessage);
             }
