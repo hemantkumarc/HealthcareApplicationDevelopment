@@ -7,6 +7,7 @@ import CounsellorDashboard from "./pages/counsellorDashboard/CounsellorDashboard
 import InCall from "./pages/inCall/InCall";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import AdminCreateCounsellor from "./pages/admin/create-counsellor-seniordr/AdminCreateCounsellor";
+import AdminSignUpDoctor from "./pages/admin/create-counsellor-seniordr/AdminSignUpDoctor";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           path="/adminCreateCounsellor"
           element={<AdminCreateCounsellor />}
         />
+        <Route path="/adminSignUpDoctor" element={<AdminSignUpDoctor />} />
       </Routes>
     </BrowserRouter>
   );
