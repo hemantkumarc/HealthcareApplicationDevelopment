@@ -12,16 +12,16 @@ import java.util.List;
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     @RestResource(path = "byAttributes")
-    List<Doctor> findCounsellorsByEmailOrQualificationOrSpecialization(
+    List<Doctor> findDoctorsByEmailOrQualificationOrSpecialization(
             @Param(value = "email") String email,
             @Param(value = "specialization") String specialization,
             @Param(value = "Qualification") String qualification
     );
 
     @RestResource(path = "byAttributesLike")
-    List<Doctor> findCounsellorsByQualificationIsLikeIgnoreCaseOrSpecializationIsLikeIgnoreCase(
+    List<Doctor> findDoctorsByQualificationIsLikeIgnoreCaseOrSpecializationIsLikeIgnoreCase(
             @Param(value = "qualification") String qualification,
             @Param(value = "specialization") String specialization
     );
 
-}
+} 

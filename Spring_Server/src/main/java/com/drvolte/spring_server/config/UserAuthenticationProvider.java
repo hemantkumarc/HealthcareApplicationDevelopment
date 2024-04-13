@@ -91,8 +91,6 @@ public class UserAuthenticationProvider {
     public String createTokenForPatient(PatientResponseDto patientResponseDto) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000); // 1 hour
-
-
         return JWT.create()
                 .withClaim("id", patientResponseDto.getId())
                 .withIssuedAt(now)
@@ -102,4 +100,15 @@ public class UserAuthenticationProvider {
                 .sign(algorithm);
     }
 
+    public String createTokenForEnrollDoctor(String email, String name, String role) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + 3600000); // 1 hour
+        return JWT.create()
+                .withClaim("name", name)
+                .withClaim("email", email)
+                .withClaim("role", role)
+                .withIssuedAt(now)
+                .withExpiresAt(validity)
+                .sign(algorithm);
+    }
 }
