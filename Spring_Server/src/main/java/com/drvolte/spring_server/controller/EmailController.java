@@ -54,11 +54,11 @@ public class EmailController {
             if (seniorDoc.isPresent()) {
                 SeniorDr seniorDr = seniorDoc.get();
                 name = seniorDr.getName();
-                role = Roles.SENIORDR.toString();
+                role = Roles.ROLE_SENIORDR.toString();
             } else {
                 Counsellor counsellor = counsellorDoc.get();
                 name = counsellor.getName();
-                role = Roles.COUNSELLOR.toString();
+                role = Roles.ROLE_COUNSELLOR.toString();
             }
         }
         String token = "";
