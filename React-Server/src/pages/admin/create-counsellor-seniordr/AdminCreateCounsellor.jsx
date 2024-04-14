@@ -10,7 +10,8 @@ const AdminCreateCounsellor = () => {
   const SAVE_COUNSELLOR_ENDPOINT = "/springdatarest/counsellors";
   const SAVE_SENIORDR_ENDPOINT = "/springdatarest/seniorDrs";
   const GET_DOCTORS_BY_EMAIL =
-    "http://localhost/springdatarest/doctors/search/byAttributes?email=";
+    "/springdatarest/doctors/search/byAttributes?email=";
+  const SEND_MAIL = "/mail/send/";
 
   const [updatedLanguage, setUpdatedLanguage] = React.useState([]);
 
@@ -57,8 +58,9 @@ const AdminCreateCounsellor = () => {
       GET_DOCTORS_BY_EMAIL + `${finalFormData.email}`
     );
 
-    const check = doctors_email_response?.data?._embedded?.doctors;
+    const SEND_MAIL_ENDPOINT = SEND_MAIL + `${finalFormData.email}`;
 
+    const check = doctors_email_response?.data?._embedded?.doctors;
     if (check !== undefined && check?.length === 0) {
       // Now we can either check if he wants to be senior doctor or not
 
@@ -74,6 +76,9 @@ const AdminCreateCounsellor = () => {
           );
           console.log(response?.status);
         } catch (err) {}
+        toast.success(
+          "The Senior Doctor is sent a mail and is successfully added to database !"
+        );
       } else {
         delete finalFormData.isSeniorDoctor;
         try {
@@ -86,6 +91,16 @@ const AdminCreateCounsellor = () => {
           );
           console.log(response?.status);
         } catch (err) {}
+        toast.success(
+          "The Counsellor is sent a mail and is successfully added to database !"
+        );
+      }
+
+      try {
+        const response = await api.post(SEND_MAIL_ENDPOINT);
+        console.log(response?.status);
+      } catch (err) {
+        console.error(err);
       }
     } else {
       // This means that the doctor is already present

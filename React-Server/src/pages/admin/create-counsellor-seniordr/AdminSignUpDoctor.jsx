@@ -5,6 +5,8 @@ import "react-toastify/dist/ReactToastify.css";
 import "./AdminSignUpDoctor.css";
 
 const AdminSignUpDoctor = () => {
+  const CHANGE_PASSWORD_ENDPOINT = "/mail/changePassword";
+
   const [formData, setFormData] = React.useState({
     password: "",
     confirmPassword: "",
@@ -20,6 +22,12 @@ const AdminSignUpDoctor = () => {
     });
   }
 
+  function getQueryParam(name) {
+    const url = window.location.href;
+    const params = new URLSearchParams(url.split("?")[1]);
+    return params.get(name);
+  }
+
   console.log(formData);
 
   const id = React.useId();
@@ -29,10 +37,35 @@ const AdminSignUpDoctor = () => {
     console.log("Button clicked !");
 
     if (formData.password === formData.confirmPassword) {
-      console.log("Passwords are matching !");
+      // Getting the token from the URL and setting it in the localStorage
+      const token = getQueryParam("token");
+      localStorage.setItem("token", token);
+      // Adding the token to the request body
+      formData.token = token;
+      // Removing confirmPassword from the finalFormData
+      delete formData.confirmPassword;
+      console.log(formData);
+      try {
+        const response = await api.post(
+          CHANGE_PASSWORD_ENDPOINT,
+          JSON.stringify(formData),
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        console.log(response?.status);
+        toast.success(
+          "You have successfully signed up and please close current window !"
+        );
+      } catch (err) {
+        console.error("Change Password request failed !");
+        toast.error("Something went wrong while changing passwords !");
+      }
     } else {
       toast.error("Passwords arent't matching !");
     }
+    console.log("Form submitted !");
+
     // const finalFormData = {
     //   ...formData,
     //   languages: JSON.stringify(updatedLanguage),
@@ -90,7 +123,7 @@ const AdminSignUpDoctor = () => {
 
   return (
     <div className="signup-form-container">
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="signup-form" onSubmit={handleSubmit}>
         <h2 style={{ fontWeight: "bold" }}> Sign Up </h2>
         <br />
 
