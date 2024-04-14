@@ -6,7 +6,10 @@ import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
 
 export default function Cards({ doctor, updateDoctorStatus }) {
-  const DISABLE_DOCTOR_ENDPOINT = "http://localhost/springdatarest/doctors/";
+  const DISABLE_DOCTOR_ENDPOINT = "/springdatarest/doctors/";
+  const GET_USER_DOCTOR_ENDPOINT =
+    "/springdatarest/users/search/byAttribute?username=";
+  const DELETE_USER_DOCTOR_ENDPOINT = "/springdatarest/users/";
 
   const [status, setStatus] = useState(doctor.status);
 
@@ -43,8 +46,33 @@ export default function Cards({ doctor, updateDoctorStatus }) {
       } else {
         setStatus("enabled");
       }
-
       updateDoctorStatus({ ...doctor, status: obj.status });
+
+      let doctor_id;
+      try {
+        // We now try to get the doctor from the users table and later on delete him/her based on the resourceId
+        const get_doctor_response = await api.get(
+          GET_USER_DOCTOR_ENDPOINT + `${doctor.email}`
+        );
+        console.log(get_doctor_response.status);
+        console.log("GET USER executed successfully.");
+        doctor_id = get_doctor_response?.data?.resourceId;
+      } catch (err) {
+        console.log(err);
+        console.log("GET USER failed.");
+      }
+
+      console.log("doctor id", doctor_id);
+      try {
+        const delete_doctor_response = await api.delete(
+          DELETE_USER_DOCTOR_ENDPOINT + `${doctor_id}`
+        );
+        console.log(delete_doctor_response.status);
+        console.log("DELETE USER executed successfully.");
+      } catch (err) {
+        console.log(err);
+        console.log("DELETE USER failed.");
+      }
     } catch (err) {
       console.log(err);
       console.log("Disable functionality did not work !!");

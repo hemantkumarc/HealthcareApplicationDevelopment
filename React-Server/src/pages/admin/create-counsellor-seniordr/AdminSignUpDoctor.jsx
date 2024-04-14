@@ -55,11 +55,11 @@ const AdminSignUpDoctor = () => {
         );
         console.log(response?.status);
         toast.success(
-          "You have successfully signed up and please close current window !"
+          "You have successfully signed up. Please close current window."
         );
       } catch (err) {
         console.error("Change Password request failed !");
-        toast.error("Something went wrong while changing passwords !");
+        toast.error("Something went wrong while changing passwords");
       }
     } else {
       toast.error("Passwords arent't matching !");
