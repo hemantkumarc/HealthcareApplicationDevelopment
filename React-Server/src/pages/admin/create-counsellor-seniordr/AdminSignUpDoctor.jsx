@@ -55,7 +55,7 @@ const AdminSignUpDoctor = () => {
         );
         console.log(response?.status);
         toast.success(
-          "You have successfully signed up. Please close current window."
+          "You have successfully reset password. Please close current window."
         );
       } catch (err) {
         console.error("Change Password request failed !");
@@ -70,7 +70,7 @@ const AdminSignUpDoctor = () => {
   return (
     <div className="signup-form-container">
       <form className="signup-form" onSubmit={handleSubmit}>
-        <h2 style={{ fontWeight: "bold" }}> Sign Up </h2>
+        <h2 style={{ fontWeight: "bold" }}> Reset Password </h2>
         <br />
 
         <label htmlFor={id + "-password"}>Please enter your password :</label>
@@ -108,7 +108,7 @@ const AdminSignUpDoctor = () => {
 
         <br />
         <br />
-        <button className="form--submit">CREATE</button>
+        <button className="form--submit">Reset</button>
       </form>
       <ToastContainer position="top-right" />
     </div>
