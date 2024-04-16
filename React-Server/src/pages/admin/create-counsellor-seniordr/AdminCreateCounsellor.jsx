@@ -272,7 +272,7 @@ const AdminCreateCounsellor = () => {
           id={id + "-isSeniorDoctor"}
         />
         <br />
-        <button className="form--submit">CREATE</button>
+        <button className="form--submit">Create Doctor</button>
       </form>
       <ToastContainer position="top-right" />
     </div>

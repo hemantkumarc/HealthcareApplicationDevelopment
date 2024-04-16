@@ -2,10 +2,13 @@ import React from "react";
 import api from "../../api/axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 import "./ForgotPassword.css";
 
 const ForgotPassword = () => {
   const SEND_MAIL_ENDPOINT = "/mail/send/";
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = React.useState({
     email: "",
@@ -41,6 +44,9 @@ const ForgotPassword = () => {
       toast.success(
         "You would have received a reset password email to your registered email id. Please close the current window."
       );
+      setTimeout(function () {
+        navigate("/");
+      }, 7000);
     } catch (err) {
       console.error("Forgot Password request failed !");
     }
