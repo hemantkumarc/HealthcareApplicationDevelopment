@@ -25,12 +25,16 @@ public class httpSecurityConfig {
                 .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers(HttpMethod.POST, "/login", "/patients_register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/login", "/patients_register", "/mail/send/*").permitAll()
                         .requestMatchers("/socket").permitAll()
                         .requestMatchers("/hello").hasAnyRole(
                                 Roles.PATIENT.toString(),
                                 Roles.COUNSELLOR.toString(),
                                 Roles.ADMIN.toString(),
+                                Roles.SENIORDR.toString()
+                        )
+                        .requestMatchers("/mail/changePassword").hasAnyRole(
+                                Roles.COUNSELLOR.toString(),
                                 Roles.SENIORDR.toString()
                         )
                         .requestMatchers("/counsellor/**").hasRole(Roles.COUNSELLOR.toString())
