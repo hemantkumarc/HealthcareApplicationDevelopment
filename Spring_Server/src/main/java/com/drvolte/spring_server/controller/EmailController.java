@@ -73,7 +73,7 @@ public class EmailController {
             token = userAuthProvider.createTokenForEnrollDoctor(mailId, name, role);
             emailStructure.setSubject("[Dr. Volte] Register Doctor");
             emailStructure.setMessage("Please click on the following link to create password and register yourself ! \n" +
-                    "Use http://localhost:3000/adminSignUpDoctor?token="+ token + "" +
+                    "\nUse http://localhost:3000/adminSignUpDoctor?token="+ token + "" +
                     "\n\nRegards, \n Admin @ DrVolte");
             emailService.sendMail(mailId, emailStructure);
         }
@@ -107,7 +107,7 @@ public class EmailController {
                 userRepository.save(newDoctor);
             }
         } catch (JWTVerificationException e) {
-            System.out.println("Toke has expired !" + e);
+            System.out.println("Token has expired !" + e);
         }
         return ResponseEntity.ok("Password changed successfully !");
     }
