@@ -22,46 +22,38 @@ public class FileStorageService {
 
         FileUploadResponseDTO fileUploadResponseDTO = null;
 
-        try {
-            if (file.getSize() > parseSize(maxFileSize))
-                throw new MaxUploadSizeExceededException(parseSize(maxFileSize));
+        if (file.getSize() > parseSize(maxFileSize))
+            throw new MaxUploadSizeExceededException(parseSize(maxFileSize));
 
-            // Get the application's current working directory
-            String currentDirectory = System.getProperty("user.dir");
-            // Construct the absolute path by appending the relative path
-            String folderPath = currentDirectory + File.separator + relativeFolderPath;
+        // Get the application's current working directory
+        String currentDirectory = System.getProperty("user.dir");
+        // Construct the absolute path by appending the relative path
+        String folderPath = currentDirectory + File.separator + relativeFolderPath;
 
-            System.out.println("Relative folder path : " + relativeFolderPath);
+        System.out.println("Relative folder path : " + relativeFolderPath);
 
-            File folder = new File(folderPath);
-            if (!folder.exists()) {
-                // Folder does not exist. Hence, create the folder.
-                boolean folderCreated = folder.mkdirs();
-                if (folderCreated) {
-                    System.out.println("Folder created successfully.");
-                } else {
-                    System.out.println("Failed to create folder.");
-                }
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            // Folder does not exist. Hence, create the folder.
+            boolean folderCreated = folder.mkdirs();
+            if (folderCreated) {
+                System.out.println("Folder created successfully.");
             } else {
-                // Folder exists, so don't create it.
-                System.out.println("Folder already exists.");
+                System.out.println("Failed to create folder.");
             }
-
-            String fileName = file.getOriginalFilename();
-            String filePath = folderPath + fileName;
-            file.transferTo(new File(filePath));
-            fileUploadResponseDTO = FileUploadResponseDTO.builder()
-                    .fileUploadStatus("Success")
-                    .filePath(relativeFolderPath + fileName)
-                    .build();
-            return ResponseEntity.ok(fileUploadResponseDTO);
-        } catch (MaxUploadSizeExceededException e) {
-            fileUploadResponseDTO = FileUploadResponseDTO.builder()
-                    .fileUploadStatus("Failure")
-                    .filePath("")
-                    .build();
-            return ResponseEntity.badRequest().body(fileUploadResponseDTO);
+        } else {
+            // Folder exists, so don't create it.
+            System.out.println("Folder already exists.");
         }
+
+        String fileName = file.getOriginalFilename();
+        String filePath = folderPath + fileName;
+        file.transferTo(new File(filePath));
+        fileUploadResponseDTO = FileUploadResponseDTO.builder()
+                .fileUploadStatus("Success")
+                .filePath(relativeFolderPath + fileName)
+                .build();
+        return ResponseEntity.ok(fileUploadResponseDTO);
     }
 
     private long parseSize(String size) {
