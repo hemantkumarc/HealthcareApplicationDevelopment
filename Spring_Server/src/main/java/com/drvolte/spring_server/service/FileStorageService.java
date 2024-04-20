@@ -2,6 +2,7 @@ package com.drvolte.spring_server.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import com.drvolte.spring_server.dtos.FileUploadResponseDTO;
 import org.apache.coyote.Response;
@@ -15,10 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileStorageService {
 
     private final String relativeFolderPath = "assets" + File.separator;
+
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxFileSize;
 
-    public ResponseEntity<FileUploadResponseDTO> uploadImageToFileSystem(MultipartFile file) throws IOException {
+    public ResponseEntity<FileUploadResponseDTO> uploadImage(MultipartFile file) throws IOException {
 
         FileUploadResponseDTO fileUploadResponseDTO = null;
 
@@ -55,6 +57,14 @@ public class FileStorageService {
                 .build();
         return ResponseEntity.ok(fileUploadResponseDTO);
     }
+
+    public byte[] downloadImage(String filePath) throws IOException {
+
+        String currentDirectory = System.getProperty("user.dir");
+        String absoluteFilePath = currentDirectory + filePath;
+        return Files.readAllBytes(new File(absoluteFilePath).toPath());
+    }
+
 
     private long parseSize(String size) {
         size = size.toUpperCase();
