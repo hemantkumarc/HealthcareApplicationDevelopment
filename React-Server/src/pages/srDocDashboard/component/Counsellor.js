@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../style/Counsellor.css";
 import Cards from "./Cards";
 import { getResponseGet } from "../../../utils/utils";
-// import data from "../db/data";
 
-// let springData;
 export default function Counsellor({ filters, search, sorts }) {
 	const [sortedCounsellors, setSortedCounsellors] = useState([]);
 	const [springData, setSpringData] = useState([]);
@@ -17,7 +15,8 @@ export default function Counsellor({ filters, search, sorts }) {
 				const fetchedData = response?.data?._embedded?.counsellors;
 				if (fetchedData) {
 					setSpringData(fetchedData);
-					setSortedCounsellors(fetchedData);
+					// setSortedCounsellors(fetchedData);
+					console.log("counsellor", fetchedData);
 					console.log(response);
 				}
 			} catch (error) {
@@ -43,18 +42,6 @@ export default function Counsellor({ filters, search, sorts }) {
 				const matchesSpecialization =
 					filters.specialization.length === 0 ||
 					filters.specialization.includes(counselor.specialization);
-				// const matchesLanguage =
-				// 	filters.language.length === 0 ||
-				// 	counselor.languagues.some((language) =>
-				// 		filters.language.includes(language)
-				// 	);
-
-				// const matchesLanguage =
-				// 	filters.language.length === 0 ||
-				// 	filters.language.some((language) =>
-				// 		counselor.languagues.includes(language)
-				// 	);
-
 				const languages = JSON.parse(counselor.languages);
 				const matchesLanguage =
 					filters.language.length === 0 ||
@@ -87,7 +74,7 @@ export default function Counsellor({ filters, search, sorts }) {
 			});
 
 		setSortedCounsellors(sorted);
-	}, [sortedCounsellors, filters, search, sorts]);
+	}, [springData, filters, search, sorts]);
 
 	return (
 		<div className="counsellor-container">

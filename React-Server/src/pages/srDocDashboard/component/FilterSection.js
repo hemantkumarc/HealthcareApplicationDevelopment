@@ -74,16 +74,25 @@ export default function FilterSection({ setFilters }) {
           <input
             onChange={handleChange}
             type="checkbox"
-            value="enabled"
+            value="In-Call"
             name="status"
           />
-          <span className="checkmark"></span>Active
+          <span className="checkmark"></span>In-Call
         </label>
         <label className="checkbox-container">
           <input
             onChange={handleChange}
             type="checkbox"
-            value="disabled"
+            value="Busy"
+            name="status"
+          />
+          <span className="checkmark"></span>Busy
+        </label>
+        <label className="checkbox-container">
+          <input
+            onChange={handleChange}
+            type="checkbox"
+            value="Inactive"
             name="status"
           />
           <span className="checkmark"></span>Inactive
