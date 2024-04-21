@@ -1,1 +1,0 @@
-insert into users (username, password, enabled) values('admin', '{noop}admin', true);

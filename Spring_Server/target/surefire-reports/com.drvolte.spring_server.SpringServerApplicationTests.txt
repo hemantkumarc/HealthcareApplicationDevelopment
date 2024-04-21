@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.drvolte.spring_server.SpringServerApplicationTests
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.668 s -- in com.drvolte.spring_server.SpringServerApplicationTests
