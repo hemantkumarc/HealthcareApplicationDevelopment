@@ -4,6 +4,8 @@ import api from "../api/axios.jsx";
 function ImageComponent({ profile_photo }) {
   const [imageSrc, setImageSrc] = useState("");
 
+  console.log(profile_photo);
+
   const DOWNLOAD_IMAGE_ENDPOINT = "/file/download";
 
   const downloadImage = async () => {
@@ -38,7 +40,7 @@ function ImageComponent({ profile_photo }) {
         <img
           src={imageSrc}
           alt="Downloaded Image"
-          style={{ height: "100px", width: "100px" }}
+          style={{ height: "140px", width: "140px" }}
         />
       )}
     </div>

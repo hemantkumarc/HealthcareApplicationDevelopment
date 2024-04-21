@@ -83,9 +83,8 @@ export default function Cards({ doctor, updateDoctorStatus }) {
   return (
     <div className="containers">
       <div className="card_item">
-        <div className="card_inner">
-          {/* <img src={doctor.profile_photo} alt="counsellor" /> */}
-          <ImageComponent profile_photo="/assets/large-Smile-Guy-web.jpg" />
+        <div className="card_inner_doctor">
+          <ImageComponent profile_photo={doctor.profile_photo} />
           <div className="name">{doctor.name}</div>
           <div className="qualification">
             Qualification : {doctor.qualification}

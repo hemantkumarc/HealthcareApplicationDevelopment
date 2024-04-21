@@ -102,10 +102,7 @@ const AdminCreateCounsellor = () => {
         ...formData,
         languages: JSON.stringify(updatedLanguage),
         status: formData.status.toString() === "true" ? "enabled" : "disabled",
-        profile_photo:
-          status === 200
-            ? filePath
-            : "https://facesurgeon.in/wp-content/uploads/2016/05/Dummy-Doctor-Profile-Image.jpg",
+        profile_photo: status === 200 ? filePath : "/assets/default-image.jpg",
       };
 
       console.log(finalFormData);
