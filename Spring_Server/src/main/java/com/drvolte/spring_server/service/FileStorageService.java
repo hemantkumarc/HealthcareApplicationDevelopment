@@ -53,7 +53,7 @@ public class FileStorageService {
         file.transferTo(new File(filePath));
         fileUploadResponseDTO = FileUploadResponseDTO.builder()
                 .fileUploadStatus("Success")
-                .filePath(relativeFolderPath + fileName)
+                .filePath(File.separator + relativeFolderPath + fileName)
                 .build();
         return ResponseEntity.ok(fileUploadResponseDTO);
     }

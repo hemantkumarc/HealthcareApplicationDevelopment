@@ -111,7 +111,4 @@ public class UserAuthenticationProvider {
                 .withExpiresAt(validity)
                 .sign(algorithm);
     }
-
-
-
 }
