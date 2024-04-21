@@ -7,15 +7,16 @@ import com.drvolte.spring_server.dtos.CredentialsDto;
 import com.drvolte.spring_server.dtos.UserDto;
 import com.drvolte.spring_server.models.Roles;
 import com.drvolte.spring_server.models.WebSocketConnection;
+import com.drvolte.spring_server.service.FileStorageService;
 import com.drvolte.spring_server.service.UserService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 public class GeneralControllers {
@@ -27,7 +28,7 @@ public class GeneralControllers {
     private final WebSocketConnection webSocketConnections;
     private final UserAuthenticationProvider jwtAuthProvider;
 
-    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider, WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider) {
+    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider, WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider, FileStorageService storageService) {
         this.userService = userService;
         this.userAuthProvider = userAuthProvider;
         this.webSocketConnections = webSocketConnections;
@@ -77,7 +78,6 @@ public class GeneralControllers {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("connected")) {
                 System.out.println(token);
                 try {
-
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
                     Long id = decodedJWT.getClaim("id").asLong();
                     retJson.getJSONArray(Roles.ROLE_COUNSELLOR + "_online").put(id);
