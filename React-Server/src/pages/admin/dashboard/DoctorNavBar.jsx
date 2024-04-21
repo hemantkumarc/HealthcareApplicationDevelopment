@@ -30,9 +30,7 @@ export default function DoctorNavBar({ setSearch }) {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/adminCreateCounsellor">
-              Create Counsellor / Senior Doctor
-            </Nav.Link>
+            <Nav.Link href="/adminCreateCounsellor">Add Doctor</Nav.Link>
           </Nav>
           <Nav>
             <Nav.Link>

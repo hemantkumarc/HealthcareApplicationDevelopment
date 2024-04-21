@@ -4,6 +4,7 @@ import api from "../../../api/axios.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
+import ImageComponent from "../../../utils/Image.jsx";
 
 export default function Cards({ doctor, updateDoctorStatus }) {
   const DISABLE_DOCTOR_ENDPOINT = "/springdatarest/doctors/";
@@ -82,8 +83,8 @@ export default function Cards({ doctor, updateDoctorStatus }) {
   return (
     <div className="containers">
       <div className="card_item">
-        <div className="card_inner">
-          <img src={doctor.profile_photo} alt="counsellor" />
+        <div className="card_inner_doctor">
+          <ImageComponent profile_photo={doctor.profile_photo} />
           <div className="name">{doctor.name}</div>
           <div className="qualification">
             Qualification : {doctor.qualification}

@@ -6,6 +6,8 @@ import { counsellorLanguages } from "./languages.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
+import { userLoggedIn } from "../../../utils/utils";
+import { jwtDecode } from "jwt-decode";
 
 const AdminCreateCounsellor = () => {
   const SAVE_COUNSELLOR_ENDPOINT = "/springdatarest/counsellors";
@@ -13,6 +15,35 @@ const AdminCreateCounsellor = () => {
   const GET_DOCTORS_BY_EMAIL =
     "/springdatarest/doctors/search/byAttributes?email=";
   const SEND_MAIL = "/mail/send/";
+  const UPLOAD_IMAGE = "/file/upload";
+
+  const token = localStorage.getItem("token");
+
+  React.useEffect(() => {
+    const checkLoggedIn = async () => {
+      const loggedIn = await userLoggedIn();
+      if (loggedIn) {
+        const jwtdecoded = jwtDecode(token);
+        console.log("this is the jwtDecode after decoding", jwtdecoded);
+        if (jwtdecoded.role === "ROLE_COUNSELLOR") {
+          navigate("/counsellorDashboard");
+        } else if (jwtdecoded.role === "ROLE_SENIORDR") {
+          navigate("/SrDrDashboard");
+        }
+      } else {
+        navigate("/");
+      }
+    };
+    checkLoggedIn();
+  }, []);
+
+  const [file, setFile] = React.useState(null);
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  console.log(file);
 
   const [updatedLanguage, setUpdatedLanguage] = React.useState([]);
 
@@ -37,6 +68,8 @@ const AdminCreateCounsellor = () => {
     status: true,
   });
 
+  console.log(formData);
+
   const id = React.useId();
 
   function handleChange(event) {
@@ -51,70 +84,92 @@ const AdminCreateCounsellor = () => {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const finalFormData = {
-      ...formData,
-      languages: JSON.stringify(updatedLanguage),
-      status: formData.status.toString() === "true" ? "enabled" : "disabled",
-    };
 
-    const doctors_email_response = await api.get(
-      GET_DOCTORS_BY_EMAIL + `${finalFormData.email}`
-    );
+    try {
+      const response = await api.post(
+        UPLOAD_IMAGE,
+        {
+          image: file,
+        },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      const filePath = response?.data?.filePath;
+      const status = response?.status;
 
-    const SEND_MAIL_ENDPOINT = SEND_MAIL + `${finalFormData.email}`;
+      const finalFormData = {
+        ...formData,
+        languages: JSON.stringify(updatedLanguage),
+        status: formData.status.toString() === "true" ? "enabled" : "disabled",
+        profile_photo: status === 200 ? filePath : "/assets/default-image.jpg",
+      };
 
-    const check = doctors_email_response?.data?._embedded?.doctors;
-    if (check !== undefined && check?.length === 0) {
-      // Now we can either check if he wants to be senior doctor or not
+      console.log(finalFormData);
+      console.log(JSON.stringify(finalFormData));
 
-      if (finalFormData.isSeniorDoctor) {
-        delete finalFormData.isSeniorDoctor;
-        try {
-          const response = await api.post(
-            SAVE_SENIORDR_ENDPOINT,
-            JSON.stringify(finalFormData),
-            {
-              headers: { "Content-Type": "application/json" },
-            }
+      const doctors_email_response = await api.get(
+        GET_DOCTORS_BY_EMAIL + `${finalFormData.email}`
+      );
+
+      const SEND_MAIL_ENDPOINT = SEND_MAIL + `${finalFormData.email}`;
+
+      const check = doctors_email_response?.data?._embedded?.doctors;
+      if (check !== undefined && check?.length === 0) {
+        // Now we can either check if he wants to be senior doctor or not
+
+        if (finalFormData.isSeniorDoctor) {
+          delete finalFormData.isSeniorDoctor;
+          try {
+            const response = await api.post(
+              SAVE_SENIORDR_ENDPOINT,
+              JSON.stringify(finalFormData),
+              {
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+            console.log(response?.status);
+          } catch (err) {}
+          toast.success(
+            "The Senior Doctor is sent a mail and is successfully added to database !"
           );
-          console.log(response?.status);
-        } catch (err) {}
-        toast.success(
-          "The Senior Doctor is sent a mail and is successfully added to database !"
-        );
-      } else {
-        delete finalFormData.isSeniorDoctor;
-        try {
-          const response = await api.post(
-            SAVE_COUNSELLOR_ENDPOINT,
-            JSON.stringify(finalFormData),
-            {
-              headers: { "Content-Type": "application/json" },
-            }
+        } else {
+          delete finalFormData.isSeniorDoctor;
+          try {
+            const response = await api.post(
+              SAVE_COUNSELLOR_ENDPOINT,
+              JSON.stringify(finalFormData),
+              {
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+            console.log(response?.status);
+          } catch (err) {
+            console.error("ERROR !!", err);
+          }
+          toast.success(
+            "The Counsellor is sent a mail and is successfully added to database !"
           );
+        }
+
+        try {
+          const response = await api.post(SEND_MAIL_ENDPOINT);
           console.log(response?.status);
         } catch (err) {
-          console.error("ERROR !!", err);
+          console.error(err);
         }
-        toast.success(
-          "The doctor is sent a mail to change password and is successfully added to database !"
-        );
+        setTimeout(function () {
+          navigate("/adminDashboard");
+        }, 6000);
+      } else {
+        // This means that the doctor is already present
+        toast.error("There is already another doctor with the same email !");
       }
-
-      try {
-        const response = await api.post(SEND_MAIL_ENDPOINT);
-        console.log(response?.status);
-      } catch (err) {
-        console.error(err);
-      }
-      setTimeout(function () {
-        navigate("/adminDashboard");
-      }, 6000);
-    } else {
-      // This means that the doctor is already present
-      toast.error("There is already another doctor with the same email !");
+    } catch (err) {
+      console.error("Error while uploading file", err);
+      toast.error("Uploaded Image is greater than 15MB");
     }
-    console.log(JSON.stringify(finalFormData));
+
     console.log("Form Submitted");
   }
 
@@ -236,13 +291,14 @@ const AdminCreateCounsellor = () => {
         </label>
         <br />
         <input
-          type="text"
+          type="file"
           id={id + "-filePath"}
-          placeholder="File"
+          placeholder="Upload Photo"
           className="form--input"
+          accept="image/jpeg, image/png"
+          required
           name="profile_photo"
-          onChange={handleChange}
-          value={formData.profile_photo}
+          onChange={handleFileChange}
         />
 
         <br />
