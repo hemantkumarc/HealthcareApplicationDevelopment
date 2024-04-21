@@ -13,7 +13,6 @@ import {
     Modal,
 } from "react-bootstrap";
 import { FaMicrophone, FaCircle } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -31,7 +30,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { handlePeerConnectionClose } from "../../utils/utils.js";
 
 function InCall({ conn, peerconnection, setShowIncall }) {
-    const navigate = useNavigate();
     useEffect(() => {
         handlePeerConnectionClose(conn, peerconnection, handleEndCall);
     }, []);

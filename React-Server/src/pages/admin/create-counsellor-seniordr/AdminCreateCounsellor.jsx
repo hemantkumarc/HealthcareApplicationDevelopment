@@ -1,6 +1,7 @@
 import React from "react";
 import "./AdminCreateCounsellor.css";
 import api from "../../../api/axios.jsx";
+import { useNavigate } from "react-router-dom";
 import { counsellorLanguages } from "./languages.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,7 +11,8 @@ const AdminCreateCounsellor = () => {
   const SAVE_COUNSELLOR_ENDPOINT = "/springdatarest/counsellors";
   const SAVE_SENIORDR_ENDPOINT = "/springdatarest/seniorDrs";
   const GET_DOCTORS_BY_EMAIL =
-    "http://localhost/springdatarest/doctors/search/byAttributes?email=";
+    "/springdatarest/doctors/search/byAttributes?email=";
+  const SEND_MAIL = "/mail/send/";
 
   const [updatedLanguage, setUpdatedLanguage] = React.useState([]);
 
@@ -18,6 +20,8 @@ const AdminCreateCounsellor = () => {
     setUpdatedLanguage(language.map((object) => object.label) || []);
     // console.log(updatedLanguage);
   };
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -57,8 +61,9 @@ const AdminCreateCounsellor = () => {
       GET_DOCTORS_BY_EMAIL + `${finalFormData.email}`
     );
 
-    const check = doctors_email_response?.data?._embedded?.doctors;
+    const SEND_MAIL_ENDPOINT = SEND_MAIL + `${finalFormData.email}`;
 
+    const check = doctors_email_response?.data?._embedded?.doctors;
     if (check !== undefined && check?.length === 0) {
       // Now we can either check if he wants to be senior doctor or not
 
@@ -74,6 +79,9 @@ const AdminCreateCounsellor = () => {
           );
           console.log(response?.status);
         } catch (err) {}
+        toast.success(
+          "The Senior Doctor is sent a mail and is successfully added to database !"
+        );
       } else {
         delete finalFormData.isSeniorDoctor;
         try {
@@ -85,8 +93,23 @@ const AdminCreateCounsellor = () => {
             }
           );
           console.log(response?.status);
-        } catch (err) {}
+        } catch (err) {
+          console.error("ERROR !!", err);
+        }
+        toast.success(
+          "The doctor is sent a mail to change password and is successfully added to database !"
+        );
       }
+
+      try {
+        const response = await api.post(SEND_MAIL_ENDPOINT);
+        console.log(response?.status);
+      } catch (err) {
+        console.error(err);
+      }
+      setTimeout(function () {
+        navigate("/adminDashboard");
+      }, 6000);
     } else {
       // This means that the doctor is already present
       toast.error("There is already another doctor with the same email !");
@@ -119,6 +142,7 @@ const AdminCreateCounsellor = () => {
         <label htmlFor={id + "-dateofbirth"}>
           Enter Counsellor / Senior Doctor DoB :
         </label>
+        <br />
         <input
           type="date"
           id={id + "-dateofbirth"}
@@ -210,6 +234,7 @@ const AdminCreateCounsellor = () => {
         <label htmlFor={id + "-filePath"}>
           Enter his / her latest photograph :
         </label>
+        <br />
         <input
           type="text"
           id={id + "-filePath"}
@@ -246,23 +271,8 @@ const AdminCreateCounsellor = () => {
           onChange={handleChange}
           id={id + "-isSeniorDoctor"}
         />
-
         <br />
-
-        <label htmlFor={id + "-status"}>
-          Is he / she an active counsellor / senior doctor or not ?
-        </label>
-        <input
-          name="status"
-          type="checkbox"
-          className="form--checkbox"
-          checked={formData.status}
-          onChange={handleChange}
-          id={id + "-status"}
-        />
-
-        <br />
-        <button className="form--submit">CREATE</button>
+        <button className="form--submit">Create Doctor</button>
       </form>
       <ToastContainer position="top-right" />
     </div>

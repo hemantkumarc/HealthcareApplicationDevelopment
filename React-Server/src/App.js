@@ -8,6 +8,8 @@ import SrDrDashboard from "./pages/srDocDashboard/component/SrDrDashboard";
 import InCall from "./pages/inCall/InCall";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import AdminCreateCounsellor from "./pages/admin/create-counsellor-seniordr/AdminCreateCounsellor";
+import AdminSignUpDoctor from "./pages/admin/create-counsellor-seniordr/AdminSignUpDoctor";
+import ForgotPassword from "./pages/login/ForgotPassword";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
           path="/adminCreateCounsellor"
           element={<AdminCreateCounsellor />}
         />
+        <Route path="/adminSignUpDoctor" element={<AdminSignUpDoctor />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
       </Routes>
     </BrowserRouter>
   );
