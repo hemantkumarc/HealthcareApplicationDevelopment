@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "./Login.css";
+import "./util.css";
 import videoBg from "../../assets/bg.mp4";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
@@ -92,47 +93,84 @@ const Login = () => {
         }
     };
 
+
+    //Eye Animation
+
+    const [isEyeOpen, setIsEyeOpen] = useState(false);
+
+    const toggleEye = () => {
+        setIsEyeOpen(!isEyeOpen);
+    };
+
     return (
-        <div className="main">
-            <video src={videoBg} autoPlay muted loop />
-            <div className="wrapper-container">
-                <div className="wrapper">
-                    <div className="logo">
-                        <img
-                            src={require("../../assets/drVolteLogo.png")}
-                            alt="logo"
-                            className="Logo-img"
-                        />
-                    </div>
-                    <form onSubmit={handleSubmit}>
-                        <h1>LOGIN</h1>
-                        <div className="Input-box">
+        <div>
+            <video id="myVideo" src={videoBg} autoPlay muted loop />
+	
+            <div className="container-login100">
+                <div className="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
+                    <form className="login100-form validate-form" id="loginForm">
+                        <div id="logo">
+                            <img
+                                src={require("../../assets/drVolteLogo.png")}
+                                alt="logo"
+                                className="Logo-img"
+                                id="logoImg"
+                            />
+                            <div id="title">Dr. VoLTE</div>
+                        </div>
+                        <span id="signIn" className="login100-form-title p-b-37">
+                            Sign In
+                        </span>
+
+                        <div id="username" className="wrap-input100 validate-input m-b-20" data-validate="Enter Mobile Number">
                             <input
+                                className="input100"
                                 type="text"
                                 placeholder="username"
                                 autoComplete="off"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                             />
-                            <FaUser className="icon" />
+                            <img
+                                src={require("../../assets/wired-lineal-21-avatar.gif")}
+                                alt="User"
+                                id="user"
+                            />
+                            <span className="focus-input100"></span>
                         </div>
-                        <div className="Input-box">
+
+                        <div className="wrap-input100 validate-input m-b-25" data-validate = "Enter password">
                             <input
-                                type="password"
+                                className="input100"
+                                type={isEyeOpen ? 'text' : 'password'}
                                 placeholder="password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
-                            <FaLock className="icon" />
+                            {isEyeOpen ? (
+                                <img
+                                src={require("../../assets/Animation - 1713810100622.gif")}
+                                alt="eyeGif"
+                                id="eyeAnim"
+                                onClick={toggleEye}
+                                />
+                            ) : (
+                                <img
+                                src={require("../../assets/eye-closed.png")}
+                                alt="closedEye"
+                                id="eyeClosed"
+                                onClick={toggleEye}
+                                />
+                            )}
+                            <span className="focus-input100"></span>
                         </div>
-                        <div className="forgot">
-                            <Link to={""}>Forgot Password?</Link>
+                        <div class="container-login100-form-btn">
+                            <button id="submitBtn" type="submit" class="login100-form-btn">
+                                Sign In
+                            </button>
                         </div>
-                        <div className="login-button">
-                            <button onClick={handleSubmit}>login</button>
-                        </div>
-                    </form>
+                    </form>        
                 </div>
             </div>
         </div>

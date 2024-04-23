@@ -4,15 +4,19 @@ import api from "../../../api/axios.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
+import ImageComponent from "../../../utils/Image.jsx";
 
 export default function Cards({ doctor, updateDoctorStatus }) {
-  const DISABLE_DOCTOR_ENDPOINT = "http://localhost/springdatarest/doctors/";
+  const DISABLE_DOCTOR_ENDPOINT = "/springdatarest/doctors/";
+  const GET_USER_DOCTOR_ENDPOINT =
+    "/springdatarest/users/search/byAttribute?username=";
+  const DELETE_USER_DOCTOR_ENDPOINT = "/springdatarest/users/";
 
   const [status, setStatus] = useState(doctor.status);
 
-  function handleView() {
-    console.log("View Button clicked !");
-  }
+  // function handleView() {
+  //   console.log("View Button clicked !");
+  // }
 
   async function handleDisable(doctor) {
     console.log("Disable Button clicked !", doctor.resourceId);
@@ -43,8 +47,33 @@ export default function Cards({ doctor, updateDoctorStatus }) {
       } else {
         setStatus("enabled");
       }
-
       updateDoctorStatus({ ...doctor, status: obj.status });
+
+      let doctor_id;
+      try {
+        // We now try to get the doctor from the users table and later on delete him/her based on the resourceId
+        const get_doctor_response = await api.get(
+          GET_USER_DOCTOR_ENDPOINT + `${doctor.email}`
+        );
+        console.log(get_doctor_response.status);
+        console.log("GET USER executed successfully.");
+        doctor_id = get_doctor_response?.data?.resourceId;
+      } catch (err) {
+        console.log(err);
+        console.log("GET USER failed.");
+      }
+
+      console.log("doctor id", doctor_id);
+      try {
+        const delete_doctor_response = await api.delete(
+          DELETE_USER_DOCTOR_ENDPOINT + `${doctor_id}`
+        );
+        console.log(delete_doctor_response.status);
+        console.log("DELETE USER executed successfully.");
+      } catch (err) {
+        console.log(err);
+        console.log("DELETE USER failed.");
+      }
     } catch (err) {
       console.log(err);
       console.log("Disable functionality did not work !!");
@@ -54,8 +83,8 @@ export default function Cards({ doctor, updateDoctorStatus }) {
   return (
     <div className="containers">
       <div className="card_item">
-        <div className="card_inner">
-          <img src={doctor.profile_photo} alt="counsellor" />
+        <div className="card_inner_doctor">
+          <ImageComponent profile_photo={doctor.profile_photo} />
           <div className="name">{doctor.name}</div>
           <div className="qualification">
             Qualification : {doctor.qualification}
@@ -65,11 +94,14 @@ export default function Cards({ doctor, updateDoctorStatus }) {
             Specialization : {doctor.specialization}
           </div>
           <div className="buttons">
-            <button className="view" onClick={handleView}>
+            {/* <button className="view" onClick={handleView}>
               View Details
-            </button>
+            </button> */}
             {(status === "enabled" || status === "disabled") && (
-              <button className="disable" onClick={() => handleDisable(doctor)}>
+              <button
+                className={status === "enabled" ? "disable" : "enable"}
+                onClick={() => handleDisable(doctor)}
+              >
                 {status === "enabled" ? "Disable" : "Enable"}
               </button>
             )}

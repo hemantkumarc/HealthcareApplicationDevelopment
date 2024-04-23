@@ -7,7 +7,7 @@ export default function FilterSection({ setFilters }) {
   const [selectedFilters, setSelectedFilters] = useState({
     specialization: [],
     language: [],
-    status: [],
+    status: ["enabled"],
   });
 
   const [selectedLanguages, setSelectedLanguages] = useState([]);
@@ -111,6 +111,7 @@ export default function FilterSection({ setFilters }) {
             type="checkbox"
             value="enabled"
             name="status"
+            checked={selectedFilters.status.includes("enabled")}
           />
           <span className="checkmark"></span>Active
         </label>
@@ -121,6 +122,7 @@ export default function FilterSection({ setFilters }) {
             type="checkbox"
             value="disabled"
             name="status"
+            checked={selectedFilters.status.includes("disabled")}
           />
           <span className="checkmark"></span>Inactive
         </label>

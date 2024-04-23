@@ -6,7 +6,7 @@ import SideBar from "./SideBar";
 import Doctor from "./Doctor";
 import { userLoggedIn } from "../../../utils/utils";
 import { jwtDecode } from "jwt-decode";
-import {useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const [search, setSearch] = useState("");
@@ -16,26 +16,24 @@ export default function AdminDashboard() {
     sortBy: "name",
   });
   const navigate = useNavigate();
-    const token = localStorage.getItem("token");
-    // use this ti check if user is logged in
-    useEffect(() => {
-        const checkLoggedIn = async () => {
-            const loggedIn = await userLoggedIn();
-            if (loggedIn) {
-                const jwtdecoded = jwtDecode(token);
-                console.log("this is the jwtDecode after decoding", jwtdecoded);
-                if (jwtdecoded.role !== "ROLE_ADMIN") {
-                    navigate("/");
-                }
-                localStorage.setItem("role", jwtdecoded.role);
-                localStorage.setItem("id", jwtdecoded.sub);
-            } else {
-                navigate("/");
-            }
-            // if(loggedIn)
-        };
-        checkLoggedIn();
-    }, [navigate, token]);
+  const token = localStorage.getItem("token");
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      const loggedIn = await userLoggedIn();
+      if (loggedIn) {
+        const jwtdecoded = jwtDecode(token);
+        console.log("this is the jwtDecode after decoding", jwtdecoded);
+        if (jwtdecoded.role !== "ROLE_ADMIN") {
+          navigate("/");
+        }
+        localStorage.setItem("role", jwtdecoded.role);
+        localStorage.setItem("id", jwtdecoded.sub);
+      } else {
+        navigate("/");
+      }
+    };
+    checkLoggedIn();
+  }, [navigate, token]);
 
   return (
     <div>
