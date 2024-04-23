@@ -9,6 +9,7 @@ import InCall from "./pages/inCall/InCall";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import AdminCreateCounsellor from "./pages/admin/create-counsellor-seniordr/AdminCreateCounsellor";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RevampedDashboard from "./pages/counsellorDashboard/RevampedDashboard";
 
 function App() {
   return (
