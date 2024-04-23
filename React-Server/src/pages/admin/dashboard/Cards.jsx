@@ -14,9 +14,9 @@ export default function Cards({ doctor, updateDoctorStatus }) {
 
   const [status, setStatus] = useState(doctor.status);
 
-  function handleView() {
-    console.log("View Button clicked !");
-  }
+  // function handleView() {
+  //   console.log("View Button clicked !");
+  // }
 
   async function handleDisable(doctor) {
     console.log("Disable Button clicked !", doctor.resourceId);
@@ -94,11 +94,14 @@ export default function Cards({ doctor, updateDoctorStatus }) {
             Specialization : {doctor.specialization}
           </div>
           <div className="buttons">
-            <button className="view" onClick={handleView}>
+            {/* <button className="view" onClick={handleView}>
               View Details
-            </button>
+            </button> */}
             {(status === "enabled" || status === "disabled") && (
-              <button className="disable" onClick={() => handleDisable(doctor)}>
+              <button
+                className={status === "enabled" ? "disable" : "enable"}
+                onClick={() => handleDisable(doctor)}
+              >
                 {status === "enabled" ? "Disable" : "Enable"}
               </button>
             )}

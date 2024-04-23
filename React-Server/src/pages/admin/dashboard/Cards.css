@@ -60,7 +60,8 @@
 }
 
 .view,
-.disable {
+.disable,
+.enable {
   border: none;
   background: rgb(174, 255, 124);
   font-weight: 700;
@@ -72,5 +73,12 @@
 }
 .disable {
   background: rgb(251, 90, 90);
+  color: white;
+  margin-left: 9px;
+}
+
+.enable {
+  background: green;
+  color: white;
   margin-left: 9px;
 }

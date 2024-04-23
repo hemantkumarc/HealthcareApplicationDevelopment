@@ -25,17 +25,17 @@ const AdminCreateCounsellor = () => {
       if (loggedIn) {
         const jwtdecoded = jwtDecode(token);
         console.log("this is the jwtDecode after decoding", jwtdecoded);
-        if (jwtdecoded.role === "ROLE_COUNSELLOR") {
-          navigate("/counsellorDashboard");
-        } else if (jwtdecoded.role === "ROLE_SENIORDR") {
-          navigate("/SrDrDashboard");
+        if (jwtdecoded.role !== "ROLE_ADMIN") {
+          navigate("/");
         }
+        localStorage.setItem("role", jwtdecoded.role);
+        localStorage.setItem("id", jwtdecoded.sub);
       } else {
         navigate("/");
       }
     };
     checkLoggedIn();
-  }, []);
+  }, [navigate, token]);
 
   const [file, setFile] = React.useState(null);
 
