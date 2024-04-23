@@ -59,12 +59,15 @@ const Login = () => {
             // const lobbyResponse = await api.get(LOBBY_URL);
             if (role === "ROLE_COUNSELLOR") {
                 // Redirect to the counsellor dashboard
+                localStorage.setItem("role", "ROLE_COUNSELLOR");
                 navigate("/counsellorDashboard");
             } else if (role === "ROLE_SENIORDR") {
                 // Redirect to the counsellor dashboard
+                localStorage.setItem("role", "ROLE_SENIORDR");
                 navigate("/SrDrDashboard");
-            } else if (role == "ROLE_ADMIN") {
+            } else if (role === "ROLE_ADMIN") {
                 // Redirect to the Admin Dashboard
+                localStorage.setItem("role", "ROLE_ADMIN");
                 navigate("/adminDashboard");
             } else {
                 setUsername("");

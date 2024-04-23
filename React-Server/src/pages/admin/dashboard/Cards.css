@@ -8,11 +8,11 @@
   cursor: pointer;
 }
 
-.card_inner {
+.card_inner_doctor {
   text-align: center;
   background: rgba(253, 253, 253, 0.808);
   border-radius: 10px;
-  padding: 35px 20px;
+  padding: 20px 20px;
   min-width: 250px;
   min-height: 315px;
   max-height: 370px;
@@ -60,7 +60,8 @@
 }
 
 .view,
-.disable {
+.disable,
+.enable {
   border: none;
   background: rgb(174, 255, 124);
   font-weight: 700;
@@ -72,5 +73,12 @@
 }
 .disable {
   background: rgb(251, 90, 90);
+  color: white;
+  margin-left: 9px;
+}
+
+.enable {
+  background: green;
+  color: white;
   margin-left: 9px;
 }
