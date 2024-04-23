@@ -11,6 +11,7 @@ import AdminCreateCounsellor from "./pages/admin/create-counsellor-seniordr/Admi
 import AdminSignUpDoctor from "./pages/admin/create-counsellor-seniordr/AdminSignUpDoctor";
 import ForgotPassword from "./pages/login/ForgotPassword";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RevampedDashboard from "./pages/counsellorDashboard/RevampedDashboard";
 
 function App() {
   return (
