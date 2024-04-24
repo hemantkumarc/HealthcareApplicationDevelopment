@@ -98,15 +98,18 @@ const RestBody = () => {
                     counsellorPeerConnection = await initiateWebRTC(
                         conn,
                         role,
-                        connections
+                        connections,
+                        counsellorRole
                     );
                     connections.peerConnection = counsellorPeerConnection;
+
                     counsellorPeerConnection.ontrack = (e) => {
                         console.log("setting the remote stream", e);
-                        // const audio = new Audio();
-                        // audio.autoplay = true;
-                        // audio.srcObject = e.streams[0];
+                        const audio = new Audio();
+                        audio.autoplay = true;
+                        audio.srcObject = e.streams[0];
                         setIsMuted(false);
+                        setIsWebRTCConnected(true);
                         setModalBody(
                             <>
                                 <lord-icon
@@ -122,9 +125,9 @@ const RestBody = () => {
                             () => setShowCallConnectingModal(false),
                             2000
                         );
-                        setIsWebRTCConnected(true);
                         // audioEle.current.sourceo
                     };
+
                     handlePeerConnectionClose(
                         conn,
                         counsellorPeerConnection,
@@ -236,17 +239,7 @@ const RestBody = () => {
         declinedCounsellors.clear();
 
         setShowCallConnectingModal(true);
-        setModalBody(
-            <>
-                <lord-icon
-                    src="https://cdn.lordicon.com/iauexvsm.json"
-                    trigger="loop"
-                    delay="1000"
-                    style={{ width: "50px", height: "50px" }}
-                ></lord-icon>
-                Connecting
-            </>
-        );
+
         if (
             !dial.includes(drVoltePhnumber) ||
             !dial.endsWith(drVoltePhnumber)
@@ -260,7 +253,7 @@ const RestBody = () => {
                         style={{ width: "100px", height: "100px" }}
                     ></lord-icon>
                     Please Provide the valid Ph Number\n "Please" note that this
-                    is not a fucking real feature phone
+                    is not a real feature phone
                 </>
             );
             setTimeout(() => setShowCallConnectingModal(false), 5000);
@@ -296,12 +289,6 @@ const RestBody = () => {
         // }, 60000);
         setModalBody(
             <>
-                {/* <lord-icon
-                    src="https://cdn.lordicon.com/pxwxddbb.json"
-                    trigger="loop"
-                    state="loop-rotation"
-                    style={{ width: "50px", height: "50px" }}
-                ></lord-icon> */}
                 Connecting
                 <lord-icon
                     src="https://cdn.lordicon.com/lqxfrxad.json"
