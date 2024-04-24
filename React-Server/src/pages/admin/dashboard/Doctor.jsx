@@ -1,18 +1,18 @@
 import React from "react";
 import "./Doctor.css";
 import Cards from "./Cards";
-import api from "../../../api/axios";
+import { getResponseGet } from "../../../utils/utils.js";
 
 function Doctor({ filters, search, sorts }) {
   const [sortedDoctors, setSortedDoctors] = React.useState([]);
 
+  const GET_ALL_DOCTORS_ENDPOINT = "/springdatarest/doctors";
+
   React.useEffect(() => {
     async function fetchData() {
-      try {
-        const doctors_response = await api.get(
-          "http://localhost/springdatarest/doctors"
-        );
-
+      const doctors_response = await getResponseGet(GET_ALL_DOCTORS_ENDPOINT);
+      const doctors_status = doctors_response?.status;
+      if (doctors_status === 200) {
         let all_doctors = [];
 
         const counsellor_res = doctors_response.data._embedded.counsellors;
@@ -39,8 +39,11 @@ function Doctor({ filters, search, sorts }) {
         });
 
         setSortedDoctors(all_doctors);
-      } catch (err) {
-        console.log(err);
+      } else {
+        console.error(
+          "Could not get all doctors from Spring",
+          doctors_response
+        );
       }
     }
     fetchData();

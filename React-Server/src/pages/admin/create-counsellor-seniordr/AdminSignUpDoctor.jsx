@@ -1,8 +1,8 @@
 import React from "react";
-import api from "../../../api/axios.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AdminSignUpDoctor.css";
+import { getResponsePost } from "../../../utils/utils";
 
 const AdminSignUpDoctor = () => {
   const CHANGE_PASSWORD_ENDPOINT = "/mail/changePassword";
@@ -45,19 +45,18 @@ const AdminSignUpDoctor = () => {
       // Removing confirmPassword from the finalFormData
       delete formData.confirmPassword;
       console.log(formData);
-      try {
-        const response = await api.post(
-          CHANGE_PASSWORD_ENDPOINT,
-          JSON.stringify(formData),
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        console.log(response?.status);
+
+      const change_password_response = await getResponsePost(
+        CHANGE_PASSWORD_ENDPOINT,
+        JSON.stringify(formData),
+        { "Content-Type": "application/json" }
+      );
+      const change_password_status = change_password_response?.status;
+      if (change_password_status === 200) {
         toast.success(
           "You have successfully reset password. Please close current window."
         );
-      } catch (err) {
+      } else {
         console.error("Change Password request failed !");
         toast.error("Something went wrong while changing passwords");
       }
