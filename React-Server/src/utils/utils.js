@@ -228,6 +228,28 @@ export const getResponseGet = async (url, headers) => {
     }
 };
 
+export const getResponseDelete = async (url, headers) => {
+    try {
+        const response = await api.delete(url, {
+            headers: headers,
+        });
+        return response;
+    } catch (err) {
+        return err;
+    }
+};
+
+export const getResponsePut = async (url, data, headers) => {
+    try {
+        const response = await api.put(url, JSON.stringify(data), {
+            headers: headers,
+        });
+        return response;
+    } catch (err) {
+        return err;
+    }
+};
+
 export const userLoggedIn = () => {
     // // use this below useeffect to check if user is logged in
     // useEffect(() => {

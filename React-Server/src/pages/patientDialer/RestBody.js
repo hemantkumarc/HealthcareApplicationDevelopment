@@ -38,6 +38,9 @@ const RestBody = () => {
         );
         createWebsocketConnection();
     }, []);
+    useEffect(() => {
+        console.log("iswebsocketconnected changed to", isWebRTCConnected);
+    }, [isWebRTCConnected]);
 
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
@@ -263,17 +266,31 @@ const RestBody = () => {
         console.log(dial, "Hi patient haha", conn);
         if (!conn || conn.readyState !== 1) {
             console.log("WebSocket Not connected");
-            setModalBody("Not Connected to the Server");
+            setModalBody(
+                <>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/yildykzu.json"
+                        trigger="loop"
+                        delay="1000"
+                        style={{ width: "100px", height: "100px" }}
+                    ></lord-icon>
+                    Not Connected to the Server
+                </>
+            );
             setTimeout(() => setShowCallConnectingModal(false), 5000);
             return;
         }
 
         setShowCallConnectingModal(true);
-        setTimeout(() => {
-            if (!isWebRTCConnected) {
-                disconnectCall();
-            }
-        }, 60000);
+        // setTimeout(() => {
+        //     console.log(
+        //         "inside the settime and cheking for webRTC connected or not",
+        //         getWebRTCStatus()
+        //     );
+        //     if (!getWebRTCStatus()) {
+        //         disconnectCall();
+        //     }
+        // }, 60000);
         setModalBody(
             <>
                 <lord-icon
@@ -296,7 +313,13 @@ const RestBody = () => {
         // setShowCallConnectingModal(false);
     };
 
+    const getWebRTCStatus = () => isWebRTCConnected;
+
     const disconnectCall = () => {
+        console.log(
+            "inside disconnect, this is webRTC connection status",
+            isWebRTCConnected
+        );
         setIsWebRTCConnected(false);
         console.log(
             "this is counsellorPeerConnection",
