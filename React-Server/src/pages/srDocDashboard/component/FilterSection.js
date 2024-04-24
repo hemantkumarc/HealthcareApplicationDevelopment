@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "../style/FilterSection.css";
+import Select from "react-select";
+import { counsellorLanguages } from "./languages";
+import { specializations } from "./specializations";
 
 export default function FilterSection({ setFilters }) {
   const [selectedFilters, setSelectedFilters] = useState({
     specialization: [],
     language: [],
+    status: [],
   });
 
   const handleChange = (event) => {
@@ -17,9 +21,12 @@ export default function FilterSection({ setFilters }) {
     }));
   };
 
-  // useState(() => {
-  //   setFilters(selectedFilters);
-  // }, [selectedFilters, setFilters]);
+  const handleMultiSelectChange = (name, selectedOptions) => {
+    setSelectedFilters((prevState) => ({
+      ...prevState,
+      [name]: selectedOptions.map((option) => option.label),
+    }));
+  };
 
   useEffect(() => {
     setFilters(selectedFilters);
@@ -28,100 +35,67 @@ export default function FilterSection({ setFilters }) {
   return (
     <div className="srdoc-sidebar">
       <div className="filter-section">
-        <h2 className="sidebar-title">Specialization</h2>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="Radiologist"
-            name="specialization"
-          />
-          <span className="checkmark"></span>Radiologist
-        </label>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="Orthopaedics"
-            name="specialization"
-          />
-          <span className="checkmark"></span>Orthopaedics
-        </label>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="General Medicine"
-            name="specialization"
-          />
-          <span className="checkmark"></span>General Medicine
-        </label>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="General Surgery"
-            name="specialization"
-          />
-          <span className="checkmark"></span>General Surgery
-        </label>
+        <h2 className="sidebar-title">Specializations</h2>
+        <Select
+          isMulti
+          name="specializations"
+          options={specializations}
+          className="basic-multi-select"
+          value={specializations.filter((option) =>
+            selectedFilters.specialization.includes(option.label)
+          )}
+          onChange={(selectedOptions) =>
+            handleMultiSelectChange("specialization", selectedOptions)
+          }
+          classNamePrefix="select"
+          maxMenuHeight={150}
+        />
       </div>
-
       <div className="filter-section">
-        <h2 className="sidebar-title">Language</h2>
-
+        <h2 className="sidebar-title">Languages</h2>
+        <Select
+          isMulti
+          name="languages"
+          options={counsellorLanguages}
+          className="basic-multi-select"
+          value={counsellorLanguages.filter((option) =>
+            selectedFilters.language.includes(option.label)
+          )}
+          onChange={(selectedOptions) =>
+            handleMultiSelectChange("language", selectedOptions)
+          }
+          classNamePrefix="select"
+          maxMenuHeight={150}
+        />
+      </div>
+      <div className="filter-section">
+        <h2 className="sidebar-title">Status</h2>
         <label className="checkbox-container">
           <input
             onChange={handleChange}
             type="checkbox"
-            value="English"
-            name="language"
+            value="In-Call"
+            name="status"
           />
-          <span className="checkmark"></span>English
+          <span className="checkmark"></span>In-Call
         </label>
-
         <label className="checkbox-container">
           <input
             onChange={handleChange}
             type="checkbox"
-            value="Hindi"
-            name="language"
+            value="Busy"
+            name="status"
           />
-          <span className="checkmark"></span>Hindi
+          <span className="checkmark"></span>Busy
         </label>
-
         <label className="checkbox-container">
           <input
             onChange={handleChange}
             type="checkbox"
-            value="Kannada"
-            name="language"
+            value="Inactive"
+            name="status"
           />
-          <span className="checkmark"></span>Kannada
-        </label>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="Gujarati"
-            name="language"
-          />
-          <span className="checkmark"></span>Gujarati
-        </label>
-
-        <label className="checkbox-container">
-          <input
-            onChange={handleChange}
-            type="checkbox"
-            value="Tamil"
-            name="language"
-          />
-          <span className="checkmark"></span>Tamil
+          <span className="checkmark"></span>Inactive
         </label>
       </div>
     </div>
