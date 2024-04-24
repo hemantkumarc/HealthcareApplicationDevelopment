@@ -11,10 +11,15 @@ import java.util.Map;
 @Data
 public class WebSocketConnection {
 
+    // Token to session id mapping
     private Map<String, String> tokenToSessionId;
+    // Session Id to token mapping
     private Map<String, String> sessionIdToToken;
+    // Roles to state and then each state to token
     private Map<Roles, Map<String, HashSet<String>>> roleToStateToToken;
+    // Token to token forwarding mapping based on role as there can be only 3 roles involed in a call
     private Map<String, Map<Roles, String>> tokenToRoleToToken;
+    // figuring this out
     private Map<Roles, Map<Long, String>> roleToIdToToken;
 
     public WebSocketConnection() {

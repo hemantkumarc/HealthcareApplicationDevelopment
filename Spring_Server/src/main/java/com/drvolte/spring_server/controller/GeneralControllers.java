@@ -13,10 +13,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class GeneralControllers {
@@ -115,14 +115,17 @@ public class GeneralControllers {
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
-                    String id = decodedJWT.getClaim("id").asString();
+                    Long id = decodedJWT.getClaim("id").asLong();
+                    System.out.println("this is the id from token " + id);
+                    System.out.println(decodedJWT);
+                    System.out.println(token);
                     retJson.getJSONArray(Roles.ROLE_SENIORDR + "_online").put(id);
                 } catch (JWTVerificationException e) {
                     System.out.println("token is expired" + e);
                 }
             }
         } else {
-            System.out.println("No counsellor in online state" + webSocketConnections.getRoleToStateToToken());
+            System.out.println("No SR_DR in online state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
@@ -133,14 +136,14 @@ public class GeneralControllers {
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
-                    String id = decodedJWT.getClaim("id").asString();
+                    Long id = decodedJWT.getClaim("id").asLong();
                     retJson.getJSONArray(Roles.ROLE_SENIORDR + "_incall").put(id);
                 } catch (JWTVerificationException e) {
                     System.out.println("token is expired" + e);
                 }
             }
         } else {
-            System.out.println("No counsellor in incall state" + webSocketConnections.getRoleToStateToToken());
+            System.out.println("No SE_DR in incall state" + webSocketConnections.getRoleToStateToToken());
         }
         System.out.println("this is retjson:" + retJson);
         return ResponseEntity.ok(retJson.toString());
