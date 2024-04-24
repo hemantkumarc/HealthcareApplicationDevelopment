@@ -27,9 +27,22 @@ import DynamicIsland from "./DynamicIsland.js";
 import { products, searchModeLabel } from "./data.js";
 import "./inCallStyle.css";
 import "react-datepicker/dist/react-datepicker.css";
-import { handlePeerConnectionClose } from "../../utils/utils.js";
+import {
+    getSocketJson,
+    handlePeerConnectionClose,
+    send,
+} from "../../utils/utils.js";
+
+const adminRole = "ROLE_ADMIN",
+    counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT";
+let conn, patientPeerConnection;
+const connections = { conn: {}, peerConnection: {} };
 
 function InCall({ conn, peerconnection, setShowIncall }) {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
+
     useEffect(() => {
         handlePeerConnectionClose(conn, peerconnection, handleEndCall);
     }, []);
@@ -46,6 +59,7 @@ function InCall({ conn, peerconnection, setShowIncall }) {
                 peerconnection.connectionState === "connecting")
         ) {
             console.log("peerconnection connected, Now disconnecting");
+
             peerconnection.close();
             peerconnection = undefined;
         }
@@ -53,9 +67,13 @@ function InCall({ conn, peerconnection, setShowIncall }) {
             peerconnection.close();
             peerconnection = undefined;
         }
+        send(
+            conn,
+            getSocketJson("disconnect", "decline", token, role, patientRole)
+        );
         setTimeout(() => {
             setShowIncall(false);
-        }, 2000);
+        }, 1000);
     };
 
     const today = new Date();
