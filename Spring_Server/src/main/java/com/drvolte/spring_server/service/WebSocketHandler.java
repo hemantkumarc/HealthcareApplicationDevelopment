@@ -77,7 +77,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             logger.error("JWTVerificationException occuered");
             assert sourceSession != null;
             sendTextMessage(sourceSession, tempWebsocketMessage.setItems("Invalid JWT token", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
-        } catch (IOException | NullPointerException e) {
+        } catch (Exception e) {
             logger.error("Error handling WebSocket message", e);
         }
     }
@@ -131,13 +131,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
             } else {
                 webSocketConnections.getRoleToIdToToken().computeIfAbsent(
                         role,
-                        t -> new HashMap<>()).put(id, socketMessage.getToken()
-                );
+                        t -> new HashMap<>()
+                ).put(id, socketMessage.getToken());
             }
-
             logger.info("added the token " + webSocketConnections.getSessionIdToToken());
             logger.info("added the session " + webSocketConnections.getTokenToSessionId());
             logger.info("added the state map" + webSocketConnections.getRoleToStateToToken());
+            logger.info("this is the role to id to token: " + webSocketConnections.getRoleToIdToToken());
             sendTextMessage(session, tempWebsocketMessage.setItems("addedToken", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
         } catch (JWTVerificationException e) {
             logger.error("JWTVerificationException occuered");
@@ -227,7 +227,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     tempWebsocketMessage.setItems("DestinationNotConnected", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
         }
 
-        String destToken = webSocketConnections.getTokenToRoleToToken().get(sourceToken).get(Roles.valueOf(socketMessage.getDestination()));
+        String destToken = webSocketConnections.getTokenToRoleToToken()
+                .get(sourceToken)
+                .get(
+                        Roles.valueOf(
+                                socketMessage.getDestination()
+                        )
+                );
         String destSessionId = webSocketConnections.getTokenToSessionId().get(destToken);
         socketMessage.setToken("");
         sendTextMessage(sessions.get(destSessionId), socketMessage.toString());
