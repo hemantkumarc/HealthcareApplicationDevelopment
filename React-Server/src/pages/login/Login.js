@@ -93,7 +93,6 @@ const Login = () => {
         }
     };
 
-
     //Eye Animation
 
     const [isEyeOpen, setIsEyeOpen] = useState(false);
@@ -105,10 +104,13 @@ const Login = () => {
     return (
         <div>
             <video id="myVideo" src={videoBg} autoPlay muted loop />
-	
+
             <div className="container-login100">
                 <div className="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
-                    <form className="login100-form validate-form" id="loginForm">
+                    <form
+                        className="login100-form validate-form"
+                        id="loginForm"
+                    >
                         <div id="logo">
                             <img
                                 src={require("../../assets/drVolteLogo.png")}
@@ -118,11 +120,18 @@ const Login = () => {
                             />
                             <div id="title">Dr. VoLTE</div>
                         </div>
-                        <span id="signIn" className="login100-form-title p-b-37">
+                        <span
+                            id="signIn"
+                            className="login100-form-title p-b-37"
+                        >
                             Sign In
                         </span>
 
-                        <div id="username" className="wrap-input100 validate-input m-b-20" data-validate="Enter Mobile Number">
+                        <div
+                            id="username"
+                            className="wrap-input100 validate-input m-b-20"
+                            data-validate="Enter Mobile Number"
+                        >
                             <input
                                 className="input100"
                                 type="text"
@@ -139,10 +148,13 @@ const Login = () => {
                             <span className="focus-input100"></span>
                         </div>
 
-                        <div className="wrap-input100 validate-input m-b-25" data-validate = "Enter password">
+                        <div
+                            className="wrap-input100 validate-input m-b-25"
+                            data-validate="Enter password"
+                        >
                             <input
                                 className="input100"
-                                type={isEyeOpen ? 'text' : 'password'}
+                                type={isEyeOpen ? "text" : "password"}
                                 placeholder="password"
                                 required
                                 value={password}
@@ -150,27 +162,32 @@ const Login = () => {
                             />
                             {isEyeOpen ? (
                                 <img
-                                src={require("../../assets/Animation - 1713810100622.gif")}
-                                alt="eyeGif"
-                                id="eyeAnim"
-                                onClick={toggleEye}
+                                    src={require("../../assets/Animation - 1713810100622.gif")}
+                                    alt="eyeGif"
+                                    id="eyeAnim"
+                                    onClick={toggleEye}
                                 />
                             ) : (
                                 <img
-                                src={require("../../assets/eye-closed.png")}
-                                alt="closedEye"
-                                id="eyeClosed"
-                                onClick={toggleEye}
+                                    src={require("../../assets/eye-closed.png")}
+                                    alt="closedEye"
+                                    id="eyeClosed"
+                                    onClick={toggleEye}
                                 />
                             )}
                             <span className="focus-input100"></span>
                         </div>
                         <div class="container-login100-form-btn">
-                            <button id="submitBtn" type="submit" class="login100-form-btn">
+                            <button
+                                id="submitBtn"
+                                type="submit"
+                                class="login100-form-btn"
+                                onClick={handleSubmit}
+                            >
                                 Sign In
                             </button>
                         </div>
-                    </form>        
+                    </form>
                 </div>
             </div>
         </div>
