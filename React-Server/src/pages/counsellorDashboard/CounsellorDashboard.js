@@ -274,7 +274,12 @@ function RevampedDashboard() {
         conn.destRole = patientRole;
         send(conn, getSocketJson("", "accept", token, role, patientRole));
 
-        patientPeerConnection = await initiateWebRTC(conn, role, connections);
+        patientPeerConnection = await initiateWebRTC(
+            conn,
+            role,
+            connections,
+            patientRole
+        );
         connections.peerConnection = patientPeerConnection;
         patientPeerConnection.ontrack = (e) => {
             console.log("setting the remote stream", e);

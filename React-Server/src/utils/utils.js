@@ -85,7 +85,12 @@ const handleReceivedAnswer = async (answer, sourceRole, connections) => {
  * @param {WebSocket} conn The date
  * @returns {RTCPeerConnection} The created RTCPeerConnection object
  */
-export const initiateWebRTC = async (socketConn, sourceRole, connections) => {
+export const initiateWebRTC = async (
+    socketConn,
+    sourceRole,
+    connections,
+    destRole
+) => {
     // {
     // iceServers: [
     //     {
@@ -94,7 +99,8 @@ export const initiateWebRTC = async (socketConn, sourceRole, connections) => {
     // ],
     //  }
     token = localStorage.getItem("token");
-    conn = socketConn;
+    conn = connections.conn;
+    conn.destRole = destRole;
     let peerConnection = new RTCPeerConnection();
     connections.peerConnection = peerConnection;
 
