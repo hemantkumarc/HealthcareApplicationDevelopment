@@ -8,12 +8,43 @@ import Counsellor from "./Counsellor";
 import { jwtDecode } from "jwt-decode";
 import { userLoggedIn } from "../../../utils/utils";
 import { useNavigate } from "react-router-dom";
+// import {
+// 	getSocketJson,
+// 	initiateWebRTC,
+// 	initiateWebsocket,
+// 	send,
+// 	userLoggedIn,
+// } from "../../utils/utils";
+// import InCall from "../inCall/InCall";
 
+
+// const adminRole = "ROLE_ADMIN",
+// 	counsellorRole = "ROLE_COUNSELLOR",
+// 	patientRole = "ROLE_PATIENT";
+	// seniordrRole = "ROLE_SENIORDR";
+// let conn, seniordrPeerConnection;
+// const connections = { conn: {}, peerConnection: {} };
 export default function SrDrDashboard() {
 	const [search, setSearch] = useState("");
 	const [filters, setFilters] = useState({ specialization: [], language: [] });
-  const token = localStorage.getItem("token")
-  const navigate = useNavigate();
+	const [sorts, setSorts] = useState({
+		arrangeBy: "ascending",
+		sortBy: "name",
+	});
+	const [onlineStatus, setOnlineStatus] = useState([]);
+	const token = localStorage.getItem("token");
+	const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
+	const navigate = useNavigate();
+
+
+
+
+	// const handleWebSocketMessage = (message) => {
+	// 	const data = JSON.parse(message.data);
+	// 	setOnlineStatus(data);
+	// 	console.log(data);
+	// };
+
 	useEffect(() => {
 		const checkLoggedIn = async () => {
 			const loggedIn = await userLoggedIn();
@@ -29,12 +60,14 @@ export default function SrDrDashboard() {
 			// if(loggedIn)
 		};
 		checkLoggedIn();
+		// const webSocket = new WebSocket("ws://your-websocket-url");
+		// webSocket.onmessage = handleWebSocketMessage;
+
+		// return () => {
+		// 	webSocket.close();
+		// };
 	}, []);
 	// const [sorts, setSorts] = useState({ arrangeBy, sortBy });
-	const [sorts, setSorts] = useState({
-		arrangeBy: "ascending",
-		sortBy: "name",
-	});
 	return (
 		<div>
 			<header className="srdocnavbar-header">
