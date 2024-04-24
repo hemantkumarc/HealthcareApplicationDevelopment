@@ -1,10 +1,14 @@
 import React from "react";
 import "./Cards.css";
-import api from "../../../api/axios.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
 import ImageComponent from "../../../utils/Image.jsx";
+import {
+  getResponseGet,
+  getResponseDelete,
+  getResponsePut,
+} from "../../../utils/utils";
 
 export default function Cards({ doctor, updateDoctorStatus }) {
   const DISABLE_DOCTOR_ENDPOINT = "/springdatarest/doctors/";
@@ -33,50 +37,50 @@ export default function Cards({ doctor, updateDoctorStatus }) {
       languages: JSON.stringify(doctor.languages),
     };
 
-    try {
-      const disable_response = await api.put(
-        DISABLE_DOCTOR_ENDPOINT + `${doctor.resourceId}`,
-        JSON.stringify(obj),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      console.log(disable_response.status);
-      if (disable_response.data.status === "disabled") {
+    const disable_status_response = await getResponsePut(
+      DISABLE_DOCTOR_ENDPOINT + `${doctor.resourceId}`,
+      obj,
+      { "Content-Type": "application/json" }
+    );
+    const disable_status_status = disable_status_response?.status;
+    if (disable_status_status === 200) {
+      if (disable_status_response.data.status === "disabled") {
         setStatus("disabled");
       } else {
         setStatus("enabled");
       }
       updateDoctorStatus({ ...doctor, status: obj.status });
-
       let doctor_id;
-      try {
-        // We now try to get the doctor from the users table and later on delete him/her based on the resourceId
-        const get_doctor_response = await api.get(
-          GET_USER_DOCTOR_ENDPOINT + `${doctor.email}`
-        );
-        console.log(get_doctor_response.status);
-        console.log("GET USER executed successfully.");
+      // We now try to get the doctor from the users table and later on delete him/her based on the resourceId
+      const get_doctor_response = await getResponseGet(
+        GET_USER_DOCTOR_ENDPOINT + `${doctor.email}`
+      );
+      const get_doctor_status = get_doctor_response?.status;
+      if (get_doctor_status === 200) {
+        console.log("Doctor could be fetched successfully.");
         doctor_id = get_doctor_response?.data?.resourceId;
-      } catch (err) {
-        console.log(err);
-        console.log("GET USER failed.");
-      }
 
-      console.log("doctor id", doctor_id);
-      try {
-        const delete_doctor_response = await api.delete(
+        // Now we try to delete this doctor from the users table as well.
+        const delete_doctor_user_response = await getResponseDelete(
           DELETE_USER_DOCTOR_ENDPOINT + `${doctor_id}`
         );
-        console.log(delete_doctor_response.status);
-        console.log("DELETE USER executed successfully.");
-      } catch (err) {
-        console.log(err);
-        console.log("DELETE USER failed.");
+        const delete_doctor_user_status = delete_doctor_user_response?.status;
+        if (delete_doctor_user_status === 200) {
+          console.log("Doctor User was successfully deleted ");
+        } else {
+          console.error(
+            "Doctor User was not deleted successfully",
+            delete_doctor_user_response
+          );
+        }
+      } else {
+        console.error(
+          "Doctor could not be fetched from the Doctors table",
+          get_doctor_response
+        );
       }
-    } catch (err) {
-      console.log(err);
-      console.log("Disable functionality did not work !!");
+    } else {
+      console.error("Doctor was not disabled", disable_status_response);
     }
   }
 

@@ -1,9 +1,9 @@
 import React from "react";
-import api from "../../api/axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import "./ForgotPassword.css";
+import { getResponsePost } from "../../utils/utils";
 
 const ForgotPassword = () => {
   const SEND_MAIL_ENDPOINT = "/mail/send/";
@@ -31,25 +31,23 @@ const ForgotPassword = () => {
   async function handleSubmit(event) {
     event.preventDefault();
     console.log("Button clicked !");
-
-    try {
-      const response = await api.post(
-        SEND_MAIL_ENDPOINT + `${formData.email}`,
-        JSON.stringify(formData),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      console.log(response?.status);
+    const send_email_response = await getResponsePost(
+      SEND_MAIL_ENDPOINT + `${formData.email}`,
+      JSON.stringify(formData),
+      { "Content-Type": "application/json" }
+    );
+    const send_email_status = send_email_response?.status;
+    if (send_email_status === 200) {
       toast.success(
         "You would have received a reset password email to your registered email id. Please close the current window."
       );
       setTimeout(function () {
         navigate("/");
       }, 7000);
-    } catch (err) {
+    } else {
       console.error("Forgot Password request failed !");
     }
+
     console.log("Form submitted !");
   }
 
