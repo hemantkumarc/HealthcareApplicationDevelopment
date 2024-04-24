@@ -1,6 +1,5 @@
 import React from "react";
 import "./AdminCreateCounsellor.css";
-import api from "../../../api/axios.jsx";
 import { useNavigate } from "react-router-dom";
 import { counsellorLanguages } from "./languages.js";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
 import { userLoggedIn } from "../../../utils/utils";
 import { jwtDecode } from "jwt-decode";
+import { getResponseGet, getResponsePost } from "../../../utils/utils";
 
 const AdminCreateCounsellor = () => {
   const SAVE_COUNSELLOR_ENDPOINT = "/springdatarest/counsellors";
@@ -18,6 +18,7 @@ const AdminCreateCounsellor = () => {
   const UPLOAD_IMAGE = "/file/upload";
 
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const checkLoggedIn = async () => {
@@ -52,8 +53,6 @@ const AdminCreateCounsellor = () => {
     // console.log(updatedLanguage);
   };
 
-  const navigate = useNavigate();
-
   const [formData, setFormData] = React.useState({
     name: "",
     date: "",
@@ -85,32 +84,35 @@ const AdminCreateCounsellor = () => {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    try {
-      const response = await api.post(
-        UPLOAD_IMAGE,
-        {
-          image: file,
-        },
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      const filePath = response?.data?.filePath;
-      const status = response?.status;
-
+    const photo_upload_response = await getResponsePost(
+      UPLOAD_IMAGE,
+      {
+        image: file,
+      },
+      {
+        "Content-Type": "multipart/form-data",
+      }
+    );
+    const upload_status = photo_upload_response?.status;
+    console.log("Photo Upload API Response", photo_upload_response);
+    if (upload_status === 200) {
+      const filePath = photo_upload_response?.data?.filePath;
       const finalFormData = {
         ...formData,
         languages: JSON.stringify(updatedLanguage),
         status: formData.status.toString() === "true" ? "enabled" : "disabled",
-        profile_photo: status === 200 ? filePath : "/assets/default-image.jpg",
+        profile_photo:
+          upload_status === 200 ? filePath : "/assets/default-image.jpg",
       };
 
       console.log(finalFormData);
       console.log(JSON.stringify(finalFormData));
 
-      const doctors_email_response = await api.get(
+      const doctors_email_response = await getResponseGet(
         GET_DOCTORS_BY_EMAIL + `${finalFormData.email}`
       );
+
+      console.log("Doctors Email API Response ", doctors_email_response);
 
       const SEND_MAIL_ENDPOINT = SEND_MAIL + `${finalFormData.email}`;
 
@@ -120,56 +122,69 @@ const AdminCreateCounsellor = () => {
 
         if (finalFormData.isSeniorDoctor) {
           delete finalFormData.isSeniorDoctor;
-          try {
-            const response = await api.post(
-              SAVE_SENIORDR_ENDPOINT,
-              JSON.stringify(finalFormData),
-              {
-                headers: { "Content-Type": "application/json" },
-              }
-            );
-            console.log(response?.status);
-          } catch (err) {}
-          toast.success(
-            "The Senior Doctor is sent a mail and is successfully added to database !"
+          const save_seniordr_response = await getResponsePost(
+            SAVE_SENIORDR_ENDPOINT,
+            JSON.stringify(finalFormData),
+            { "Content-Type": "application/json" }
           );
+          const save_seniordr_status = save_seniordr_response?.status;
+          if (save_seniordr_status === 201) {
+            toast.success(
+              "The Senior Doctor is sent a mail and is successfully added to database !"
+            );
+
+            // Now send the mail.
+            const send_email_response = await getResponsePost(
+              SEND_MAIL_ENDPOINT
+            );
+            const send_email_status = send_email_response?.status;
+            if (send_email_status === 200) {
+              setTimeout(function () {
+                navigate("/adminDashboard");
+              }, 5000);
+            } else {
+              console.error("Send Email API failed", send_email_response);
+            }
+          } else {
+            toast.error("The Senior Doctor was not added to database !");
+          }
         } else {
           delete finalFormData.isSeniorDoctor;
-          try {
-            const response = await api.post(
-              SAVE_COUNSELLOR_ENDPOINT,
-              JSON.stringify(finalFormData),
-              {
-                headers: { "Content-Type": "application/json" },
-              }
-            );
-            console.log(response?.status);
-          } catch (err) {
-            console.error("ERROR !!", err);
-          }
-          toast.success(
-            "The Counsellor is sent a mail and is successfully added to database !"
+          const save_counsellor_response = await getResponsePost(
+            SAVE_COUNSELLOR_ENDPOINT,
+            JSON.stringify(finalFormData),
+            { "Content-Type": "application/json" }
           );
-        }
+          const save_counsellor_status = save_counsellor_response?.status;
+          if (save_counsellor_status === 201) {
+            toast.success(
+              "The Counsellor is sent a mail and is successfully added to database !"
+            );
+            // Now send the mail.
 
-        try {
-          const response = await api.post(SEND_MAIL_ENDPOINT);
-          console.log(response?.status);
-        } catch (err) {
-          console.error(err);
+            const send_email_response = await getResponsePost(
+              SEND_MAIL_ENDPOINT
+            );
+            const send_email_status = send_email_response?.status;
+            if (send_email_status === 200) {
+              setTimeout(function () {
+                navigate("/adminDashboard");
+              }, 2000);
+            } else {
+              console.error("Send Email API failed", send_email_response);
+            }
+          } else {
+            toast.error("The Counsellor was not added to database !");
+          }
         }
-        setTimeout(function () {
-          navigate("/adminDashboard");
-        }, 6000);
       } else {
         // This means that the doctor is already present
         toast.error("There is already another doctor with the same email !");
       }
-    } catch (err) {
-      console.error("Error while uploading file", err);
+    } else {
+      console.error(photo_upload_response);
       toast.error("Uploaded Image is greater than 15MB");
     }
-
     console.log("Form Submitted");
   }
 

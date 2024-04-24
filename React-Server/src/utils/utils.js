@@ -214,7 +214,7 @@ export const handleStreamingAudio = (peerconnection) => {
 
 export const getResponsePost = async (url, data, headers) => {
     try {
-        const response = await api.post(url, JSON.stringify(data), {
+        const response = await api.post(url, data, {
             headers: headers,
         });
         return response;
