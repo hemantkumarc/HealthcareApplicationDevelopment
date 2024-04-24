@@ -215,7 +215,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void forwardMessage(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
-        System.out.println(webSocketConnections.getTokenToRoleToToken());
+        System.out.println("this is token to Role to Token " + webSocketConnections.getTokenToRoleToToken());
         /*
          * - when the message needs to be forwarded
          * - check for the token to token set and send accordingly
@@ -235,8 +235,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void sendTextMessage(WebSocketSession session, String payload) throws IOException {
-        if (session.isOpen()) {
+        if (session != null && session.isOpen()) {
             session.sendMessage(new TextMessage(payload));
+            System.out.println("Sending this message: " + payload);
         } else {
             logger.warn("Attempted to send message to a closed session: {}", payload);
         }

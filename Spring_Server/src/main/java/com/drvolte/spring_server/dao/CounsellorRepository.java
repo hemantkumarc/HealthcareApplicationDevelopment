@@ -18,7 +18,7 @@ public interface CounsellorRepository extends JpaRepository<Counsellor, Long> {
     );
 
     @RestResource(path = "byAttributesLike")
-    List<Counsellor> findCounsellorsByQualificationIsLikeIgnoreCaseOrSpecializationIsLikeIgnoreCase(
+    List<Counsellor> findCounsellorsByQualificationContainingIgnoreCaseOrSpecializationContainingIgnoreCase(
             @Param(value = "qualification") String qualification,
             @Param(value = "specialization") String specialization
     );
