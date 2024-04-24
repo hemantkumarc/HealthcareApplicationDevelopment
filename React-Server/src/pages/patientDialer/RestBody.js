@@ -105,9 +105,9 @@ const RestBody = () => {
 
                     counsellorPeerConnection.ontrack = (e) => {
                         console.log("setting the remote stream", e);
-                        // const audio = new Audio();
-                        // audio.autoplay = true;
-                        // audio.srcObject = e.streams[0];
+                        const audio = new Audio();
+                        audio.autoplay = true;
+                        audio.srcObject = e.streams[0];
                         setIsMuted(false);
                         setIsWebRTCConnected(true);
                         setModalBody(

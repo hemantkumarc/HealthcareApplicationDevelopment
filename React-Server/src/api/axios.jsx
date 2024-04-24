@@ -1,6 +1,6 @@
 import axios from "axios";
-export const SERVERIP = "localhost"
-export const baseURL = "http://localhost"
+export const SERVERIP = "192.168.0.128"
+export const baseURL = "https://192.168.0.128"
 
 const api = axios.create({
   baseURL:baseURL,

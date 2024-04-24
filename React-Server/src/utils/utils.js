@@ -6,7 +6,7 @@ let token = localStorage.getItem("token");
 var conn;
 
 export const initiateWebsocket = (sourceRole, connections) => {
-    conn = new WebSocket("ws://" + SERVERIP + "/socket");
+    conn = new WebSocket("wss://" + SERVERIP + "/socket");
     connections.conn = conn;
     console.log(conn);
     conn.addEventListener("message", (e) => {
@@ -202,14 +202,21 @@ export const handlePeerConnectionClose = (
  */
 export const handleStreamingAudio = (peerconnection) => {
     console.log("adding the local track to the peerconnection");
-    navigator.mediaDevices
-        .getUserMedia({ audio: true, video: false })
-        .then(function (stream) {
-            stream.getAudioTracks().forEach((track) => {
-                console.log("this is the local track adding now", track);
-                peerconnection.addTrack(track, stream);
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+            .getUserMedia({ audio: true, video: false })
+            .then((stream) => {
+                stream.getAudioTracks().forEach((track) => {
+                    console.log("this is the local track adding now", track);
+                    peerconnection.addTrack(track, stream);
+                });
+            })
+            .catch((error) => {
+                console.log("Error in getUserMedia:", error);
             });
-        });
+    } else {
+        console.log("getUserMedia is not supported");
+    }
 };
 
 export const getResponsePost = async (url, data, headers) => {
