@@ -38,6 +38,7 @@ const RestBody = () => {
         );
         createWebsocketConnection();
     }, []);
+
     useEffect(() => {
         console.log("iswebsocketconnected changed to", isWebRTCConnected);
     }, [isWebRTCConnected]);
@@ -87,6 +88,7 @@ const RestBody = () => {
                     }
 
                     if (data.data === "NoCounsellorAvailable") {
+                        console.log("No Counsellor available");
                         contactCounsellor();
                     }
                 }
@@ -138,7 +140,8 @@ const RestBody = () => {
                         "counsellor declined the call, trying the different counsellor",
                         declinedCounsellors
                     );
-                    contactCounsellor();
+                    data.data === "decline" && contactCounsellor();
+                    data.data === "disconnect" && declinedCounsellors.clear();
                 }
             });
         };
@@ -293,12 +296,12 @@ const RestBody = () => {
         // }, 60000);
         setModalBody(
             <>
-                <lord-icon
+                {/* <lord-icon
                     src="https://cdn.lordicon.com/pxwxddbb.json"
                     trigger="loop"
                     state="loop-rotation"
                     style={{ width: "50px", height: "50px" }}
-                ></lord-icon>
+                ></lord-icon> */}
                 Connecting
                 <lord-icon
                     src="https://cdn.lordicon.com/lqxfrxad.json"
@@ -339,6 +342,7 @@ const RestBody = () => {
             counsellorPeerConnection.close();
             counsellorPeerConnection = undefined;
         }
+        send(conn, getSocketJson("", "decline", token, role, counsellorRole));
         setShowCallConnectingModal(true);
         setModalBody(
             <>

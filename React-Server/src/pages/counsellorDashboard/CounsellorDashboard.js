@@ -289,7 +289,10 @@ function RevampedDashboard() {
     };
 
     const declineIcommingCall = () => {
-        send(conn, getSocketJson("", "decline", token, role, patientRole));
+        send(
+            conn,
+            getSocketJson("decline", "decline", token, role, patientRole)
+        );
         setShowCallConnectingModal(false);
     };
 
