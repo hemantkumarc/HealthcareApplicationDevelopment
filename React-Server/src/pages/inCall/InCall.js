@@ -44,9 +44,14 @@ function InCall({ conn, peerconnection, setShowIncall }) {
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
 
     useEffect(() => {
-        handlePeerConnectionClose(conn, peerconnection, handleEndCall);
+        handlePeerConnectionClose(
+            conn,
+            peerconnection,
+            handleEndCall,
+            patientRole
+        );
     }, []);
-    const handleEndCall = () => {
+    const handleEndCall = (peerConnection, destRole) => {
         console.log(
             "this is peerconnection",
             conn,

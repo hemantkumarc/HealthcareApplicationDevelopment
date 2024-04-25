@@ -10,6 +10,7 @@ import {
     getSocketJson,
     initiateWebRTC,
     initiateWebsocket,
+    send,
     userLoggedIn,
 } from "../../../utils/utils";
 import { useNavigate } from "react-router-dom";
@@ -22,12 +23,15 @@ import { useNavigate } from "react-router-dom";
 // } from "../../utils/utils";
 // import InCall from "../inCall/InCall";
 
-const adminRole = "ROLE_ADMIN",
-    counsellorRole = "ROLE_COUNSELLOR",
+const counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT";
-let conn, patientPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
-
+let conn, patientPeerConnection, counsellorPeerConnection;
+const connections = {
+    conn: {},
+    counsellorPeerConnection: {},
+    srDrPeerConnection: {},
+    patientPeerConnection: {},
+};
 export default function SrDrDashboard() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
@@ -37,6 +41,28 @@ export default function SrDrDashboard() {
         language: [],
     });
     const navigate = useNavigate();
+
+    const createPatientPeerConnection = async () => {
+        send(conn, getSocketJson("", "accept", token, role, patientRole));
+
+        patientPeerConnection = await initiateWebRTC(
+            conn,
+            role,
+            connections,
+            patientRole
+        );
+        connections.peerConnection = patientPeerConnection;
+        patientPeerConnection.ontrack = (e) => {
+            console.log("setting the remote stream", e);
+            const audio = new Audio();
+            audio.autoplay = true;
+            setTimeout(() => {
+                audio.srcObject = e.streams[0];
+                console.log("setted audio");
+            }, 3000);
+            console.log("this the audio obj", audio);
+        };
+    };
 
     const createWebsocketAndWebRTC = () => {
         console.log("Hi caounsellor haha");
@@ -59,27 +85,16 @@ export default function SrDrDashboard() {
                     console.log("Error:", error);
                     return;
                 }
-                if (data.data === "addedToken") {
-                    console.log("adding token Successfull");
-                }
-                if (data.data === "NewPatientConnect") {
-                    // console.log("Counsellor: its time to initiate webRTC hehe");
-                    // let patientPeerConnection = await initiateWebRTC(conn);
-                    // patientPeerConnection.ontrack = (e) => {
-                    //     console.log("setting the remote stream", e);
-                    //     const audio = new Audio();
-                    //     audio.autoplay = true;
-                    //     setTimeout(() => {
-                    //         audio.srcObject = e.streams[0];
-                    //         console.log("setted audio");
-                    //     }, 3000);
-                    //     console.log("this the audio obj", audio);
-                    // };
-                    //
-                    //
-                    //
-                    //
-                    // setShowCallConnectingModal(true);
+                if (data.event === "reply") {
+                    if (data.data === "addedToken") {
+                        console.log("adding token Successfull");
+                    }
+                    if (data.data === "patientConnected") {
+                        console.log(
+                            "patientConnected... its time to create webRTC"
+                        );
+                        createPatientPeerConnection();
+                    }
                 }
             });
         };
@@ -102,6 +117,14 @@ export default function SrDrDashboard() {
         };
         checkLoggedIn();
     }, []);
+
+    const makeConnections = async (counsellorId) => {
+        console.log("connecting to patient and counsellor");
+        send(
+            conn,
+            getSocketJson("5", "connectpatient", token, role, patientRole)
+        );
+    };
     // const [sorts, setSorts] = useState({ arrangeBy, sortBy });
     const [sorts, setSorts] = useState({
         arrangeBy: "ascending",
@@ -129,6 +152,7 @@ export default function SrDrDashboard() {
                                     filters={filters}
                                     search={search}
                                     sorts={sorts}
+                                    makeConnections={makeConnections}
                                 />
                             </div>
                         </div>

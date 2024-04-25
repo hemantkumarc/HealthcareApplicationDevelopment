@@ -258,7 +258,7 @@ const adminRole = "ROLE_ADMIN",
 let conn, patientPeerConnection;
 const connections = { conn: {}, peerConnection: {} };
 
-function RevampedDashboard() {
+function CounsellorDashboard() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
@@ -322,23 +322,25 @@ function RevampedDashboard() {
                     console.log("Error:", error);
                     return;
                 }
-                if (data.data === "addedToken") {
-                    console.log("adding token Successfull");
-                }
-                if (data.data === "NewPatientConnect") {
-                    // console.log("Counsellor: its time to initiate webRTC hehe");
-                    // let patientPeerConnection = await initiateWebRTC(conn);
-                    // patientPeerConnection.ontrack = (e) => {
-                    //     console.log("setting the remote stream", e);
-                    //     const audio = new Audio();
-                    //     audio.autoplay = true;
-                    //     setTimeout(() => {
-                    //         audio.srcObject = e.streams[0];
-                    //         console.log("setted audio");
-                    //     }, 3000);
-                    //     console.log("this the audio obj", audio);
-                    // };
-                    setShowCallConnectingModal(true);
+                if (data.event === "reply") {
+                    if (data.data === "addedToken") {
+                        console.log("adding token Successfull");
+                    }
+                    if (data.data === "NewPatientConnect") {
+                        // console.log("Counsellor: its time to initiate webRTC hehe");
+                        // let patientPeerConnection = await initiateWebRTC(conn);
+                        // patientPeerConnection.ontrack = (e) => {
+                        //     console.log("setting the remote stream", e);
+                        //     const audio = new Audio();
+                        //     audio.autoplay = true;
+                        //     setTimeout(() => {
+                        //         audio.srcObject = e.streams[0];
+                        //         console.log("setted audio");
+                        //     }, 3000);
+                        //     console.log("this the audio obj", audio);
+                        // };
+                        setShowCallConnectingModal(true);
+                    }
                 }
             });
         };
@@ -777,4 +779,4 @@ function RevampedDashboard() {
     );
 }
 
-export default RevampedDashboard;
+export default CounsellorDashboard;

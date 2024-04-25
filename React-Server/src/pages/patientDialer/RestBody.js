@@ -13,9 +13,15 @@ import {
 import { Button, Modal, ModalBody } from "react-bootstrap";
 
 const adminRole = "ROLE_ADMIN",
-    counsellorRole = "ROLE_COUNSELLOR";
-let conn, counsellorPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
+    counsellorRole = "ROLE_COUNSELLOR",
+    srDrRole = "ROLE_SENIORDR";
+let conn, counsellorPeerConnection, srDrPeerConnection;
+const connections = {
+    conn: {},
+    counsellorPeerConnection: {},
+    srDrPeerConnection: {},
+    patientPeerConnection: {},
+};
 
 const RestBody = () => {
     const [dial, setDial] = useState("");
@@ -93,50 +99,111 @@ const RestBody = () => {
                     }
                 }
                 if (data.event === "accept") {
-                    declinedCounsellors.clear();
-                    console.log("patient : its time to initiate webRTC hehe");
-                    counsellorPeerConnection = await initiateWebRTC(
-                        conn,
-                        role,
-                        connections,
-                        counsellorRole
-                    );
-                    connections.peerConnection = counsellorPeerConnection;
-
-                    counsellorPeerConnection.ontrack = (e) => {
-                        console.log("setting the remote stream", e);
-                        const audio = new Audio();
-                        audio.autoplay = true;
-                        audio.srcObject = e.streams[0];
-                        setIsMuted(false);
-                        setIsWebRTCConnected(true);
-                        setModalBody(
-                            <>
-                                <lord-icon
-                                    src="https://cdn.lordicon.com/jbsedsma.json"
-                                    trigger="loop"
-                                    delay="2000"
-                                    style={{ width: "100px", height: "100px" }}
-                                ></lord-icon>
-                                Connected
-                            </>
+                    if (data.source === counsellorRole) {
+                        declinedCounsellors.clear();
+                        console.log(
+                            "patient : its time to initiate webRTC hehe"
                         );
-                        setTimeout(
-                            () => setShowCallConnectingModal(false),
-                            2000
+                        counsellorPeerConnection = await initiateWebRTC(
+                            conn,
+                            role,
+                            connections,
+                            counsellorRole
                         );
-                        // audioEle.current.sourceo
-                    };
+                        connections.counsellorPeerConnection =
+                            counsellorPeerConnection;
 
-                    handlePeerConnectionClose(
-                        conn,
-                        counsellorPeerConnection,
-                        disconnectCall
-                    );
-                    console.log(
-                        "counsellorPeerConnection :",
-                        counsellorPeerConnection
-                    );
+                        counsellorPeerConnection.ontrack = (e) => {
+                            console.log("setting the remote stream", e);
+                            // const audio = new Audio();
+                            // audio.autoplay = true;
+                            // audio.srcObject = e.streams[0];
+                            setIsMuted(false);
+                            setIsWebRTCConnected(true);
+                            setModalBody(
+                                <>
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jbsedsma.json"
+                                        trigger="loop"
+                                        delay="2000"
+                                        style={{
+                                            width: "100px",
+                                            height: "100px",
+                                        }}
+                                    ></lord-icon>
+                                    Connected
+                                </>
+                            );
+                            setTimeout(
+                                () => setShowCallConnectingModal(false),
+                                2000
+                            );
+                            // audioEle.current.sourceo
+                        };
+
+                        handlePeerConnectionClose(
+                            conn,
+                            counsellorPeerConnection,
+                            disconnectCall,
+                            counsellorRole
+                        );
+                        console.log(
+                            "counsellorPeerConnection :",
+                            counsellorPeerConnection
+                        );
+                    }
+                    if (data.source === srDrRole) {
+                        connections.conn = conn;
+                        console.log(
+                            "patient : its time to initiate webRTC for sineor Doctor hehe"
+                        );
+                        srDrPeerConnection = await initiateWebRTC(
+                            conn,
+                            role,
+                            connections,
+                            srDrRole
+                        );
+                        connections.srDrPeerConnection = srDrPeerConnection;
+
+                        srDrPeerConnection.ontrack = (e) => {
+                            console.log(
+                                "setting the remote stream for senior Doctor",
+                                e
+                            );
+                            // const audio = new Audio();
+                            // audio.autoplay = true;
+                            // audio.srcObject = e.streams[0];
+                            // setIsMuted(false);
+                            // setIsWebRTCConnected(true);
+                            // setModalBody(
+                            //     <>
+                            //         <lord-icon
+                            //             src="https://cdn.lordicon.com/jbsedsma.json"
+                            //             trigger="loop"
+                            //             delay="2000"
+                            //             style={{
+                            //                 width: "100px",
+                            //                 height: "100px",
+                            //             }}
+                            //         ></lord-icon>
+                            //         Connected
+                            //     </>
+                            // );
+                            // setTimeout(
+                            //     () => setShowCallConnectingModal(false),
+                            //     2000
+                            // );
+                            // audioEle.current.sourceo
+                        };
+
+                        handlePeerConnectionClose(
+                            conn,
+                            srDrPeerConnection,
+                            disconnectCall,
+                            srDrRole
+                        );
+                        console.log("srDrPeerConnection :", srDrPeerConnection);
+                    }
                 }
                 if (data.event === "decline") {
                     console.log(
@@ -303,33 +370,26 @@ const RestBody = () => {
         // setShowCallConnectingModal(false);
     };
 
-    const getWebRTCStatus = () => isWebRTCConnected;
-
-    const disconnectCall = () => {
+    const disconnectCall = (peerConnection, destRole) => {
         console.log(
             "inside disconnect, this is webRTC connection status",
             isWebRTCConnected
         );
         setIsWebRTCConnected(false);
-        console.log(
-            "this is counsellorPeerConnection",
-            counsellorPeerConnection
-        );
+        console.log("this is counsellorPeerConnection", peerConnection);
         if (
-            counsellorPeerConnection &&
-            (counsellorPeerConnection.connectionState === "connected" ||
-                counsellorPeerConnection.connectionState === "connecting")
+            peerConnection &&
+            (peerConnection.connectionState === "connected" ||
+                peerConnection.connectionState === "connecting")
         ) {
-            console.log(
-                "counsellorPeerConnection connected, Now disconnecting"
-            );
-            counsellorPeerConnection.close();
+            console.log("peerConnection connected, Now disconnecting");
+            peerConnection.close();
         }
-        if (counsellorPeerConnection) {
-            counsellorPeerConnection.close();
-            counsellorPeerConnection = undefined;
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = undefined;
         }
-        send(conn, getSocketJson("", "decline", token, role, counsellorRole));
+        send(conn, getSocketJson("", "decline", token, role, destRole));
         setShowCallConnectingModal(true);
         setModalBody(
             <>
