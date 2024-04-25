@@ -63,7 +63,7 @@ public class UserAuthenticationProvider {
         roles.add(decoded.getClaim("role").asString());
         if (roles.contains("ROLE_PATIENT")) {
             PatientResponseDto patientResponseDto = PatientResponseDto.builder()
-                    .id(decoded.getKeyId())
+                    .id(decoded.getClaim("id").asLong())
                     .token(token)
                     .phnumber(decoded.getSubject())
                     .role(decoded.getClaim("role").asString())
@@ -95,7 +95,6 @@ public class UserAuthenticationProvider {
                 .withClaim("id", patientResponseDto.getId())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
-                .withKeyId(patientResponseDto.getId())
                 .withClaim("role", "ROLE_PATIENT")
                 .sign(algorithm);
     }
