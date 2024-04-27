@@ -35,11 +35,11 @@ import {
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
-    patientRole = "ROLE_PATIENT";
-let conn, patientPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
 
-function InCall({ conn, peerconnection, setShowIncall }) {
+function InCall({ conn, connections, setShowIncall, handleEndCall }) {
+    let peerconnection = connections.patientPeerConnection;
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
 
@@ -51,35 +51,6 @@ function InCall({ conn, peerconnection, setShowIncall }) {
             patientRole
         );
     }, []);
-    const handleEndCall = (peerConnection, destRole) => {
-        console.log(
-            "this is peerconnection",
-            conn,
-            peerconnection,
-            setShowIncall
-        );
-        if (
-            peerconnection &&
-            (peerconnection.connectionState === "connected" ||
-                peerconnection.connectionState === "connecting")
-        ) {
-            console.log("peerconnection connected, Now disconnecting");
-
-            peerconnection.close();
-            peerconnection = undefined;
-        }
-        if (peerconnection) {
-            peerconnection.close();
-            peerconnection = undefined;
-        }
-        send(
-            conn,
-            getSocketJson("disconnect", "decline", token, role, patientRole)
-        );
-        setTimeout(() => {
-            setShowIncall(false);
-        }, 1000);
-    };
 
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -174,7 +145,9 @@ function InCall({ conn, peerconnection, setShowIncall }) {
                             </Nav.Link>
                             <Nav.Link eventKey={2}>
                                 <Button
-                                    onClick={handleEndCall}
+                                    onClick={(e) => {
+                                        handleEndCall();
+                                    }}
                                     variant="danger"
                                 >
                                     END

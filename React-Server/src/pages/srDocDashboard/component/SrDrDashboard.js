@@ -23,15 +23,19 @@ import { useNavigate } from "react-router-dom";
 // } from "../../utils/utils";
 // import InCall from "../inCall/InCall";
 
-const counsellorRole = "ROLE_COUNSELLOR",
-    patientRole = "ROLE_PATIENT";
+const adminRole = "ROLE_ADMIN",
+    counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
 let conn, patientPeerConnection, counsellorPeerConnection;
 const connections = {
-    conn: {},
-    counsellorPeerConnection: {},
-    srDrPeerConnection: {},
-    patientPeerConnection: {},
+    conn: null,
+    counsellorPeerConnection: null,
+    srDrPeerConnection: null,
+    patientPeerConnection: null,
 };
+const counsellorAudio = new Audio(),
+    patientAudio = new Audio();
 export default function SrDrDashboard() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
@@ -51,16 +55,33 @@ export default function SrDrDashboard() {
             connections,
             patientRole
         );
-        connections.peerConnection = patientPeerConnection;
+        connections.patientPeerConnection = patientPeerConnection;
         patientPeerConnection.ontrack = (e) => {
             console.log("setting the remote stream", e);
-            const audio = new Audio();
-            audio.autoplay = true;
+            patientAudio.autoplay = true;
             setTimeout(() => {
-                audio.srcObject = e.streams[0];
-                console.log("setted audio");
+                patientAudio.srcObject = e.streams[0];
+                console.log("setted patientAudio");
             }, 3000);
-            console.log("this the audio obj", audio);
+            console.log("this the patientAudio obj", patientAudio);
+        };
+    };
+    const createCounsellorPeerConnection = async () => {
+        counsellorPeerConnection = await initiateWebRTC(
+            conn,
+            role,
+            connections,
+            counsellorRole
+        );
+        connections.counsellorPeerConnection = counsellorPeerConnection;
+        counsellorPeerConnection.ontrack = (e) => {
+            console.log("setting the remote stream", e);
+            counsellorAudio.autoplay = true;
+            setTimeout(() => {
+                counsellorAudio.srcObject = e.streams[0];
+                console.log("setted counsellorAudio");
+            }, 3000);
+            console.log("this the counsellorAudio obj", counsellorAudio);
         };
     };
 
@@ -95,6 +116,12 @@ export default function SrDrDashboard() {
                         );
                         createPatientPeerConnection();
                     }
+                    if (data.data === "counsellorConnected") {
+                        console.log(
+                            "counsellorConnected... its time to create webRTC"
+                        );
+                        createCounsellorPeerConnection();
+                    }
                 }
             });
         };
@@ -123,6 +150,10 @@ export default function SrDrDashboard() {
         send(
             conn,
             getSocketJson("5", "connectpatient", token, role, patientRole)
+        );
+        send(
+            conn,
+            getSocketJson("2", "connectcounsellor", token, role, counsellorRole)
         );
     };
     // const [sorts, setSorts] = useState({ arrangeBy, sortBy });

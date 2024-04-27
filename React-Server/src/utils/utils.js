@@ -7,6 +7,7 @@ var conn;
 const counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
+let localMediaStream;
 
 export const initiateWebsocket = (sourceRole, connections) => {
     conn = new WebSocket("wss://" + SERVERIP + "/socket");
@@ -243,8 +244,12 @@ export const handlePeerConnectionClose = (
  */
 export const handleStreamingAudio = (peerconnection) => {
     console.log("adding the local track to the peerconnection");
-    navigator.mediaDevices
-        .getUserMedia({ audio: true, video: false })
+    localMediaStream = navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+    });
+
+    localMediaStream
         .then((stream) => {
             stream.getAudioTracks().forEach((track) => {
                 console.log("this is the local track adding now", track);

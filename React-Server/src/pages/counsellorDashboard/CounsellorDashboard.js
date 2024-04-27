@@ -254,10 +254,17 @@ function getTodoList(date) {
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
-    patientRole = "ROLE_PATIENT";
-let conn, patientPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
-
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
+let conn, patientPeerConnection, srDrPeerConnection;
+const connections = {
+    conn: null,
+    counsellorPeerConnection: null,
+    srDrPeerConnection: null,
+    patientPeerConnection: null,
+};
+const srDrAudio = new Audio(),
+    patientAudio = new Audio();
 function CounsellorDashboard() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -280,16 +287,16 @@ function CounsellorDashboard() {
             connections,
             patientRole
         );
-        connections.peerConnection = patientPeerConnection;
+        connections.patientPeerConnection = patientPeerConnection;
         patientPeerConnection.ontrack = (e) => {
             console.log("setting the remote stream", e);
-            const audio = new Audio();
-            audio.autoplay = true;
+
+            patientAudio.autoplay = true;
             setTimeout(() => {
-                audio.srcObject = e.streams[0];
+                patientAudio.srcObject = e.streams[0];
                 console.log("setted audio");
-            }, 3000);
-            console.log("this the audio obj", audio);
+            }, 2000);
+            console.log("this the audio obj", patientAudio);
         };
     };
 
@@ -327,23 +334,116 @@ function CounsellorDashboard() {
                         console.log("adding token Successfull");
                     }
                     if (data.data === "NewPatientConnect") {
-                        // console.log("Counsellor: its time to initiate webRTC hehe");
-                        // let patientPeerConnection = await initiateWebRTC(conn);
-                        // patientPeerConnection.ontrack = (e) => {
-                        //     console.log("setting the remote stream", e);
-                        //     const audio = new Audio();
-                        //     audio.autoplay = true;
-                        //     setTimeout(() => {
-                        //         audio.srcObject = e.streams[0];
-                        //         console.log("setted audio");
-                        //     }, 3000);
-                        //     console.log("this the audio obj", audio);
-                        // };
                         setShowCallConnectingModal(true);
+                    }
+                    if (data.data === "srDrConnect") {
+                        console.log("senior Doctor Connecting");
+                        srDrPeerConnection = await initiateWebRTC(
+                            conn,
+                            role,
+                            connections,
+                            srDrRole
+                        );
+                        connections.srDrPeerConnection = srDrPeerConnection;
+                        srDrPeerConnection.ontrack = (e) => {
+                            console.log("setting the remote stream", e);
+
+                            srDrAudio.autoplay = true;
+                            setTimeout(() => {
+                                srDrAudio.srcObject = e.streams[0];
+                                console.log("setted audio");
+                            }, 2000);
+                            console.log("this the audio obj", srDrAudio);
+                        };
+                    }
+                }
+                if (data.event === "decline") {
+                    console.log("Got decline the call", data);
+                    if (data.source === srDrRole && srDrPeerConnection) {
+                        handleEndCall(srDrPeerConnection, srDrRole);
+                    }
+                    if (data.source === patientRole && patientPeerConnection) {
+                        handleEndCall(patientPeerConnection, patientRole);
                     }
                 }
             });
         };
+    };
+
+    const disconnectPeerConnection = (peerconnection) => {
+        if (
+            peerconnection &&
+            (peerconnection.connectionState === "connected" ||
+                peerconnection.connectionState === "connecting")
+        ) {
+            console.log("peerconnection connected, Now disconnecting");
+
+            peerconnection.close();
+            peerconnection = undefined;
+        }
+        if (peerconnection) {
+            peerconnection.close();
+            peerconnection = undefined;
+        }
+    };
+
+    const handleEndCall = (peerConnection, destRole) => {
+        if (!peerConnection && !destRole) {
+            disconnectPeerConnection(connections.patientPeerConnection);
+            connections.patientPeerConnection = null;
+            send(
+                conn,
+                getSocketJson("disconnect", "decline", token, role, patientRole)
+            );
+
+            disconnectPeerConnection(connections.srDrPeerConnection);
+            connections.srDrPeerConnection = null;
+            send(conn, getSocketJson("", "decline", token, role, srDrRole));
+
+            setTimeout(() => {
+                setShowIncall(false);
+            }, 1000);
+        } else if (destRole) {
+            console.log("disconnecting this Role: ", destRole);
+
+            if (destRole === patientRole) {
+                console.log(
+                    "disconnecting patientPeerConnection",
+                    connections.patientPeerConnection
+                );
+                disconnectPeerConnection(connections.patientPeerConnection);
+                connections.patientPeerConnection = null;
+                patientPeerConnection = null;
+                send(
+                    conn,
+                    getSocketJson("", "decline", token, role, patientRole)
+                );
+
+                console.log(
+                    "disconnecting srDrPeerConnection",
+                    connections.srDrPeerConnection
+                );
+                disconnectPeerConnection(connections.srDrPeerConnection);
+                connections.srDrPeerConnection = null;
+                srDrPeerConnection = null;
+                send(conn, getSocketJson("", "decline", token, role, srDrRole));
+
+                setTimeout(() => {
+                    setShowIncall(false);
+                }, 1000);
+            } else if (destRole === srDrRole) {
+                console.log(
+                    "disconnecting srDrPeerConnection",
+                    connections.srDrPeerConnection
+                );
+                disconnectPeerConnection(connections.srDrPeerConnection);
+                connections.srDrPeerConnection = null;
+                srDrPeerConnection = null;
+                send(conn, getSocketJson("", "decline", token, role, srDrRole));
+            } else {
+                console.log("destRole is shit");
+            }
+        }
     };
 
     useEffect(() => {
@@ -414,8 +514,9 @@ function CounsellorDashboard() {
         <>
             <InCall
                 conn={conn}
-                peerconnection={patientPeerConnection}
+                connections={connections}
                 setShowIncall={setShowIncall}
+                handleEndCall={handleEndCall}
             />
         </>
     ) : (
