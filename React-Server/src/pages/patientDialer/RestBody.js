@@ -33,6 +33,10 @@ const RestBody = () => {
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
     const [modalBody, setModalBody] = useState();
     const [isMuted, setIsMuted] = useState(false);
+
+    const [count, setCount] = useState(0);
+    const [time, setTime] = useState("00:00:00");
+
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_PATIENT";
@@ -51,6 +55,24 @@ const RestBody = () => {
     useEffect(() => {
         console.log("iswebsocketconnected changed to", isWebRTCConnected);
     }, [isWebRTCConnected]);
+
+    const showTimer = (ms) => {
+        const milliseconds = Math.floor((ms % 1000) / 10)
+            .toString()
+            .padStart(2, "0");
+        const second = Math.floor((ms / 1000) % 60)
+            .toString()
+            .padStart(2, "0");
+        const minute = Math.floor((ms / 1000 / 60) % 60)
+            .toString()
+            .padStart(2, "0");
+        // const hour = Math.floor(ms / 1000 / 60 / 60).toString();
+        setTime(
+            // hour.padStart(2, "0") +
+            // ":" +
+            minute + ":" + second + ":" + milliseconds
+        );
+    };
 
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
@@ -156,6 +178,17 @@ const RestBody = () => {
                             "counsellorPeerConnection :",
                             counsellorPeerConnection
                         );
+
+                        var initTime = new Date();
+                        var id = setInterval(() => {
+                            var left = count + (new Date() - initTime);
+                            setCount(left);
+                            showTimer(left);
+                            if (left <= 0) {
+                                setTime("00:00:00:00");
+                                clearInterval(id);
+                            }
+                        }, 1);
                     }
                     if (data.source === srDrRole) {
                         connections.conn = conn;
@@ -227,14 +260,14 @@ const RestBody = () => {
     const toggleMute = () => {
         setIsMuted((state) => !state);
         console.log(counsellorPeerConnection);
-        // navigator.mediaDevices
-        //     .getUserMedia({ audio: true, video: false })
-        //     .then(function (stream) {
-        //         stream.getAudioTracks().forEach((track) => {
-        //             console.log("this is the state of track ", track, !isMuted);
-        //             track.enabled = !isMuted;
-        //         });
-        //     });
+        if (
+            counsellorPeerConnection.connectionState === "disconnected" ||
+            counsellorPeerConnection.connectionState === "closed" ||
+            counsellorPeerConnection.connectionState === "failed"
+        ) {
+            disconnectCall(counsellorPeerConnection, counsellorRole);
+            return;
+        }
         console.log(
             "this is the getSenders",
             counsellorPeerConnection.getSenders()
@@ -245,11 +278,20 @@ const RestBody = () => {
             track.track.enabled = isMuted;
             // track.enabled = !isMuted; // Toggle the track's enabled state
         });
+
         if (srDrPeerConnection) {
             console.log(
                 "srDrPeerConnection is valid this shuld not be running if no srDr connected",
                 srDrPeerConnection
             );
+            if (
+                srDrPeerConnection.connectionState === "disconnected" ||
+                srDrPeerConnection.connectionState === "closed" ||
+                srDrPeerConnection.connectionState === "failed"
+            ) {
+                disconnectCall(srDrPeerConnection, srDrRole);
+                return;
+            }
             const srDrAudioTracks = srDrPeerConnection.getSenders();
             srDrAudioTracks.forEach((track) => {
                 console.log("track", track);
@@ -510,14 +552,18 @@ const RestBody = () => {
                 <div className="col-6">
                     <div className="container mt-5">
                         <div className="phone-dialer">
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                className="form-control mb-3"
-                                placeholder="Enter phone number"
-                                value={dial}
-                                onChange={(e) => setDial(e.target.value)}
-                            />
+                            <div className="row">
+                                <input
+                                    type="tel"
+                                    id="phoneNumber"
+                                    className="form-control mb-3 col"
+                                    placeholder="Enter phone number"
+                                    value={dial}
+                                    onChange={(e) => setDial(e.target.value)}
+                                />
+                                <span className="col-1">{time}</span>
+                            </div>
+
                             <div className="row">
                                 <DialerDial
                                     number="1"
@@ -639,7 +685,7 @@ const RestBody = () => {
                                             ) : (
                                                 <lord-icon
                                                     src="https://cdn.lordicon.com/jibstvae.json"
-                                                    trigger="loop-on-hover"
+                                                    trigger="loop"
                                                     delay="1000"
                                                     state="hover-cross"
                                                     colors="primary:#121331,secondary:#c71f16"

@@ -272,6 +272,7 @@ function CounsellorDashboard() {
     const [showCallConnectingModal, setShowCallConnectingModal] =
         useState(false);
     const [showInCall, setShowIncall] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
 
     const acceptIncommingCall = async () => {
         setTimeout(() => {
@@ -510,6 +511,58 @@ function CounsellorDashboard() {
         return null;
     }
 
+    const toggleMute = () => {
+        setIsMuted((state) => !state);
+        console.log(patientPeerConnection);
+        // navigator.mediaDevices
+        //     .getUserMedia({ audio: true, video: false })
+        //     .then(function (stream) {
+        //         stream.getAudioTracks().forEach((track) => {
+        //             console.log("this is the state of track ", track, !isMuted);
+        //             track.enabled = !isMuted;
+        //         });
+        //     });
+        console.log(
+            "this is the getSenders",
+            patientPeerConnection.getSenders()
+        );
+        if (
+            patientPeerConnection.connectionState === "disconnected" ||
+            patientPeerConnection.connectionState === "closed" ||
+            patientPeerConnection.connectionState === "failed"
+        ) {
+            handleEndCall(patientPeerConnection, patientRole);
+            return;
+        }
+        const counselloraudioTracks = patientPeerConnection.getSenders();
+        counselloraudioTracks.forEach((track) => {
+            console.log("track", track);
+            track.track.enabled = isMuted;
+            // track.enabled = !isMuted; // Toggle the track's enabled state
+        });
+        if (srDrPeerConnection) {
+            console.log(
+                "srDrPeerConnection is valid this shuld not be running if no srDr connected",
+                srDrPeerConnection
+            );
+            if (
+                srDrPeerConnection.connectionState === "disconnected" ||
+                srDrPeerConnection.connectionState === "closed" ||
+                srDrPeerConnection.connectionState === "failed"
+            ) {
+                handleEndCall(srDrPeerConnection, srDrRole);
+                return;
+            }
+            const srDrAudioTracks = srDrPeerConnection.getSenders();
+            srDrAudioTracks.forEach((track) => {
+                console.log("track", track);
+                track.track.enabled = isMuted;
+                // track.enabled = !isMuted; // Toggle the track's enabled state
+            });
+        }
+    };
+
+    const getIsMuted = () => isMuted;
     return showInCall ? (
         <>
             <InCall
@@ -517,6 +570,8 @@ function CounsellorDashboard() {
                 connections={connections}
                 setShowIncall={setShowIncall}
                 handleEndCall={handleEndCall}
+                getIsMuted={getIsMuted}
+                toggleMute={toggleMute}
             />
         </>
     ) : (

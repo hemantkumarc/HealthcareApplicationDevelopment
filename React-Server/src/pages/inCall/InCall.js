@@ -38,7 +38,14 @@ const adminRole = "ROLE_ADMIN",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
 
-function InCall({ conn, connections, setShowIncall, handleEndCall }) {
+function InCall({
+    conn,
+    connections,
+    setShowIncall,
+    handleEndCall,
+    getIsMuted,
+    toggleMute,
+}) {
     let peerconnection = connections.patientPeerConnection;
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
@@ -134,15 +141,36 @@ function InCall({ conn, connections, setShowIncall, handleEndCall }) {
                             <DynamicIsland />
                         </div>
                         <Nav>
-                            <Nav.Link href="#deets">
-                                <FaMicrophone
-                                    style={{
-                                        fontSize: "35px",
-                                        marginTop: "3px",
-                                        marginRight: "8px",
-                                    }}
-                                />
-                            </Nav.Link>
+                            <button
+                                type="button"
+                                className="btn btn-light fs-4"
+                                onClick={() => toggleMute()}
+                            >
+                                {!getIsMuted() ? (
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jibstvae.json"
+                                        trigger="in"
+                                        delay="200"
+                                        state="in-reveal"
+                                        style={{
+                                            width: "40px",
+                                            height: "40px",
+                                        }}
+                                    ></lord-icon>
+                                ) : (
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jibstvae.json"
+                                        trigger="loop"
+                                        delay="1000"
+                                        state="hover-cross"
+                                        colors="primary:#121331,secondary:#c71f16"
+                                        style={{
+                                            width: "40px",
+                                            height: "40px",
+                                        }}
+                                    ></lord-icon>
+                                )}
+                            </button>
                             <Nav.Link eventKey={2}>
                                 <Button
                                     onClick={(e) => {
