@@ -13,21 +13,23 @@ import RevampedDashboard from "./pages/counsellorDashboard/RevampedDashboard";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/patientlogin" element={<PatientLogin />} />
-        <Route path="/patientdialer" element={<PatientDialer />} />
-        <Route path="/counsellorDashboard" element={<CounsellorDashboard />} />
-        <Route path="/SrDrDashboard" element={<SrDrDashboard />} />
-        <Route path="/inCall" element={<InCall />} />
-        <Route path="/adminDashboard" element={<AdminDashboard />} />
-        <Route
-          path="/adminCreateCounsellor"
-          element={<AdminCreateCounsellor />}
-        />
-      </Routes>
-    </BrowserRouter>
+    // <BrowserRouter>
+    //   <Routes>
+    //     <Route path="/" element={<Login />} />
+    //     <Route path="/patientlogin" element={<PatientLogin />} />
+    //     <Route path="/patientdialer" element={<PatientDialer />} />
+    //     <Route path="/counsellorDashboard" element={<CounsellorDashboard />} />
+    //     <Route path="/SrDrDashboard" element={<SrDrDashboard />} />
+    //     <Route path="/inCall" element={<InCall />} />
+    //     <Route path="/adminDashboard" element={<AdminDashboard />} />
+    //     <Route
+    //       path="/adminCreateCounsellor"
+    //       element={<AdminCreateCounsellor />}
+    //     />
+    //   </Routes>
+    // </BrowserRouter>
+
+    <RevampedDashboard />
   );
 }
 

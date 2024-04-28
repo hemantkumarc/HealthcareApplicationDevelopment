@@ -422,29 +422,98 @@ function RevampedDashboard() {
             </Toolbar>
             <Divider />
             <List>
-              {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                <ListItem key={text} disablePadding>
-                  <ListItemButton>
-                    <ListItemIcon>
-                      {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <img
+                        src={require("../../assets/inbox-3.png")}
+                        alt="user"
+                        className='emailIcons'
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary="Inbox" />
+                </ListItemButton>
+              </ListItem>
+
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <img
+                        src={require("../../assets/starred-email-2.png")}
+                        alt="user"
+                        className='emailIcons'
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary="Starred" />
+                </ListItemButton>
+              </ListItem>
+
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <img
+                        src={require("../../assets/inbox.png")}
+                        alt="user"
+                        className='emailIcons'
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary="Send Email" />
+                </ListItemButton>
+              </ListItem>
+              
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <img
+                        src={require("../../assets/email-time-2.png")}
+                        alt="user"
+                        className='emailIcons'
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary="Drafts" />
+                </ListItemButton>
+              </ListItem>
             </List>
             <Divider />
             <List>
-              {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                <ListItem key={text} disablePadding>
+              <ListItem disablePadding>
                   <ListItemButton>
                     <ListItemIcon>
-                      {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                      <img
+                          src={require("../../assets/inbox-4.png")}
+                          alt="user"
+                          className='emailIcons'
+                      />
                     </ListItemIcon>
-                    <ListItemText primary={text} />
+                    <ListItemText primary="All Mail" />
                   </ListItemButton>
                 </ListItem>
-              ))}
+
+                <ListItem disablePadding>
+                  <ListItemButton>
+                    <ListItemIcon>
+                      <img
+                          src={require("../../assets/cancel-email-2.png")}
+                          alt="user"
+                          className='emailIcons'
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary="Trash" />
+                  </ListItemButton>
+              </ListItem>
+
+              <ListItem disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <img
+                        src={require("../../assets/email-warning-2.png")}
+                        alt="user"
+                        className='emailIcons'
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary="Spam" />
+                </ListItemButton>
+              </ListItem>
             </List>
             <img src={require("../../assets/Singing Contract (1).gif")} alt='docGif' />
           </Drawer>
