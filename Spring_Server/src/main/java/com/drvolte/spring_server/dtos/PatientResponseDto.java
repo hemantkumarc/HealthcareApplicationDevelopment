@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PatientResponseDto {
     private String phnumber;
-    private String id;
+    private Long id;
     private String state;
     private String token;
     private String role;

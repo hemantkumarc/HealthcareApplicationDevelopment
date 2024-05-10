@@ -68,7 +68,8 @@ public class GeneralControllers {
                 .put(Roles.ROLE_COUNSELLOR + "_online", new JSONArray())
                 .put(Roles.ROLE_SENIORDR + "_online", new JSONArray())
                 .put(Roles.ROLE_COUNSELLOR + "_incall", new JSONArray())
-                .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray());
+                .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray())
+                .put("counsellorCalls", new JSONObject());
 
         System.out.println("this the webscoketconenction setRoletostatetotoken value: "
                 + webSocketConnections.getRoleToStateToToken());
@@ -145,7 +146,26 @@ public class GeneralControllers {
         } else {
             System.out.println("No SE_DR in incall state" + webSocketConnections.getRoleToStateToToken());
         }
+
+        for (String sourceToken : webSocketConnections.getTokenToRoleToToken().keySet()) {
+            try {
+
+                DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(sourceToken);
+                if (decodedJWT.getClaim("role").asString().equals(Roles.ROLE_COUNSELLOR.toString())) {
+                    Long counsellorId = decodedJWT.getClaim("id").asLong();
+                    if (webSocketConnections.getTokenToRoleToToken().get(sourceToken).containsKey(Roles.ROLE_PATIENT)) {
+                        String patientToken = webSocketConnections.getTokenToRoleToToken().get(sourceToken).get(Roles.ROLE_PATIENT);
+                        DecodedJWT patientDecodedJWT = jwtAuthProvider.getDecoded(patientToken);
+                        Long patientId = patientDecodedJWT.getClaim("id").asLong();
+                        retJson.getJSONObject("counsellorCalls").put(String.valueOf(counsellorId), patientId);
+                    }
+                }
+            } catch (JWTVerificationException e) {
+                System.out.println("token is expired" + e);
+            }
+        }
         System.out.println("this is retjson:" + retJson);
         return ResponseEntity.ok(retJson.toString());
     }
+
 }
