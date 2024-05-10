@@ -35,46 +35,31 @@ import {
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
-    patientRole = "ROLE_PATIENT";
-let conn, patientPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
 
-function InCall({ conn, peerconnection, setShowIncall }) {
+function InCall({
+    conn,
+    connections,
+    setShowIncall,
+    handleEndCall,
+    getIsMuted,
+    toggleMute,
+    setIsMuted,
+}) {
+    let peerconnection = connections.patientPeerConnection;
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
 
     useEffect(() => {
-        handlePeerConnectionClose(conn, peerconnection, handleEndCall);
-    }, []);
-    const handleEndCall = () => {
-        console.log(
-            "this is peerconnection",
+        handlePeerConnectionClose(
             conn,
             peerconnection,
-            setShowIncall
+            handleEndCall,
+            patientRole
         );
-        if (
-            peerconnection &&
-            (peerconnection.connectionState === "connected" ||
-                peerconnection.connectionState === "connecting")
-        ) {
-            console.log("peerconnection connected, Now disconnecting");
-
-            peerconnection.close();
-            peerconnection = undefined;
-        }
-        if (peerconnection) {
-            peerconnection.close();
-            peerconnection = undefined;
-        }
-        send(
-            conn,
-            getSocketJson("disconnect", "decline", token, role, patientRole)
-        );
-        setTimeout(() => {
-            setShowIncall(false);
-        }, 1000);
-    };
+        setIsMuted(false);
+    }, []);
 
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -158,18 +143,41 @@ function InCall({ conn, peerconnection, setShowIncall }) {
                             <DynamicIsland />
                         </div>
                         <Nav>
-                            <Nav.Link href="#deets">
-                                <FaMicrophone
-                                    style={{
-                                        fontSize: "35px",
-                                        marginTop: "3px",
-                                        marginRight: "8px",
-                                    }}
-                                />
-                            </Nav.Link>
+                            <button
+                                type="button"
+                                className="btn btn-light fs-4"
+                                onClick={() => toggleMute()}
+                            >
+                                {!getIsMuted() ? (
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jibstvae.json"
+                                        trigger="in"
+                                        delay="200"
+                                        state="in-reveal"
+                                        style={{
+                                            width: "40px",
+                                            height: "40px",
+                                        }}
+                                    ></lord-icon>
+                                ) : (
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jibstvae.json"
+                                        trigger="loop"
+                                        delay="1000"
+                                        state="hover-cross"
+                                        colors="primary:#121331,secondary:#c71f16"
+                                        style={{
+                                            width: "40px",
+                                            height: "40px",
+                                        }}
+                                    ></lord-icon>
+                                )}
+                            </button>
                             <Nav.Link eventKey={2}>
                                 <Button
-                                    onClick={handleEndCall}
+                                    onClick={(e) => {
+                                        handleEndCall();
+                                    }}
                                     variant="danger"
                                 >
                                     END

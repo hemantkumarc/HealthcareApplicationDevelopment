@@ -13,9 +13,18 @@ import {
 import { Button, Modal, ModalBody } from "react-bootstrap";
 
 const adminRole = "ROLE_ADMIN",
-    counsellorRole = "ROLE_COUNSELLOR";
-let conn, counsellorPeerConnection;
-const connections = { conn: {}, peerConnection: {} };
+    counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
+let conn, counsellorPeerConnection, srDrPeerConnection;
+const connections = {
+    conn: null,
+    counsellorPeerConnection: null,
+    srDrPeerConnection: null,
+    patientPeerConnection: null,
+};
+const counsellorAudio = new Audio(),
+    srDrAudio = new Audio();
 
 const RestBody = () => {
     const [dial, setDial] = useState("");
@@ -24,6 +33,10 @@ const RestBody = () => {
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
     const [modalBody, setModalBody] = useState();
     const [isMuted, setIsMuted] = useState(false);
+
+    const [count, setCount] = useState(0);
+    const [time, setTime] = useState("00:00:00");
+
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_PATIENT";
@@ -43,6 +56,32 @@ const RestBody = () => {
         console.log("iswebsocketconnected changed to", isWebRTCConnected);
     }, [isWebRTCConnected]);
 
+    const showTimer = (ms) => {
+        const milliseconds = Math.floor((ms % 1000) / 10)
+            .toString()
+            .padStart(2, "0");
+        const second = Math.floor((ms / 1000) % 60)
+            .toString()
+            .padStart(2, "0");
+        const minute = Math.floor((ms / 1000 / 60) % 60)
+            .toString()
+            .padStart(2, "0");
+        // const hour = Math.floor(ms / 1000 / 60 / 60).toString();
+        setTime(
+            // hour.padStart(2, "0") +
+            // ":" +
+            minute + ":" + second
+        );
+    };
+    var id = setInterval((initTime) => {
+        var left = count + (new Date() - initTime);
+        setCount(left);
+        showTimer(left);
+        if (left <= 0) {
+            setTime("00:00:00");
+            clearInterval(id);
+        }
+    }, 1000);
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
         conn = initiateWebsocket(role, connections);
@@ -93,58 +132,117 @@ const RestBody = () => {
                     }
                 }
                 if (data.event === "accept") {
-                    declinedCounsellors.clear();
-                    console.log("patient : its time to initiate webRTC hehe");
-                    counsellorPeerConnection = await initiateWebRTC(
-                        conn,
-                        role,
-                        connections,
-                        counsellorRole
-                    );
-                    connections.peerConnection = counsellorPeerConnection;
-
-                    counsellorPeerConnection.ontrack = (e) => {
-                        console.log("setting the remote stream", e);
-                        const audio = new Audio();
-                        audio.autoplay = true;
-                        audio.srcObject = e.streams[0];
-                        setIsMuted(false);
-                        setIsWebRTCConnected(true);
-                        setModalBody(
-                            <>
-                                <lord-icon
-                                    src="https://cdn.lordicon.com/jbsedsma.json"
-                                    trigger="loop"
-                                    delay="2000"
-                                    style={{ width: "100px", height: "100px" }}
-                                ></lord-icon>
-                                Connected
-                            </>
+                    if (data.source === counsellorRole) {
+                        declinedCounsellors.clear();
+                        console.log(
+                            "patient : its time to initiate webRTC hehe"
                         );
-                        setTimeout(
-                            () => setShowCallConnectingModal(false),
-                            2000
+                        counsellorPeerConnection = await initiateWebRTC(
+                            conn,
+                            role,
+                            connections,
+                            counsellorRole
                         );
-                        // audioEle.current.sourceo
-                    };
+                        connections.counsellorPeerConnection =
+                            counsellorPeerConnection;
 
-                    handlePeerConnectionClose(
-                        conn,
-                        counsellorPeerConnection,
-                        disconnectCall
-                    );
-                    console.log(
-                        "counsellorPeerConnection :",
-                        counsellorPeerConnection
-                    );
+                        counsellorPeerConnection.ontrack = (e) => {
+                            console.log("setting the remote stream", e);
+                            counsellorAudio.autoplay = true;
+                            setTimeout(() => {
+                                counsellorAudio.srcObject = e.streams[0];
+                                console.log("setted audio");
+                            }, 2000);
+                            setIsMuted(false);
+                            setIsWebRTCConnected(true);
+                            setModalBody(
+                                <>
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/jbsedsma.json"
+                                        trigger="loop"
+                                        delay="2000"
+                                        style={{
+                                            width: "100px",
+                                            height: "100px",
+                                        }}
+                                    ></lord-icon>
+                                    Connected
+                                </>
+                            );
+                            setTimeout(
+                                () => setShowCallConnectingModal(false),
+                                2000
+                            );
+                            // audioEle.current.sourceo
+                        };
+
+                        handlePeerConnectionClose(
+                            conn,
+                            counsellorPeerConnection,
+                            disconnectCall,
+                            counsellorRole
+                        );
+                        console.log(
+                            "counsellorPeerConnection :",
+                            counsellorPeerConnection
+                        );
+
+                        var initTime = new Date();
+                    }
+                    if (data.source === srDrRole) {
+                        connections.conn = conn;
+                        console.log(
+                            "patient : its time to initiate webRTC for sineor Doctor hehe"
+                        );
+                        srDrPeerConnection = await initiateWebRTC(
+                            conn,
+                            role,
+                            connections,
+                            srDrRole
+                        );
+                        connections.srDrPeerConnection = srDrPeerConnection;
+
+                        srDrPeerConnection.ontrack = (e) => {
+                            console.log(
+                                "setting the remote stream for senior Doctor",
+                                e
+                            );
+
+                            srDrAudio.autoplay = true;
+                            setTimeout(() => {
+                                srDrAudio.srcObject = e.streams[0];
+                                console.log("setted audio");
+                            }, 2000);
+                        };
+
+                        handlePeerConnectionClose(
+                            conn,
+                            srDrPeerConnection,
+                            disconnectCall,
+                            srDrRole
+                        );
+                        console.log("srDrPeerConnection :", srDrPeerConnection);
+                    }
                 }
                 if (data.event === "decline") {
-                    console.log(
-                        "counsellor declined the call, trying the different counsellor",
-                        declinedCounsellors
-                    );
-                    data.data === "decline" && contactCounsellor();
-                    data.data === "disconnect" && declinedCounsellors.clear();
+                    console.log("Got decline the call", data);
+                    if (data.source === counsellorRole) {
+                        if (data.data === "decline") {
+                            contactCounsellor();
+                        }
+                        if (
+                            data.data === "disconnect" &&
+                            counsellorPeerConnection
+                        ) {
+                            declinedCounsellors.clear();
+                            disconnectCall(
+                                counsellorPeerConnection,
+                                counsellorRole
+                            );
+                        }
+                    } else if (data.source === srDrRole && srDrPeerConnection) {
+                        disconnectCall(srDrPeerConnection, srDrRole);
+                    }
                 }
             });
         };
@@ -161,24 +259,45 @@ const RestBody = () => {
     const toggleMute = () => {
         setIsMuted((state) => !state);
         console.log(counsellorPeerConnection);
-        // navigator.mediaDevices
-        //     .getUserMedia({ audio: true, video: false })
-        //     .then(function (stream) {
-        //         stream.getAudioTracks().forEach((track) => {
-        //             console.log("this is the state of track ", track, !isMuted);
-        //             track.enabled = !isMuted;
-        //         });
-        //     });
+        if (
+            counsellorPeerConnection.connectionState === "disconnected" ||
+            counsellorPeerConnection.connectionState === "closed" ||
+            counsellorPeerConnection.connectionState === "failed"
+        ) {
+            disconnectCall(counsellorPeerConnection, counsellorRole);
+            return;
+        }
         console.log(
             "this is the getSenders",
             counsellorPeerConnection.getSenders()
         );
-        const audioTracks = counsellorPeerConnection.getSenders();
-        audioTracks.forEach((track) => {
+        const counselloraudioTracks = counsellorPeerConnection.getSenders();
+        counselloraudioTracks.forEach((track) => {
             console.log("track", track);
             track.track.enabled = isMuted;
             // track.enabled = !isMuted; // Toggle the track's enabled state
         });
+
+        if (srDrPeerConnection) {
+            console.log(
+                "srDrPeerConnection is valid this shuld not be running if no srDr connected",
+                srDrPeerConnection
+            );
+            if (
+                srDrPeerConnection.connectionState === "disconnected" ||
+                srDrPeerConnection.connectionState === "closed" ||
+                srDrPeerConnection.connectionState === "failed"
+            ) {
+                disconnectCall(srDrPeerConnection, srDrRole);
+                return;
+            }
+            const srDrAudioTracks = srDrPeerConnection.getSenders();
+            srDrAudioTracks.forEach((track) => {
+                console.log("track", track);
+                track.track.enabled = isMuted;
+                // track.enabled = !isMuted; // Toggle the track's enabled state
+            });
+        }
     };
 
     const whosAvailable = () => {
@@ -303,48 +422,117 @@ const RestBody = () => {
         // setShowCallConnectingModal(false);
     };
 
-    const getWebRTCStatus = () => isWebRTCConnected;
+    const disconnectPeerConnection = (peerConnection) => {
+        if (
+            peerConnection &&
+            (peerConnection.connectionState === "connected" ||
+                peerConnection.connectionState === "connecting")
+        ) {
+            console.log("peerConnection connected, Now disconnecting");
+            peerConnection.close();
+        }
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = undefined;
+        }
+    };
 
-    const disconnectCall = () => {
+    const disconnectCall = (peerConnection, destRole) => {
         console.log(
             "inside disconnect, this is webRTC connection status",
             isWebRTCConnected
         );
-        setIsWebRTCConnected(false);
-        console.log(
-            "this is counsellorPeerConnection",
-            counsellorPeerConnection
-        );
-        if (
-            counsellorPeerConnection &&
-            (counsellorPeerConnection.connectionState === "connected" ||
-                counsellorPeerConnection.connectionState === "connecting")
-        ) {
+
+        if (!peerConnection && !destRole) {
             console.log(
-                "counsellorPeerConnection connected, Now disconnecting"
+                "disconnecting counsellorPeerConnection",
+                counsellorPeerConnection
             );
-            counsellorPeerConnection.close();
+            disconnectPeerConnection(counsellorPeerConnection);
+            counsellorPeerConnection = null;
+            connections.counsellorPeerConnection = null;
+            setIsWebRTCConnected(false);
+            send(
+                conn,
+                getSocketJson("", "decline", token, role, counsellorRole)
+            );
+
+            console.log("disconnecting SrDrPeerConnection", srDrPeerConnection);
+            disconnectPeerConnection(srDrPeerConnection);
+            srDrPeerConnection = null;
+            connections.srDrPeerConnection = null;
+            setIsWebRTCConnected(false);
+            send(conn, getSocketJson("", "decline", token, role, srDrRole));
+
+            setShowCallConnectingModal(true);
+            setModalBody(
+                <>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/usownftb.json"
+                        trigger="loop"
+                        delay="1000"
+                        style={{ width: "100px", height: "100px" }}
+                    ></lord-icon>
+                    Call Disconnected
+                </>
+            );
+            setTimeout(() => {
+                setShowCallConnectingModal(false);
+            }, 2000);
+        } else if (destRole) {
+            console.log("disconnecting this Role: ", destRole);
+
+            if (destRole === counsellorRole) {
+                console.log(
+                    "disconnecting counsellorPeerConnection",
+                    counsellorPeerConnection
+                );
+                disconnectPeerConnection(counsellorPeerConnection);
+                counsellorPeerConnection = null;
+                connections.counsellorPeerConnection = null;
+
+                console.log(
+                    "disconnecting srDrPeerConnection",
+                    srDrPeerConnection
+                );
+                disconnectPeerConnection(srDrPeerConnection);
+                srDrPeerConnection = null;
+                connections.srDrPeerConnection = null;
+
+                setIsWebRTCConnected(false);
+                send(
+                    conn,
+                    getSocketJson("", "decline", token, role, counsellorRole)
+                );
+
+                setShowCallConnectingModal(true);
+                setModalBody(
+                    <>
+                        <lord-icon
+                            src="https://cdn.lordicon.com/usownftb.json"
+                            trigger="loop"
+                            delay="1000"
+                            style={{ width: "100px", height: "100px" }}
+                        ></lord-icon>
+                        Call Disconnected
+                    </>
+                );
+                setTimeout(() => {
+                    setShowCallConnectingModal(false);
+                }, 2000);
+            } else if (destRole === srDrRole) {
+                console.log(
+                    "disconnecting srDrPeerConnection",
+                    srDrPeerConnection
+                );
+                disconnectPeerConnection(srDrPeerConnection);
+                srDrPeerConnection = null;
+                connections.srDrPeerConnection = null;
+                send(conn, getSocketJson("", "decline", token, role, srDrRole));
+            } else {
+                console.log("destRole is shit");
+            }
         }
-        if (counsellorPeerConnection) {
-            counsellorPeerConnection.close();
-            counsellorPeerConnection = undefined;
-        }
-        send(conn, getSocketJson("", "decline", token, role, counsellorRole));
-        setShowCallConnectingModal(true);
-        setModalBody(
-            <>
-                <lord-icon
-                    src="https://cdn.lordicon.com/usownftb.json"
-                    trigger="loop"
-                    delay="1000"
-                    style={{ width: "100px", height: "100px" }}
-                ></lord-icon>
-                Call Disconnected
-            </>
-        );
-        setTimeout(() => {
-            setShowCallConnectingModal(false);
-        }, 2000);
     };
 
     console.log(dial);
@@ -363,14 +551,22 @@ const RestBody = () => {
                 <div className="col-6">
                     <div className="container mt-5">
                         <div className="phone-dialer">
-                            <input
-                                type="tel"
-                                id="phoneNumber"
-                                className="form-control mb-3"
-                                placeholder="Enter phone number"
-                                value={dial}
-                                onChange={(e) => setDial(e.target.value)}
-                            />
+                            <div className="row">
+                                <input
+                                    type="tel"
+                                    id="phoneNumber"
+                                    className="form-control mb-3 col"
+                                    placeholder="Enter phone number"
+                                    value={dial}
+                                    onChange={(e) => setDial(e.target.value)}
+                                />
+                                {isWebRTCConnected && (
+                                    <span className="align-middle col-2">
+                                        {time}
+                                    </span>
+                                )}
+                            </div>
+
                             <div className="row">
                                 <DialerDial
                                     number="1"
@@ -492,7 +688,7 @@ const RestBody = () => {
                                             ) : (
                                                 <lord-icon
                                                     src="https://cdn.lordicon.com/jibstvae.json"
-                                                    trigger="loop-on-hover"
+                                                    trigger="loop"
                                                     delay="1000"
                                                     state="hover-cross"
                                                     colors="primary:#121331,secondary:#c71f16"

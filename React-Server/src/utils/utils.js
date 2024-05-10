@@ -4,6 +4,10 @@ import { SERVERIP } from "../api/axios";
 
 let token = localStorage.getItem("token");
 var conn;
+const counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
+let localMediaStream;
 
 export const initiateWebsocket = (sourceRole, connections) => {
     conn = new WebSocket("wss://" + SERVERIP + "/socket");
@@ -20,7 +24,12 @@ export const initiateWebsocket = (sourceRole, connections) => {
         console.log("recieved 1", data);
         if (data.event === "offer") {
             // Handle the received offer
-            handleReceivedOffer(JSON.parse(data.data), sourceRole, connections);
+            handleReceivedOffer(
+                JSON.parse(data.data),
+                sourceRole,
+                connections,
+                data.source
+            );
         }
         if (data.event === "answer") {
             // Handle the received answer
@@ -28,7 +37,8 @@ export const initiateWebsocket = (sourceRole, connections) => {
             handleReceivedAnswer(
                 JSON.parse(data.data),
                 sourceRole,
-                connections
+                connections,
+                data.source
             );
         }
     });
@@ -36,9 +46,19 @@ export const initiateWebsocket = (sourceRole, connections) => {
     return conn;
 };
 
-const handleReceivedOffer = async (offer, sourceRole, connections) => {
+const handleReceivedOffer = async (
+    offer,
+    sourceRole,
+    connections,
+    destRole
+) => {
     token = localStorage.getItem("token");
-    let peerConnection = connections.peerConnection;
+    let peerConnection =
+        destRole === counsellorRole
+            ? connections.counsellorPeerConnection
+            : destRole === srDrRole
+            ? connections.srDrPeerConnection
+            : destRole === patientRole && connections.patientPeerConnection;
     try {
         // Set the received offer as the remote description
         await peerConnection.setRemoteDescription(
@@ -59,7 +79,7 @@ const handleReceivedOffer = async (offer, sourceRole, connections) => {
                 "answer",
                 token,
                 sourceRole,
-                conn.destRole
+                destRole
             )
         );
     } catch (error) {
@@ -67,8 +87,18 @@ const handleReceivedOffer = async (offer, sourceRole, connections) => {
     }
 };
 
-const handleReceivedAnswer = async (answer, sourceRole, connections) => {
-    let peerConnection = connections.peerConnection;
+const handleReceivedAnswer = async (
+    answer,
+    sourceRole,
+    connections,
+    destRole
+) => {
+    let peerConnection =
+        destRole === counsellorRole
+            ? connections.counsellorPeerConnection
+            : destRole === srDrRole
+            ? connections.srDrPeerConnection
+            : destRole === patientRole && connections.patientPeerConnection;
     console.log(
         "This the corrent state of connection",
         peerConnection.connectionState
@@ -100,12 +130,17 @@ export const initiateWebRTC = async (
     //  }
     token = localStorage.getItem("token");
     conn = connections.conn;
-    conn.destRole = destRole;
     let peerConnection = new RTCPeerConnection();
-    connections.peerConnection = peerConnection;
+
+    if (destRole === counsellorRole)
+        connections.counsellorPeerConnection = peerConnection;
+    else if (destRole === srDrRole)
+        connections.srDrPeerConnection = peerConnection;
+    else if (destRole === patientRole)
+        connections.patientPeerConnection = peerConnection;
 
     peerConnection.addEventListener("negotiationneeded", () => {
-        handleRenegotiation(conn, peerConnection, sourceRole);
+        handleRenegotiation(conn, peerConnection, sourceRole, destRole);
     });
 
     try {
@@ -119,7 +154,7 @@ export const initiateWebRTC = async (
                 "offer",
                 token,
                 sourceRole,
-                conn.destRole
+                destRole
             )
         );
         console.log("Offer sent");
@@ -137,7 +172,12 @@ export const initiateWebRTC = async (
  * @param {RTCPeerConnection} peerconnection The date
  *
  */
-export const handleRenegotiation = async (conn, peerConnection, sourceRole) => {
+export const handleRenegotiation = async (
+    conn,
+    peerConnection,
+    sourceRole,
+    destRole
+) => {
     console.log("Renegotiation needed, sooooooo");
     const token = localStorage.getItem("token");
     try {
@@ -151,7 +191,7 @@ export const handleRenegotiation = async (conn, peerConnection, sourceRole) => {
                 "offer",
                 token,
                 sourceRole,
-                conn.destRole
+                destRole
             )
         );
         console.log("Offer sent");
@@ -164,13 +204,15 @@ export const handleRenegotiation = async (conn, peerConnection, sourceRole) => {
 export const handlePeerConnectionClose = (
     conn,
     peerConnection,
-    functionToCall
+    functionToCall,
+    destRole
 ) => {
     console.log(
         "inside the handlePeerConnectionClose function",
         conn,
         peerConnection,
-        functionToCall
+        functionToCall,
+        destRole
     );
     peerConnection.addEventListener("connectionstatechange", (ev) => {
         console.log("peer connection state change", ev, peerConnection);
@@ -188,7 +230,7 @@ export const handlePeerConnectionClose = (
                 console.log("Offline");
             case "failed":
                 console.log("Error");
-                functionToCall();
+                functionToCall(peerConnection, destRole);
                 break;
             default:
                 console.log("Unknown");
@@ -202,21 +244,21 @@ export const handlePeerConnectionClose = (
  */
 export const handleStreamingAudio = (peerconnection) => {
     console.log("adding the local track to the peerconnection");
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-            .getUserMedia({ audio: true, video: false })
-            .then((stream) => {
-                stream.getAudioTracks().forEach((track) => {
-                    console.log("this is the local track adding now", track);
-                    peerconnection.addTrack(track, stream);
-                });
-            })
-            .catch((error) => {
-                console.log("Error in getUserMedia:", error);
+    localMediaStream = navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+    });
+
+    localMediaStream
+        .then((stream) => {
+            stream.getAudioTracks().forEach((track) => {
+                console.log("this is the local track adding now", track);
+                peerconnection.addTrack(track, stream);
             });
-    } else {
-        console.log("getUserMedia is not supported");
-    }
+        })
+        .catch((error) => {
+            console.log("Error in getUserMedia:", error);
+        });
 };
 
 export const getResponsePost = async (url, data, headers) => {
