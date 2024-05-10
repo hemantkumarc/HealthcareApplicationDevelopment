@@ -572,6 +572,7 @@ function CounsellorDashboard() {
                 handleEndCall={handleEndCall}
                 getIsMuted={getIsMuted}
                 toggleMute={toggleMute}
+                setIsMuted={setIsMuted}
             />
         </>
     ) : (

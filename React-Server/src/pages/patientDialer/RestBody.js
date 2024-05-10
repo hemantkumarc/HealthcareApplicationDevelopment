@@ -70,10 +70,18 @@ const RestBody = () => {
         setTime(
             // hour.padStart(2, "0") +
             // ":" +
-            minute + ":" + second + ":" + milliseconds
+            minute + ":" + second
         );
     };
-
+    var id = setInterval((initTime) => {
+        var left = count + (new Date() - initTime);
+        setCount(left);
+        showTimer(left);
+        if (left <= 0) {
+            setTime("00:00:00");
+            clearInterval(id);
+        }
+    }, 1000);
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
         conn = initiateWebsocket(role, connections);
@@ -180,15 +188,6 @@ const RestBody = () => {
                         );
 
                         var initTime = new Date();
-                        var id = setInterval(() => {
-                            var left = count + (new Date() - initTime);
-                            setCount(left);
-                            showTimer(left);
-                            if (left <= 0) {
-                                setTime("00:00:00:00");
-                                clearInterval(id);
-                            }
-                        }, 1);
                     }
                     if (data.source === srDrRole) {
                         connections.conn = conn;
@@ -561,7 +560,11 @@ const RestBody = () => {
                                     value={dial}
                                     onChange={(e) => setDial(e.target.value)}
                                 />
-                                <span className="col-1">{time}</span>
+                                {isWebRTCConnected && (
+                                    <span className="align-middle col-2">
+                                        {time}
+                                    </span>
+                                )}
                             </div>
 
                             <div className="row">

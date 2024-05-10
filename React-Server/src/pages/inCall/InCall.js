@@ -45,6 +45,7 @@ function InCall({
     handleEndCall,
     getIsMuted,
     toggleMute,
+    setIsMuted,
 }) {
     let peerconnection = connections.patientPeerConnection;
     const token = localStorage.getItem("token");
@@ -57,6 +58,7 @@ function InCall({
             handleEndCall,
             patientRole
         );
+        setIsMuted(false);
     }, []);
 
     const today = new Date();
