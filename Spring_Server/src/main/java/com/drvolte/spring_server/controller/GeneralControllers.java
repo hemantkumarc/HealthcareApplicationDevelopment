@@ -71,10 +71,14 @@ public class GeneralControllers {
                 .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray())
                 .put(Roles.ROLE_COUNSELLOR + "_busy", new JSONArray())
                 .put(Roles.ROLE_SENIORDR + "_busy", new JSONArray())
+                .put("inCallWaiting", new JSONArray())
+                .put("missedCalls", new JSONArray())
                 .put("counsellorCalls", new JSONObject());
 
         System.out.println("this the webscoketconenction setRoletostatetotoken value: "
                 + webSocketConnections.getRoleToStateToToken());
+
+
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("connected")
         ) {
@@ -202,6 +206,13 @@ public class GeneralControllers {
             } catch (JWTVerificationException e) {
                 System.out.println("token is expired" + e);
             }
+        }
+
+        for (Long patientId : webSocketConnections.getWaitQueue()) {
+            retJson.getJSONArray("inCallWaiting").put(patientId);
+        }
+        for (Long patientId : webSocketConnections.getMissedCalls()) {
+            retJson.getJSONArray("missedCalls").put(patientId);
         }
         System.out.println("this is retjson:" + retJson);
         return ResponseEntity.ok(retJson.toString());

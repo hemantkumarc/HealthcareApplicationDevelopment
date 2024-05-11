@@ -27,6 +27,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             CONNECT_EVENT = "connect",
             DECLINE_EVENT = "decline",
             STATECHANGE_EVENT = "changestate",
+            ADDTOQUEUE_EVENT = "addtoqueue",
+            ADDTOMISSED_EVENT = "addtomissed",
+            REMOVEQUEUE_EVENT = "removequeue",
+            REMOVEMISSED_EVENT = "removemissed",
             CONNECT_PATIENT = "connectpatient",
             CONNECT_COUNSELLOR = "connectcounsellor",
             STATE_CONNECTED = "connected",
@@ -58,32 +62,61 @@ public class WebSocketHandler extends TextWebSocketHandler {
             socketMessage.setItems(message);
             logger.info("socketmessage {}", socketMessage);
 
-            if (SET_TOKEN_EVENT.equals(socketMessage.getEvent())) {
-                logger.info("its an setToken event");
-                assert sourceSession != null;
-                handleSetTokenEvent(sourceSession, socketMessage);
-            } else if (CONNECT_EVENT.equals(socketMessage.getEvent())) {
-                logger.info("its an connect event");
-                assert sourceSession != null;
-                handleConnectEvent(sourceSession, socketMessage);
-            } else if (DECLINE_EVENT.equals(socketMessage.getEvent())) {
-                logger.info("its an decline event");
-                assert sourceSession != null;
-                forwardMessage(sourceSession, socketMessage);
-                handleDeclineEvent(sourceSession, socketMessage);
-            } else if (CONNECT_PATIENT.equals(socketMessage.getEvent())) {
-                logger.info("Senior Dr connecting Patient");
-                handleConnectPatientEvent(sourceSession, socketMessage);
-            } else if (CONNECT_COUNSELLOR.equals(socketMessage.getEvent())) {
-                logger.info("Senior Dr connecting counsellot");
-                handleConnectCounsellorEvent(sourceSession, socketMessage);
-            } else if (STATECHANGE_EVENT.equals(socketMessage.getEvent())) {
-                logger.info("Sett event occured");
-                handleChangeStateEvent(sourceSession, socketMessage);
-            } else {
-                logger.info("forwarding");
-                assert sourceSession != null;
-                forwardMessage(sourceSession, socketMessage);
+            switch (socketMessage.getEvent()) {
+                case SET_TOKEN_EVENT -> {
+                    logger.info("its an setToken event");
+                    assert sourceSession != null;
+                    handleSetTokenEvent(sourceSession, socketMessage);
+                }
+                case CONNECT_EVENT -> {
+                    logger.info("its an connect event");
+                    assert sourceSession != null;
+                    handleConnectEvent(sourceSession, socketMessage);
+                }
+                case DECLINE_EVENT -> {
+                    logger.info("its an decline event");
+                    assert sourceSession != null;
+                    forwardMessage(sourceSession, socketMessage);
+                    handleDeclineEvent(sourceSession, socketMessage);
+                }
+                case CONNECT_PATIENT -> {
+                    logger.info("Senior Dr connecting Patient");
+                    handleConnectPatientEvent(sourceSession, socketMessage);
+                }
+                case CONNECT_COUNSELLOR -> {
+                    logger.info("Senior Dr connecting counsellot");
+                    handleConnectCounsellorEvent(sourceSession, socketMessage);
+                }
+                case STATECHANGE_EVENT -> {
+                    logger.info("Sett event occured");
+                    assert sourceSession != null;
+                    handleChangeStateEvent(sourceSession, socketMessage);
+                }
+                case ADDTOQUEUE_EVENT -> {
+                    logger.info("Add to Queue event occured");
+                    assert sourceSession != null;
+                    handleAddToQueueEvent(sourceSession, socketMessage);
+                }
+                case ADDTOMISSED_EVENT -> {
+                    logger.info("Add to missed event occured");
+                    assert sourceSession != null;
+                    handleAddToMissedEvent(sourceSession, socketMessage);
+                }
+                case REMOVEQUEUE_EVENT -> {
+                    logger.info("remove from queue event occured");
+                    assert sourceSession != null;
+                    handleRemoveQueueEvent(sourceSession, socketMessage);
+                }
+                case REMOVEMISSED_EVENT -> {
+                    logger.info("remove from missed event occured");
+                    assert sourceSession != null;
+                    handleRemoveMissedEvent(sourceSession, socketMessage);
+                }
+                case null, default -> {
+                    logger.info("forwarding");
+                    assert sourceSession != null;
+                    forwardMessage(sourceSession, socketMessage);
+                }
             }
         } catch (JWTVerificationException e) {
             logger.error("JWTVerificationException occuered");
@@ -92,6 +125,35 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             logger.error("Error handling WebSocket message", e);
         }
+    }
+
+    private void handleRemoveQueueEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        Long source_Id = getIdFromToken(sourceToken);
+        webSocketConnections.getWaitQueue().remove(source_Id);
+
+    }
+
+    private void handleRemoveMissedEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        Long source_Id = getIdFromToken(sourceToken);
+        webSocketConnections.getMissedCalls().remove(source_Id);
+
+    }
+
+    private void handleAddToMissedEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        Long source_Id = getIdFromToken(sourceToken);
+        if (!webSocketConnections.getMissedCalls().contains(source_Id))
+            webSocketConnections.getMissedCalls().add(source_Id);
+    }
+
+    private void handleAddToQueueEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
+
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        Long source_Id = getIdFromToken(sourceToken);
+        if (!webSocketConnections.getWaitQueue().contains(source_Id))
+            webSocketConnections.getWaitQueue().add(source_Id);
     }
 
     private void handleChangeStateEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
@@ -133,6 +195,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String destToken = webSocketConnections.getRoleToIdToToken()
                 .get(Roles.valueOf(socketMessage.getDestination()))
                 .get(Long.parseLong(socketMessage.getData()));
+
         if (destToken != null) {
             addTokenToTokenSet(
                     webSocketConnections.getSessionIdToToken().get(sourceSession.getId()),
@@ -179,7 +242,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 webSocketConnections.getRoleToStateToToken().remove(srDrToken);
         }
 
-        logger.info("User connection declined", token);
+        logger.info("User connection declined" + token);
     }
 
     private void handleSetTokenEvent(WebSocketSession session, WebSocketMessage socketMessage) throws IOException {
@@ -248,7 +311,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String destToken = webSocketConnections.getRoleToIdToToken()
                 .get(Roles.valueOf(socketMessage.getDestination()))
                 .get(Long.parseLong(socketMessage.getData()));
-
+        String sourceToken = webSocketConnections.getSessionIdToToken().get(sourceSession.getId());
+        Long id = getIdFromToken(sourceToken);
         if (destToken != null) {
             updateTheSate(destToken, STATE_CONNECTED, STATE_INCALL);
             updateTheSate(webSocketConnections.getSessionIdToToken().get(sourceSession.getId()),
@@ -268,7 +332,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     tempWebsocketMessage.setItems("CounsellorConnected", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
             sendTextMessage(sessions.get(
                             webSocketConnections.getTokenToSessionId().get(destToken)),
-                    tempWebsocketMessage.setItems("NewPatientConnect", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
+                    tempWebsocketMessage.setItems("NewPatientConnect:" + id, "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
         } else {
             sendTextMessage(sourceSession,
                     tempWebsocketMessage.setItems("NoCounsellorAvailable", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
@@ -279,6 +343,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
 
         return Roles.valueOf(decodedJWT.getClaim("role").asString());
+    }
+
+    private Long getIdFromToken(String token) {
+        DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+
+        return decodedJWT.getClaim("id").asLong();
     }
 
     private void addTokenToTokenSet(String sourceToken, String destToken, Roles role) {
