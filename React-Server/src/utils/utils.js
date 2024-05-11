@@ -10,7 +10,6 @@ const counsellorRole = "ROLE_COUNSELLOR",
 let localMediaStream;
 export const STATES = {
     online: "connected",
-    inCall: "incall",
     busy: "busy",
 };
 export const initiateWebsocket = (sourceRole, connections) => {
