@@ -8,7 +8,11 @@ const counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
 let localMediaStream;
-
+export const STATES = {
+    online: "connected",
+    inCall: "incall",
+    busy: "busy",
+};
 export const initiateWebsocket = (sourceRole, connections) => {
     conn = new WebSocket("wss://" + SERVERIP + "/socket");
     connections.conn = conn;
