@@ -40,6 +40,7 @@ const RestBody = () => {
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
     const [minutes, setMinutes] = useState(0);
+    const [inCallQueue, setInCallQueue] = useState(false);
 
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
@@ -90,6 +91,8 @@ const RestBody = () => {
         connections.conn = conn;
         conn.onclose = (msg) => {
             setShowCallConnectingModal(true);
+            callingTone.pause();
+            callOnwait.pause();
             console.log("socket connection closed", msg.data);
             setModalBody(
                 <>
@@ -347,7 +350,11 @@ const RestBody = () => {
             setIsWebRTCConnected(true);
             resetTimer();
             setShowCallConnectingModal(false);
+            send(conn, getSocketJson("", "addtoqueue", token, patientRole, ""));
+            setInCallQueue(true);
         } else {
+            callingTone.pause();
+            callOnwait.pause();
             console.log(
                 "its time to give up and buy rope and stool (not that costly, think about it). theres no counsellor avaialble "
             );
@@ -452,6 +459,18 @@ const RestBody = () => {
         );
         callOnwait.pause();
         callingTone.pause();
+
+        if (inCallQueue) {
+            send(
+                conn,
+                getSocketJson("", "removequeue", token, counsellorRole, "")
+            );
+            send(
+                conn,
+                getSocketJson("", "addtomissed", token, counsellorRole, "")
+            );
+            setInCallQueue(false);
+        }
         if (!peerConnection && !destRole) {
             console.log(
                 "disconnecting counsellorPeerConnection",

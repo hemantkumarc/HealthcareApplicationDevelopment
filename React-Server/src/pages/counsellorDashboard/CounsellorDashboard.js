@@ -334,7 +334,7 @@ function CounsellorDashboard() {
                     if (data.data === "addedToken") {
                         console.log("adding token Successfull");
                     }
-                    if (data.data === "NewPatientConnect") {
+                    if (data.data.startsWith("NewPatientConnect")) {
                         setShowCallConnectingModal(true);
                     }
                     if (data.data === "srDrConnect") {
