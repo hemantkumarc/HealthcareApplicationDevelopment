@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface PatientHistoryRepository extends JpaRepository<PatientHistory, Long> {
     @RestResource(path = "/byattributes")
-    List<PatientHistory> findByPatientIdOrConsent(
+    List<PatientHistory> findByPatientIdAndConsent(
             @Param(value = "patientid") Long patientId,
             @RequestParam(value = "consent", defaultValue = "true") Boolean consent
     );
