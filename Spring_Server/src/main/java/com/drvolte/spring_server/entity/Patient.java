@@ -11,7 +11,7 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ph_no", nullable = false, unique = true)
+    @Column(name = "ph_no", nullable = false)
     private String phNumber;
 
     @Column(name = "name", nullable = true)
@@ -41,7 +41,7 @@ public class Patient {
     @Column(name = "dob", nullable = true)
     private String dob;
 
-    public Long getResourceId(){
+    public Long getResourceId() {
         return id;
     }
 

@@ -8,7 +8,7 @@ import com.drvolte.spring_server.mappers.PatientMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class PatientService {
@@ -22,10 +22,10 @@ public class PatientService {
     public PatientResponseDto registerOrLogin(PatientRequestDto patientRequest) {
         System.out.println("Patients Phnumber: " + patientRequest.phnumber());
 
-        Optional<Patient> existingPatientOptional = patientRepository.findPatientByPhNumber(patientRequest.phnumber());
-
-        if (existingPatientOptional.isPresent()) {
-            Patient existingPatient = existingPatientOptional.get();
+        List<Patient> existingPatientOptional = patientRepository.findAllByPhNumber(patientRequest.phnumber());
+        System.out.println("this is the response for DataBase for searching by Phnumber" + existingPatientOptional);
+        if (!existingPatientOptional.isEmpty()) {
+            Patient existingPatient = existingPatientOptional.get(0);
             System.out.println("Present" + existingPatient);
             PatientResponseDto temp = patientMapper.patientToPatientResponseDto(existingPatient);
             temp.setRole("ROLE_PATIENT");
