@@ -272,6 +272,7 @@ function CounsellorDashboard() {
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [showInCall, setShowIncall] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [inGetConsentMode, setInGetConsentMode] = useState(false);
 
     const createCall = async () => {
         setTimeout(() => {
@@ -297,6 +298,20 @@ function CounsellorDashboard() {
                 console.log("setted audio");
             }, 200);
             console.log("this the audio obj", patientAudio);
+            send(
+                conn,
+                getSocketJson(
+                    "",
+                    "askConsent",
+                    token,
+                    counsellorRole,
+                    patientRole
+                )
+            );
+            setTimeout(() => {
+                toggleMute();
+            }, 2000);
+            setInGetConsentMode(true);
         };
     };
 
@@ -368,6 +383,9 @@ function CounsellorDashboard() {
                 }
                 if (data.event === "accept") {
                     createCall();
+                }
+                if (data.event === "consentresponse") {
+                    console.log("this is the Consent response", data.data);
                 }
             });
         };
@@ -513,8 +531,9 @@ function CounsellorDashboard() {
         return null;
     }
 
-    const toggleMute = () => {
+    const toggleMute = (state) => {
         setIsMuted((state) => !state);
+
         console.log(patientPeerConnection);
         // navigator.mediaDevices
         //     .getUserMedia({ audio: true, video: false })

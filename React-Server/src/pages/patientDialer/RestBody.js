@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import callingTonePath from "../../assets/Audios/phone-call-outgoing.wav";
 import waitToConnect from "../../assets/Audios/please-wait-call-gets-connected.mp3";
+import askConsentAudioPath from "../../assets/Audios/askConsent.mp3";
 import { useNavigate } from "react-router-dom";
 import "./RestBody.css";
 import DialerDial from "./DialerDial";
@@ -29,14 +30,15 @@ const connections = {
 const counsellorAudio = new Audio(),
     srDrAudio = new Audio(),
     callingTone = new Audio(callingTonePath),
-    callOnwait = new Audio(waitToConnect);
+    callOnwait = new Audio(waitToConnect),
+    askConsentAudio = new Audio(askConsentAudioPath);
 
 const RestBody = ({
     isWebSocketConnected,
     setIsWebSocketConnected,
     functionsInRestBody,
 }) => {
-    const [dial, setDial] = useState("");
+    const [dial, setDial] = useState("9999000123");
     const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
@@ -45,6 +47,7 @@ const RestBody = ({
     const [seconds, setSeconds] = useState(0);
     const [minutes, setMinutes] = useState(0);
     const [inCallQueue, setInCallQueue] = useState(false);
+    const [inGetConsentMode, setInGetConsentMode] = useState(false);
 
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
@@ -55,6 +58,7 @@ const RestBody = ({
 
     callingTone.loop = true;
     callOnwait.loop = true;
+    askConsentAudio.loop = true;
 
     useEffect(() => {
         console.log(
@@ -171,6 +175,7 @@ const RestBody = ({
                             setTimeout(() => {
                                 counsellorAudio.srcObject = e.streams[0];
                                 console.log("setted audio");
+                                inGetConsentMode && counsellorAudio.pause();
                             }, 200);
                             setIsMuted(false);
                             setIsWebRTCConnected(true);
@@ -264,6 +269,13 @@ const RestBody = ({
                         disconnectCall(srDrPeerConnection, srDrRole);
                     }
                 }
+                if (data.event === "redirectCounsellor") {
+                    sendDeclineAndDisconnect();
+                    contactCounsellor(data.data);
+                }
+                if (data.event === "askConsent") {
+                    setConsentMode();
+                }
             });
         };
     };
@@ -272,10 +284,32 @@ const RestBody = ({
 
     const addnumber = (number) => {
         setDial((prevDial) => prevDial + number);
+        if (inGetConsentMode) {
+            send(
+                conn,
+                getSocketJson(
+                    number,
+                    "consentresponse",
+                    token,
+                    patientRole,
+                    counsellorRole
+                )
+            );
+            setInGetConsentMode(false);
+            askConsentAudio.pause();
+        }
     };
 
     const decreaseNumber = () => {
         setDial((prevDial) => prevDial.slice(0, -1));
+    };
+
+    const setConsentMode = () => {
+        setInGetConsentMode(true);
+        callOnwait.pause();
+        callingTone.pause();
+        setDial("");
+        askConsentAudio.play();
     };
 
     const toggleMute = () => {
@@ -355,7 +389,20 @@ const RestBody = ({
         return onlineCounsellors.difference(declinedCounsellors) || null;
     };
 
-    const contactCounsellor = async () => {
+    const contactCounsellor = async (targetid) => {
+        if (targetid) {
+            send(
+                conn,
+                getSocketJson(
+                    String(id[0]),
+                    "connect",
+                    token,
+                    role,
+                    counsellorRole
+                )
+            );
+        }
+
         let response = await getResponseGet("/onlinestatus");
         console.log("response", response);
         onlineStatus = response?.data ? response.data : {};
@@ -497,6 +544,7 @@ const RestBody = ({
         callOnwait.pause();
         callingTone.pause();
 
+        addnumber("");
         if (inCallQueue) {
             send(
                 conn,
