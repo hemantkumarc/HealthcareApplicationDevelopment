@@ -83,7 +83,7 @@ export default function Counsellor({
 				console.error("Error fetching online status:", error);
 			}
 		};
-
+		// onlineCounsellors();
 		const intervalId = setInterval(onlineCounsellors, 10000);
 		return () => clearInterval(intervalId);
 	}, [springData]);
@@ -98,12 +98,19 @@ export default function Counsellor({
 				const matchesLanguage =
 					filters.language.length === 0 ||
 					languages.some((language) => filters.language.includes(language));
-
+				const matchesStatus =
+					filters.status.length === 0 ||
+					filters.status.includes(counselor.status);
 				const matchesSearchTerm =
 					search === "" ||
 					counselor.name.toLowerCase().includes(search.toLowerCase());
 
-				return matchesSpecialization && matchesLanguage && matchesSearchTerm;
+				return (
+					matchesSpecialization &&
+					matchesLanguage &&
+					matchesStatus &&
+					matchesSearchTerm
+				);
 			})
 			// .sort((a, b) => {
 			// 	let result = 0;
@@ -145,7 +152,7 @@ export default function Counsellor({
 					}
 				}
 			});
-
+		console.log("filters", filters);
 		setSortedCounsellors(sorted);
 	}, [springData, filters, search, sorts]);
 
