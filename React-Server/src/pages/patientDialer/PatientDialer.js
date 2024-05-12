@@ -18,7 +18,7 @@ const PatientDialer = () => {
                     navigate("/patientlogin");
                 }
                 localStorage.setItem("role", jwtdecoded.role);
-                localStorage.setItem("id", jwtdecoded.sub);
+                localStorage.setItem("id", jwtdecoded.id);
             } else {
                 navigate("/patientlogin");
             }

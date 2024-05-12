@@ -36,6 +36,7 @@ const RestBody = () => {
     const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
     const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [modalBody, setModalBody] = useState();
     const [isMuted, setIsMuted] = useState(false);
     const [seconds, setSeconds] = useState(0);
@@ -130,9 +131,16 @@ const RestBody = () => {
                         navigate("/patientlogin");
                     }
 
-                    if (data.data === "NoCounsellorAvailable") {
+                    if (data.data === "NotAvailable") {
                         console.log("No Counsellor available");
                         contactCounsellor();
+                    }
+                    if (data.data.startsWith("NewConnection")) {
+                        if (isWebRTCConnected) {
+                            sendDeclineAndDisconnect();
+                        } else {
+                            setShowIncomingCallModal(true);
+                        }
                     }
                 }
                 if (data.event === "accept") {
@@ -158,7 +166,7 @@ const RestBody = () => {
                             setTimeout(() => {
                                 counsellorAudio.srcObject = e.streams[0];
                                 console.log("setted audio");
-                            }, 2000);
+                            }, 200);
                             setIsMuted(false);
                             setIsWebRTCConnected(true);
                             resetTimer();
@@ -305,6 +313,28 @@ const RestBody = () => {
                 // track.enabled = !isMuted; // Toggle the track's enabled state
             });
         }
+    };
+
+    const sendAccept = () => {
+        send(
+            conn,
+            getSocketJson("", "accept", token, patientRole, counsellorRole)
+        );
+        setShowIncomingCallModal(false);
+    };
+
+    const sendDeclineAndDisconnect = () => {
+        send(
+            conn,
+            getSocketJson(
+                "disconnect",
+                "decline",
+                token,
+                patientRole,
+                counsellorRole
+            )
+        );
+        setShowIncomingCallModal(false);
     };
 
     const whosAvailable = () => {
@@ -575,7 +605,6 @@ const RestBody = () => {
         }
     };
 
-    console.log(dial);
     return (
         <>
             <Modal show={showCallConnectingModal} centered>
@@ -585,6 +614,28 @@ const RestBody = () => {
                 <Modal.Body className="align-items-center d-inline-flex">
                     {modalBody}
                 </Modal.Body>
+            </Modal>
+            <Modal show={showIncomingCallModal} centered>
+                <Modal.Header>
+                    <Modal.Title>Incoming Call</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Footer>
+                    <Button
+                        className="btn btn-success"
+                        variant="secondary"
+                        onClick={sendAccept}
+                    >
+                        Accept
+                    </Button>
+                    <Button
+                        className="btn btn-danger"
+                        variant="primary"
+                        onClick={sendDeclineAndDisconnect}
+                    >
+                        Decline
+                    </Button>
+                </Modal.Footer>
             </Modal>
             <div className="row">
                 <div className="col-3"></div>

@@ -269,15 +269,14 @@ function CounsellorDashboard() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
-    const [showCallConnectingModal, setShowCallConnectingModal] =
-        useState(false);
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [showInCall, setShowIncall] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
 
-    const acceptIncommingCall = async () => {
+    const createCall = async () => {
         setTimeout(() => {
             setShowIncall(true);
-            setShowCallConnectingModal(false);
+            setShowIncomingCallModal(false);
         }, 3000);
         conn.destRole = patientRole;
         send(conn, getSocketJson("", "accept", token, role, patientRole));
@@ -296,7 +295,7 @@ function CounsellorDashboard() {
             setTimeout(() => {
                 patientAudio.srcObject = e.streams[0];
                 console.log("setted audio");
-            }, 2000);
+            }, 200);
             console.log("this the audio obj", patientAudio);
         };
     };
@@ -306,7 +305,7 @@ function CounsellorDashboard() {
             conn,
             getSocketJson("decline", "decline", token, role, patientRole)
         );
-        setShowCallConnectingModal(false);
+        setShowIncomingCallModal(false);
     };
 
     const createWebsocketAndWebRTC = () => {
@@ -334,8 +333,8 @@ function CounsellorDashboard() {
                     if (data.data === "addedToken") {
                         console.log("adding token Successfull");
                     }
-                    if (data.data.startsWith("NewPatientConnect")) {
-                        setShowCallConnectingModal(true);
+                    if (data.data.startsWith("NewConnection")) {
+                        setShowIncomingCallModal(true);
                     }
                     if (data.data === "srDrConnect") {
                         console.log("senior Doctor Connecting");
@@ -366,6 +365,9 @@ function CounsellorDashboard() {
                     if (data.source === patientRole && patientPeerConnection) {
                         handleEndCall(patientPeerConnection, patientRole);
                     }
+                }
+                if (data.event === "accept") {
+                    createCall();
                 }
             });
         };
@@ -577,7 +579,7 @@ function CounsellorDashboard() {
         </>
     ) : (
         <>
-            <Modal show={showCallConnectingModal} centered>
+            <Modal show={showIncomingCallModal} centered>
                 <Modal.Header>
                     <Modal.Title>Incoming Call</Modal.Title>
                 </Modal.Header>
@@ -586,7 +588,7 @@ function CounsellorDashboard() {
                     <Button
                         className="btn btn-success"
                         variant="secondary"
-                        onClick={acceptIncommingCall}
+                        onClick={createCall}
                     >
                         Accept
                     </Button>
@@ -742,7 +744,22 @@ function CounsellorDashboard() {
                         </Drawer>
 
                         <div className="row bgDash">
-                            <Card id="pieCard" className="col-3">
+                            <Card
+                                id="pieCard"
+                                className="col-3"
+                                onClick={(e) => {
+                                    send(
+                                        conn,
+                                        getSocketJson(
+                                            "5",
+                                            "connect",
+                                            token,
+                                            counsellorRole,
+                                            patientRole
+                                        )
+                                    );
+                                }}
+                            >
                                 <PieChart
                                     series={[
                                         {

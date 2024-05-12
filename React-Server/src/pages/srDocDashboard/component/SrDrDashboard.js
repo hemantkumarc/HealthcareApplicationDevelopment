@@ -116,7 +116,7 @@ export default function SrDrDashboard() {
                         );
                         createPatientPeerConnection();
                     }
-                    if (data.data === "counsellorConnected") {
+                    if (data.data === "Connected") {
                         console.log(
                             "counsellorConnected... its time to create webRTC"
                         );
