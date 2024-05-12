@@ -71,6 +71,8 @@ public class GeneralControllers {
                 .put(Roles.ROLE_SENIORDR + "_incall", new JSONArray())
                 .put(Roles.ROLE_COUNSELLOR + "_busy", new JSONArray())
                 .put(Roles.ROLE_SENIORDR + "_busy", new JSONArray())
+                .put(Roles.ROLE_PATIENT + "_online", new JSONArray())
+                .put(Roles.ROLE_PATIENT + "_incall", new JSONArray())
                 .put("inCallWaiting", new JSONArray())
                 .put("missedCalls", new JSONArray())
                 .put("counsellorCalls", new JSONObject());
@@ -171,6 +173,41 @@ public class GeneralControllers {
             System.out.println("No SE_DR in busy state" + webSocketConnections.getRoleToStateToToken());
         }
 
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_PATIENT)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).containsKey("connected")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).get("connected")) {
+                System.out.println(token);
+                try {
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    Long id = decodedJWT.getClaim("id").asLong();
+                    retJson.getJSONArray(Roles.ROLE_PATIENT + "_online").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No patient in online state" + webSocketConnections.getRoleToStateToToken());
+        }
+
+        if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_PATIENT)
+                && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).containsKey("incall")
+        ) {
+            for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).get("incall")) {
+                System.out.println(token);
+                try {
+
+                    DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+                    Long id = decodedJWT.getClaim("id").asLong();
+                    retJson.getJSONArray(Roles.ROLE_PATIENT + "_incall").put(id);
+                } catch (JWTVerificationException e) {
+                    System.out.println("token is expired" + e);
+                }
+            }
+        } else {
+            System.out.println("No patient in incall state" + webSocketConnections.getRoleToStateToToken());
+        }
+
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("busy")
         ) {
@@ -215,6 +252,7 @@ public class GeneralControllers {
             retJson.getJSONArray("missedCalls").put(patientId);
         }
         System.out.println("this is retjson:" + retJson);
+        retJson.put("webSocketConnection", webSocketConnections);
         return ResponseEntity.ok(retJson.toString());
     }
 

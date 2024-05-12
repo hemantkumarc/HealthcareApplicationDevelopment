@@ -33,6 +33,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             REMOVEMISSED_EVENT = "removemissed",
             CONNECT_PATIENT = "connectpatient",
             CONNECT_COUNSELLOR = "connectcounsellor",
+            CONNECT_QUEUE = "connectqueue",
+            CONNECT_MISSED = "connectmissed",
             STATE_CONNECTED = "connected",
             STATE_INCALL = "incall",
             STATE_BUSY = "busy";
@@ -112,6 +114,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     assert sourceSession != null;
                     handleRemoveMissedEvent(sourceSession, socketMessage);
                 }
+                case CONNECT_QUEUE -> {
+                    logger.info("Connect from queue event occured");
+                    assert sourceSession != null;
+                    handleConnectQueueEvent(sourceSession, socketMessage);
+                }
+                case CONNECT_MISSED -> {
+                    logger.info("Connect from missed event occured");
+                    assert sourceSession != null;
+                    handleConnectMissedEvent(sourceSession, socketMessage);
+                }
                 case null, default -> {
                     logger.info("forwarding");
                     assert sourceSession != null;
@@ -125,6 +137,38 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             logger.error("Error handling WebSocket message", e);
         }
+    }
+
+    private void handleConnectMissedEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
+        Long patientId = webSocketConnections.getMissedCalls().poll();
+        String sourceToken = socketMessage.getToken();
+
+
+        assert patientId != null;
+        WebSocketMessage newSocketMsg = new WebSocketMessage(
+                patientId.toString(),
+                "connect",
+                sourceToken,
+                socketMessage.getSource(),
+                socketMessage.getDestination()
+        );
+        handleConnectEvent(sourceSession, newSocketMsg);
+    }
+
+    private void handleConnectQueueEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) throws IOException {
+        Long patientId = webSocketConnections.getWaitQueue().poll();
+        String sourceToken = socketMessage.getToken();
+
+
+        assert patientId != null;
+        WebSocketMessage newSocketMsg = new WebSocketMessage(
+                patientId.toString(),
+                "connect",
+                sourceToken,
+                socketMessage.getSource(),
+                socketMessage.getDestination()
+        );
+        handleConnectEvent(sourceSession, newSocketMsg);
     }
 
     private void handleRemoveQueueEvent(WebSocketSession sourceSession, WebSocketMessage socketMessage) {
@@ -222,24 +266,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
         updateTheSate(token, STATE_INCALL, STATE_CONNECTED);
         System.out.println("this is the Token to ROle to Token  " + webSocketConnections.getTokenToRoleToToken());
         System.out.println("removing the " + Roles.valueOf(socketMessage.getDestination()) + " from this token: " + token);
-        webSocketConnections.getTokenToRoleToToken()
-                .getOrDefault(token, new HashMap<>())
-                .remove(
-                        Roles.valueOf(socketMessage.getDestination())
-                );
+
         if (socketMessage.getData().equals("disconnect")) {
             String counsellorToken, srDrToken, patientToken;
             counsellorToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_COUNSELLOR, null);
             srDrToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_SENIORDR, null);
             patientToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_PATIENT, null);
-            webSocketConnections.getRoleToStateToToken().remove(token);
+            webSocketConnections.getTokenToRoleToToken().remove(token);
             System.out.println("Disconnect call:" + patientToken + " \n" + counsellorToken + "\n" + srDrToken);
             if (patientToken != null)
-                webSocketConnections.getRoleToStateToToken().remove(patientToken);
+                webSocketConnections.getTokenToRoleToToken().remove(patientToken);
             if (counsellorToken != null)
-                webSocketConnections.getRoleToStateToToken().remove(counsellorToken);
+                webSocketConnections.getTokenToRoleToToken().remove(counsellorToken);
             if (srDrToken != null)
-                webSocketConnections.getRoleToStateToToken().remove(srDrToken);
+                webSocketConnections.getTokenToRoleToToken().remove(srDrToken);
+        } else {
+            webSocketConnections.getTokenToRoleToToken()
+                    .getOrDefault(token, new HashMap<>())
+                    .remove(
+                            Roles.valueOf(socketMessage.getDestination())
+                    );
         }
 
         logger.info("User connection declined" + token);
@@ -329,13 +375,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     getRoleFromToken(webSocketConnections.getSessionIdToToken().get(sourceSession.getId()))
             );
             sendTextMessage(sourceSession,
-                    tempWebsocketMessage.setItems("CounsellorConnected", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
+                    tempWebsocketMessage.setItems("Connected", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
             sendTextMessage(sessions.get(
                             webSocketConnections.getTokenToSessionId().get(destToken)),
-                    tempWebsocketMessage.setItems("NewPatientConnect:" + id, "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
+                    tempWebsocketMessage.setItems("NewConnection:" + id, "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
         } else {
             sendTextMessage(sourceSession,
-                    tempWebsocketMessage.setItems("NoCounsellorAvailable", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
+                    tempWebsocketMessage.setItems("NotAvailable", "reply", "", socketMessage.getSource(), socketMessage.getDestination()).toString());
         }
     }
 
