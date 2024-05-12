@@ -14,6 +14,7 @@ export default function Counsellor({
 	const [docStatus, setDocStatus] = useState([]);
 	const [onlineCounselorIds, setOnlineCounselorIds] = useState(new Set());
 	const [inCallCounselorIds, setInCallCounselorIds] = useState(new Set());
+	const [callData, setCallData] = useState();
 
 	useEffect(() => {
 		console.log("i am here");
@@ -61,12 +62,19 @@ export default function Counsellor({
 				console.log("Incall Counsellors:", inCallIds);
 				console.log("Online Counsellors:", onlineIds);
 
+				if (response.data.counsellorCalls) {
+					console.log("in counsellor: ", typeof response.data.counsellorCalls);
+					setCallData(response.data.counsellorCalls);
+				}
+
 				const updatedSpringData = springData.map((counselor) => ({
 					...counselor,
 					status: onlineIds.includes(counselor.resourceId)
 						? "Online"
 						: inCallIds.includes(counselor.resourceId)
 						? "In-Call"
+						: inCallIds.includes(counselor.resourceId)
+						? "Busy"
 						: "Offline",
 				}));
 				console.log(updatedSpringData);
@@ -117,7 +125,7 @@ export default function Counsellor({
 			// 	return result;
 			// });
 			.sort((a, b) => {
-				const statusOrder = ["In-Call", "Online", "Offline"];
+				const statusOrder = ["In-Call", "Online", "Busy", "Offline"];
 
 				const statusIndexA = statusOrder.indexOf(a.status);
 				const statusIndexB = statusOrder.indexOf(b.status);
@@ -143,17 +151,18 @@ export default function Counsellor({
 
 	return (
 		<div className="counsellor-container">
-			<section className="card-container">
+			<div className="card-container">
 				{sortedCounsellors.map((counselor) => (
-					<div key={counselor.name} className="card">
-						<Cards
-							counsellor={counselor}
-							updateCounselorStatus={updateCounselorStatus}
-							makeConnections={makeConnections}
-						/>
-					</div>
+					<Cards
+						key={counselor.name}
+						counsellor={counselor}
+						updateCounselorStatus={updateCounselorStatus}
+						makeConnections={makeConnections}
+						calls={callData}
+					/>
 				))}
-			</section>
+			</div>
+			{/* <section className="card-container"></section> */}
 		</div>
 	);
 }

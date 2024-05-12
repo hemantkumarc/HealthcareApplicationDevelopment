@@ -4,7 +4,7 @@ import api from "../api/axios.jsx";
 function ImageComponent({ profile_photo }) {
   const [imageSrc, setImageSrc] = useState("");
 
-  console.log(profile_photo);
+  // console.log(profile_photo);
 
   const DOWNLOAD_IMAGE_ENDPOINT = "/file/download";
 
