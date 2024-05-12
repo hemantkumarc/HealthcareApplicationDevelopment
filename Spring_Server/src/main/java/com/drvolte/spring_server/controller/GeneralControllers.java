@@ -12,6 +12,7 @@ import com.drvolte.spring_server.service.UserService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -252,8 +253,23 @@ public class GeneralControllers {
             retJson.getJSONArray("missedCalls").put(patientId);
         }
         System.out.println("this is retjson:" + retJson);
-        retJson.put("webSocketConnection", webSocketConnections);
+        // retJson.put("webSocketConnection", webSocketConnections);
         return ResponseEntity.ok(retJson.toString());
     }
 
+    @GetMapping("/webSocketConnections")
+    public ResponseEntity<String> getWebSocketConnections() {
+        JSONObject retJson = new JSONObject()
+                .put("tokenToSessionId", new JSONObject(webSocketConnections.getTokenToSessionId()))
+                .put("sessionIdToToken", new JSONObject(webSocketConnections.getSessionIdToToken()))
+                .put("roleToStateToToken", new JSONObject(webSocketConnections.getRoleToStateToToken()))
+                .put("tokenToRoleToToken", new JSONObject(webSocketConnections.getTokenToRoleToToken()))
+                .put("roleToIdToToken", new JSONObject(webSocketConnections.getRoleToIdToToken()))
+                .put("waitQueue", new JSONObject(webSocketConnections.getWaitQueue()))
+                .put("missedCalls", new JSONObject(webSocketConnections.getMissedCalls()));
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(retJson.toString());
+    }
 }

@@ -78,7 +78,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 case DECLINE_EVENT -> {
                     logger.info("its an decline event");
                     assert sourceSession != null;
-                    forwardMessage(sourceSession, socketMessage);
+                    try {
+                        forwardMessage(sourceSession, socketMessage);
+                    } catch (NullPointerException e) {
+                        handleDeclineEvent(sourceSession, socketMessage);
+                        throw e;
+                    }
                     handleDeclineEvent(sourceSession, socketMessage);
                 }
                 case CONNECT_PATIENT -> {
