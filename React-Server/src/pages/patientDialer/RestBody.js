@@ -31,10 +31,13 @@ const counsellorAudio = new Audio(),
     callingTone = new Audio(callingTonePath),
     callOnwait = new Audio(waitToConnect);
 
-const RestBody = () => {
+const RestBody = ({
+    isWebSocketConnected,
+    setIsWebSocketConnected,
+    functionsInRestBody,
+}) => {
     const [dial, setDial] = useState("");
     const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
-    const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [modalBody, setModalBody] = useState();
@@ -91,6 +94,7 @@ const RestBody = () => {
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onclose = (msg) => {
+            setIsWebSocketConnected(false);
             setShowCallConnectingModal(true);
             callingTone.pause();
             callOnwait.pause();
@@ -111,6 +115,7 @@ const RestBody = () => {
             }, 3000);
         };
         conn.onopen = (e) => {
+            setIsWebSocketConnected(true);
             console.log("socket connection opened", conn, e);
             send(conn, getSocketJson("", "settoken", token, role));
             conn.addEventListener("message", async (e) => {
@@ -262,6 +267,8 @@ const RestBody = () => {
             });
         };
     };
+
+    functionsInRestBody.createWebsocketConnection = createWebsocketConnection;
 
     const addnumber = (number) => {
         setDial((prevDial) => prevDial + number);
