@@ -14,29 +14,31 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/patientlogin" element={<PatientLogin />} />
-                <Route path="/patientdialer" element={<PatientDialer />} />
-                <Route
-                    path="/counsellorDashboard"
-                    element={<CounsellorDashboard />}
-                />
-                <Route path="/SrDrDashboard" element={<SrDrDashboard />} />
-                <Route path="/inCall" element={<InCall />} />
-                <Route path="/adminDashboard" element={<AdminDashboard />} />
-                <Route
-                    path="/adminCreateCounsellor"
-                    element={<AdminCreateCounsellor />}
-                />
-                <Route
-                    path="/adminSignUpDoctor"
-                    element={<AdminSignUpDoctor />}
-                />
-                <Route path="/forgotPassword" element={<ForgotPassword />} />
-            </Routes>
-        </BrowserRouter>
+        // <BrowserRouter>
+        //     <Routes>
+        //         <Route path="/" element={<Login />} />
+        //         <Route path="/patientlogin" element={<PatientLogin />} />
+        //         <Route path="/patientdialer" element={<PatientDialer />} />
+        //         <Route
+        //             path="/counsellorDashboard"
+        //             element={<CounsellorDashboard />}
+        //         />
+        //         <Route path="/SrDrDashboard" element={<SrDrDashboard />} />
+        //         <Route path="/inCall" element={<InCall />} />
+        //         <Route path="/adminDashboard" element={<AdminDashboard />} />
+        //         <Route
+        //             path="/adminCreateCounsellor"
+        //             element={<AdminCreateCounsellor />}
+        //         />
+        //         <Route
+        //             path="/adminSignUpDoctor"
+        //             element={<AdminSignUpDoctor />}
+        //         />
+        //         <Route path="/forgotPassword" element={<ForgotPassword />} />
+        //     </Routes>
+        // </BrowserRouter>
+
+        <InCall />
     );
 }
 

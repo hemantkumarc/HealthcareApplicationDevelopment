@@ -37,6 +37,7 @@ import TimelineConnector from "@mui/lab/TimelineConnector";
 import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import {
+    getResponseGet,
     getSocketJson,
     initiateWebRTC,
     initiateWebsocket,
@@ -48,8 +49,14 @@ import { defineElement } from "lord-icon-element";
 import InCall from "../inCall/InCall";
 import { jwtDecode } from "jwt-decode";
 import { Modal } from "react-bootstrap";
+import { FiMoon, FiSun } from "react-icons/fi";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiAlertCircle } from "react-icons/fi";
 
 defineElement(lottie.loadAnimation);
+
+const TOGGLE_CLASSES =
+  "text-sm font-medium flex items-center gap-2 px-3 md:pl-3 md:pr-3.5 py-3 md:py-1.5 transition-colors relative z-10";
 
 const drawerWidth = 240;
 
@@ -252,10 +259,33 @@ function getTodoList(date) {
     }
 }
 
+function formatDateString(dateString) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear();
+    return `${day} ${months[monthIndex]}`;
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const amPM = hours >= 12 ? 'PM' : 'AM';
+
+    // Convert to 12-hour format
+    hours = hours % 12;
+    hours = hours ? hours : 12; // Handle midnight (0 hours)
+
+    console.log(hours + ":" + (minutes < 10 ? '0' : '') + minutes + ' ' + amPM);
+    return `${hours}:${(minutes < 10 ? '0' : '') + minutes} ${amPM}`
+}
+
 const adminRole = "ROLE_ADMIN",
-    counsellorRole = "ROLE_COUNSELLOR",
-    patientRole = "ROLE_PATIENT",
-    srDrRole = "ROLE_SENIORDR";
+counsellorRole = "ROLE_COUNSELLOR",
+patientRole = "ROLE_PATIENT",
+srDrRole = "ROLE_SENIORDR";
 let conn, patientPeerConnection, srDrPeerConnection;
 const connections = {
     conn: null,
@@ -265,9 +295,39 @@ const connections = {
 };
 const srDrAudio = new Audio(),
     patientAudio = new Audio();
+
+const token = localStorage.getItem("token");
+let patientsList
+let selectedPatient
+
+//------------------------------------------------------------------------------------------------------------------------------
+
 function CounsellorDashboard() {
+    const [callbacks, setCallbacks] = useState([]);
+
+    useEffect(() => {
+        const getPatients = async () => {
+            let res = await getResponseGet('/springdatarest/patients')
+            patientsList = res?.data?._embedded?.patients
+            console.log("Patients: ", patientsList)
+        }
+        getPatients()
+
+        const getCallbacks = async () => {
+            let response = await getResponseGet('/springdatarest/callBacks')
+            setCallbacks(response?.data?._embedded?.callBacks)
+            console.log("Callbacks: ", callbacks)
+        }
+        getCallbacks()
+    },[])
+
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const [selected, setSelected] = useState("busy");
+
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
     const [showCallConnectingModal, setShowCallConnectingModal] =
         useState(false);
@@ -275,30 +335,32 @@ function CounsellorDashboard() {
     const [isMuted, setIsMuted] = useState(false);
 
     const acceptIncommingCall = async () => {
-        setTimeout(() => {
-            setShowIncall(true);
-            setShowCallConnectingModal(false);
-        }, 3000);
-        conn.destRole = patientRole;
-        send(conn, getSocketJson("", "accept", token, role, patientRole));
-
-        patientPeerConnection = await initiateWebRTC(
-            conn,
-            role,
-            connections,
-            patientRole
-        );
-        connections.patientPeerConnection = patientPeerConnection;
-        patientPeerConnection.ontrack = (e) => {
-            console.log("setting the remote stream", e);
-
-            patientAudio.autoplay = true;
+        if (selected == "active") {
             setTimeout(() => {
-                patientAudio.srcObject = e.streams[0];
-                console.log("setted audio");
-            }, 2000);
-            console.log("this the audio obj", patientAudio);
-        };
+                setShowIncall(true);
+                setShowCallConnectingModal(false);
+            }, 3000);
+            conn.destRole = patientRole;
+            send(conn, getSocketJson("", "accept", token, role, patientRole));
+    
+            patientPeerConnection = await initiateWebRTC(
+                conn,
+                role,
+                connections,
+                patientRole
+            );
+            connections.patientPeerConnection = patientPeerConnection;
+            patientPeerConnection.ontrack = (e) => {
+                console.log("setting the remote stream", e);
+    
+                patientAudio.autoplay = true;
+                setTimeout(() => {
+                    patientAudio.srcObject = e.streams[0];
+                    console.log("setted audio");
+                }, 2000);
+                console.log("this the audio obj", patientAudio);
+            };
+        }
     };
 
     const declineIcommingCall = () => {
@@ -628,6 +690,15 @@ function CounsellorDashboard() {
                                             </Nav.Link>
                                         </Nav>
                                         <Nav>
+
+                                        <div
+                                            className={`grid h-[67px] place-content-center px-4 transition-colors ${
+                                                selected === "busy" ? "bg-gray" : "bg-gray"
+                                            }`}
+                                            >
+                                            <SliderToggle selected={selected} setSelected={setSelected} />
+                                        </div>
+
                                             <Nav.Link href="#deets">
                                                 <IoIosNotifications
                                                     style={{
@@ -663,25 +734,24 @@ function CounsellorDashboard() {
                             anchor="left"
                         >
                             <Toolbar>
-                                <div id="logo">
+                                <div>
                                     <img
                                         src={require("../../assets/drVolteLogo.png")}
-                                        alt="logo"
-                                        style={{
-                                            height: "70px",
-                                            width: "87px",
-                                            marginTop: "-25px",
-                                            marginLeft: "-60px",
-                                        }}
+                                        alt=""
+                                        style={{height: "70px", width: "150px", marginLeft: "-30px"}}
                                     />
                                 </div>
                                 <div id="user">
                                     <img
                                         src={require("../../assets/curly-hair-man.png")}
                                         alt="user"
+                                        style={{
+                                            height: "65px",
+                                            width: "75px"
+                                        }}
                                     />
                                 </div>
-                                <div>
+                                <div id="profile">
                                     <img
                                         id="profileInfo"
                                         src={require("../../assets/sign-up.png")}
@@ -741,7 +811,7 @@ function CounsellorDashboard() {
                             />
                         </Drawer>
 
-                        <div className="row bgDash">
+                        <div className="row bgDash mContent">
                             <Card id="pieCard" className="col-3">
                                 <PieChart
                                     series={[
@@ -860,66 +930,43 @@ function CounsellorDashboard() {
                                         id="listAppointments"
                                         style={{ backgroundColor: "GrayText" }}
                                     >
-                                        <List.Item className="listItem">
-                                            Rahul Sharma | 30th April
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Arvind Kohli | 2nd May
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Mann Singh | 16th May
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Shashi Shastri | 3rd June
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "28px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
+                                        {callbacks?.map((item, index) => {
+                                            const formattedDate = formatDateString(item?.schedule);
+
+                                            var patientName
+                                            patientsList?.forEach(patient => {
+                                                if (patient.resourceId == item?.resourceId) {
+                                                    patientName = patient.name
+                                                }
+                                            })
+                                            if (item?.status === "scheduled") {
+                                                return (
+                                                    <List.Item key={index} className="listItem">
+                                                        {patientName} | {formattedDate}
+                                                        <lord-icon
+                                                            src="https://cdn.lordicon.com/anqzffqz.json"
+                                                            trigger="click"
+                                                            state="morph"
+                                                            style={{
+                                                                width: "30px",
+                                                                height: "30px",
+                                                                float: "right",
+                                                                marginRight: "30px",
+                                                                marginBottom: "-10px",
+                                                                cursor: "pointer"
+                                                            }}
+                                                            onClick={() => {
+                                                                setIsOpen(true);
+                                                                setSelectedItem(item);
+                                                            }}
+                                                        ></lord-icon>
+                                                        <SpringModal isOpen={isOpen} setIsOpen={setIsOpen} selectedItem={selectedItem} name={patientName} date={item?.schedule}/>
+                                                    </List.Item>
+                                                );
+                                            } else {
+                                                return null; // No content for items with status other than "scheduled"
+                                            }
+                                        })}
                                     </List>
                                 </div>
 
@@ -935,5 +982,147 @@ function CounsellorDashboard() {
         </>
     );
 }
+
+const SliderToggle = ({ selected, setSelected }) => {
+    return (
+      <div className="relative flex w-fit items-center rounded-full">
+        <button
+          className={`${TOGGLE_CLASSES} ${
+            selected === "busy" ? "text-white" : "text-slate-800"
+          }`}
+          onClick={() => {
+            setSelected("busy");
+            send(
+                conn,
+                getSocketJson(
+                    "connected:busy",
+                    "changestate",
+                    token,
+                    counsellorRole,
+                    patientRole
+                )
+            );
+          }}
+        >
+          <FiMoon className="relative z-10 text-lg md:text-sm" />
+          <span className="relative z-10">Busy</span>
+        </button>
+        <button
+          className={`${TOGGLE_CLASSES} ${
+            selected === "active" ? "text-white" : "text-slate-800"
+          }`}
+          onClick={() => {
+            setSelected("active");
+            send(
+                conn,
+                getSocketJson(
+                    "busy:connected",
+                    "changestate",
+                    token,
+                    counsellorRole,
+                    patientRole
+                )
+            );
+          }}
+        >
+          <FiSun className="relative z-10 text-lg md:text-sm" />
+          <span className="relative z-10">Active</span>
+        </button>
+        <div
+          className={`absolute inset-0 z-0 flex ${
+            selected === "active" ? "justify-end" : "justify-start"
+          }`}
+        >
+          <motion.span
+            layout
+            transition={{ type: "spring", damping: 15, stiffness: 250 }}
+            className={`h-full w-1/2 rounded-full ${
+                selected === "busy"
+                  ? "bg-gradient-to-r from-red-500 to-red-700"
+                  : "bg-gradient-to-r from-violet-600 to-indigo-600"
+              }`}
+          />
+        </div>
+      </div>
+    );
+};
+
+const SpringModal = ({ isOpen, setIsOpen, selectedItem, name, date }) => {
+    console.log("Selected Item: ", selectedItem)
+    var time = formatTime(date)
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="bg-slate-900/20 backdrop-blur p-8 fixed inset-0 z-50 grid place-items-center overflow-y-scroll cursor-pointer"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: "12.5deg" }}
+              animate={{ scale: 1, rotate: "0deg" }}
+              exit={{ scale: 0, rotate: "0deg" }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gradient-to-br from-violet-600 to-indigo-600 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
+            >
+              <FiAlertCircle className="text-white/10 rotate-12 text-[250px] absolute z-0 -top-24 -left-24" />
+              <div className="relative z-10">
+                <div className="bg-white w-16 h-16 mb-2 rounded-full text-3xl text-indigo-600 grid place-items-center mx-auto">
+                  <FiAlertCircle />
+                </div>
+                <h3 className="text-3xl font-bold text-center mb-2">
+                  Appointment!
+                </h3>
+                <p className="text-center mb-6 text-white text-xl">
+                  Name: <span className="font-semibold">{name}</span>
+                </p>
+                
+                <div>
+                    <p style={{marginTop: "-20px", marginLeft: "20px"}} className="text-center mb-6 text-white text-xl">
+                    Reason: <span className="font-semibold">{selectedItem.followupReason}</span>
+                    </p>
+                </div>
+
+                <div>
+                    <p style={{marginTop: "-20px", marginLeft: "-70px"}} className="text-center mb-6 text-white text-xl">
+                    Time: <span className="font-semibold">{time}</span>
+                    </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="bg-transparent hover:bg-white/10 transition-colors text-white font-semibold w-full py-2 rounded"
+                  >
+                    Close
+                  </button>
+                  <button
+                    // onClick={() => setIsOpen(false)}
+                    onClick={(e) => {
+                                    send(
+                                        conn,
+                                        getSocketJson(
+                                            "5",
+                                            "connect",
+                                            token,
+                                            counsellorRole,
+                                            patientRole
+                                        )
+                                    );
+                                }}
+                    className="bg-white hover:opacity-90 transition-opacity text-indigo-600 font-semibold w-full py-2 rounded"
+                  >
+                    Call
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
 
 export default CounsellorDashboard;
