@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import callingTonePath from "../../assets/Audios/phone-call-outgoing.wav";
+import waitToConnect from "../../assets/Audios/please-wait-call-gets-connected.mp3";
+import askConsentAudioPath from "../../assets/Audios/askConsent.mp3";
 import { useNavigate } from "react-router-dom";
 import "./RestBody.css";
 import DialerDial from "./DialerDial";
@@ -24,18 +27,26 @@ const connections = {
     patientPeerConnection: null,
 };
 const counsellorAudio = new Audio(),
-    srDrAudio = new Audio();
+    srDrAudio = new Audio(),
+    callingTone = new Audio(callingTonePath),
+    callOnwait = new Audio(waitToConnect),
+    askConsentAudio = new Audio(askConsentAudioPath);
 
-const RestBody = () => {
-    const [dial, setDial] = useState("");
+const RestBody = ({
+    isWebSocketConnected,
+    setIsWebSocketConnected,
+    functionsInRestBody,
+}) => {
+    const [dial, setDial] = useState("9999000123");
     const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
-    const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
     const [showCallConnectingModal, setShowCallConnectingModal] = useState();
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [modalBody, setModalBody] = useState();
     const [isMuted, setIsMuted] = useState(false);
-
-    const [count, setCount] = useState(0);
-    const [time, setTime] = useState("00:00:00");
+    const [seconds, setSeconds] = useState(0);
+    const [minutes, setMinutes] = useState(0);
+    const [inCallQueue, setInCallQueue] = useState(false);
+    const [inGetConsentMode, setInGetConsentMode] = useState(false);
 
     const drVoltePhnumber = "9999000123";
     const token = localStorage.getItem("token");
@@ -43,6 +54,10 @@ const RestBody = () => {
     let onlineStatus,
         declinedCounsellors = new Set();
     const navigate = useNavigate();
+
+    callingTone.loop = true;
+    callOnwait.loop = true;
+    askConsentAudio.loop = true;
 
     useEffect(() => {
         console.log(
@@ -53,41 +68,39 @@ const RestBody = () => {
     }, []);
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            // console.log("this is timer now: ", seconds, minutes);
+            setSeconds((seconds) => {
+                if (seconds === 59) {
+                    setMinutes((minutes) => minutes + 1);
+                    return 0;
+                } else {
+                    return seconds + 1;
+                }
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
         console.log("iswebsocketconnected changed to", isWebRTCConnected);
     }, [isWebRTCConnected]);
 
-    const showTimer = (ms) => {
-        const milliseconds = Math.floor((ms % 1000) / 10)
-            .toString()
-            .padStart(2, "0");
-        const second = Math.floor((ms / 1000) % 60)
-            .toString()
-            .padStart(2, "0");
-        const minute = Math.floor((ms / 1000 / 60) % 60)
-            .toString()
-            .padStart(2, "0");
-        // const hour = Math.floor(ms / 1000 / 60 / 60).toString();
-        setTime(
-            // hour.padStart(2, "0") +
-            // ":" +
-            minute + ":" + second
-        );
+    const resetTimer = () => {
+        setMinutes(0);
+        setSeconds(0);
     };
-    var id = setInterval((initTime) => {
-        var left = count + (new Date() - initTime);
-        setCount(left);
-        showTimer(left);
-        if (left <= 0) {
-            setTime("00:00:00");
-            clearInterval(id);
-        }
-    }, 1000);
+
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...");
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onclose = (msg) => {
+            setIsWebSocketConnected(false);
             setShowCallConnectingModal(true);
+            callingTone.pause();
+            callOnwait.pause();
             console.log("socket connection closed", msg.data);
             setModalBody(
                 <>
@@ -105,8 +118,8 @@ const RestBody = () => {
             }, 3000);
         };
         conn.onopen = (e) => {
+            setIsWebSocketConnected(true);
             console.log("socket connection opened", conn, e);
-            console.log("set timeout inside");
             send(conn, getSocketJson("", "settoken", token, role));
             conn.addEventListener("message", async (e) => {
                 console.log("received", e);
@@ -126,9 +139,16 @@ const RestBody = () => {
                         navigate("/patientlogin");
                     }
 
-                    if (data.data === "NoCounsellorAvailable") {
+                    if (data.data === "NotAvailable") {
                         console.log("No Counsellor available");
                         contactCounsellor();
+                    }
+                    if (data.data.startsWith("NewConnection")) {
+                        if (isWebRTCConnected) {
+                            sendDeclineAndDisconnect();
+                        } else {
+                            setShowIncomingCallModal(true);
+                        }
                     }
                 }
                 if (data.event === "accept") {
@@ -149,12 +169,15 @@ const RestBody = () => {
                         counsellorPeerConnection.ontrack = (e) => {
                             console.log("setting the remote stream", e);
                             counsellorAudio.autoplay = true;
+                            callingTone.pause();
+                            callOnwait.pause();
                             setTimeout(() => {
                                 counsellorAudio.srcObject = e.streams[0];
                                 console.log("setted audio");
-                            }, 2000);
+                            }, 200);
                             setIsMuted(false);
                             setIsWebRTCConnected(true);
+                            resetTimer();
                             setModalBody(
                                 <>
                                     <lord-icon
@@ -244,16 +267,47 @@ const RestBody = () => {
                         disconnectCall(srDrPeerConnection, srDrRole);
                     }
                 }
+                if (data.event === "redirectCounsellor") {
+                    sendDeclineAndDisconnect();
+                    contactCounsellor(data.data);
+                }
+                if (data.event === "askConsent") {
+                    setConsentMode();
+                }
             });
         };
     };
 
+    functionsInRestBody.createWebsocketConnection = createWebsocketConnection;
+
     const addnumber = (number) => {
         setDial((prevDial) => prevDial + number);
+        if (inGetConsentMode) {
+            send(
+                conn,
+                getSocketJson(
+                    number,
+                    "consentresponse",
+                    token,
+                    patientRole,
+                    counsellorRole
+                )
+            );
+            setInGetConsentMode(false);
+            askConsentAudio.pause();
+        }
     };
 
     const decreaseNumber = () => {
         setDial((prevDial) => prevDial.slice(0, -1));
+    };
+
+    const setConsentMode = () => {
+        setInGetConsentMode(true);
+        callOnwait.pause();
+        callingTone.pause();
+        setDial("");
+        askConsentAudio.play();
     };
 
     const toggleMute = () => {
@@ -300,6 +354,28 @@ const RestBody = () => {
         }
     };
 
+    const sendAccept = () => {
+        send(
+            conn,
+            getSocketJson("", "accept", token, patientRole, counsellorRole)
+        );
+        setShowIncomingCallModal(false);
+    };
+
+    const sendDeclineAndDisconnect = () => {
+        send(
+            conn,
+            getSocketJson(
+                "disconnect",
+                "decline",
+                token,
+                patientRole,
+                counsellorRole
+            )
+        );
+        setShowIncomingCallModal(false);
+    };
+
     const whosAvailable = () => {
         let onlineCounsellors = new Set(onlineStatus?.ROLE_COUNSELLOR_online);
         console.log(
@@ -311,7 +387,20 @@ const RestBody = () => {
         return onlineCounsellors.difference(declinedCounsellors) || null;
     };
 
-    const contactCounsellor = async () => {
+    const contactCounsellor = async (targetid) => {
+        if (targetid) {
+            send(
+                conn,
+                getSocketJson(
+                    String(id[0]),
+                    "connect",
+                    token,
+                    role,
+                    counsellorRole
+                )
+            );
+        }
+
         let response = await getResponseGet("/onlinestatus");
         console.log("response", response);
         onlineStatus = response?.data ? response.data : {};
@@ -332,7 +421,22 @@ const RestBody = () => {
                     counsellorRole
                 )
             );
+        } else if (
+            onlineStatus?.ROLE_COUNSELLOR_incall &&
+            onlineStatus?.ROLE_COUNSELLOR_incall.length > 0
+        ) {
+            setTimeout(() => {
+                callingTone.pause();
+                callOnwait.play();
+            }, 3000);
+            setIsWebRTCConnected(true);
+            resetTimer();
+            setShowCallConnectingModal(false);
+            send(conn, getSocketJson("", "addtoqueue", token, patientRole, ""));
+            setInCallQueue(true);
         } else {
+            callingTone.pause();
+            callOnwait.pause();
             console.log(
                 "its time to give up and buy rope and stool (not that costly, think about it). theres no counsellor avaialble "
             );
@@ -356,7 +460,6 @@ const RestBody = () => {
 
     const initiateCall = () => {
         declinedCounsellors.clear();
-
         setShowCallConnectingModal(true);
 
         if (
@@ -397,15 +500,7 @@ const RestBody = () => {
         }
 
         setShowCallConnectingModal(true);
-        // setTimeout(() => {
-        //     console.log(
-        //         "inside the settime and cheking for webRTC connected or not",
-        //         getWebRTCStatus()
-        //     );
-        //     if (!getWebRTCStatus()) {
-        //         disconnectCall();
-        //     }
-        // }, 60000);
+
         setModalBody(
             <>
                 Connecting
@@ -418,8 +513,10 @@ const RestBody = () => {
             </>
         );
         conn.destRole = counsellorRole;
+
+        callingTone.play();
+        callOnwait.pause();
         contactCounsellor();
-        // setShowCallConnectingModal(false);
     };
 
     const disconnectPeerConnection = (peerConnection) => {
@@ -442,7 +539,21 @@ const RestBody = () => {
             "inside disconnect, this is webRTC connection status",
             isWebRTCConnected
         );
+        callOnwait.pause();
+        callingTone.pause();
 
+        addnumber("");
+        if (inCallQueue) {
+            send(
+                conn,
+                getSocketJson("", "removequeue", token, counsellorRole, "")
+            );
+            send(
+                conn,
+                getSocketJson("", "addtomissed", token, counsellorRole, "")
+            );
+            setInCallQueue(false);
+        }
         if (!peerConnection && !destRole) {
             console.log(
                 "disconnecting counsellorPeerConnection",
@@ -454,7 +565,13 @@ const RestBody = () => {
             setIsWebRTCConnected(false);
             send(
                 conn,
-                getSocketJson("", "decline", token, role, counsellorRole)
+                getSocketJson(
+                    "disconnect",
+                    "decline",
+                    token,
+                    role,
+                    counsellorRole
+                )
             );
 
             console.log("disconnecting SrDrPeerConnection", srDrPeerConnection);
@@ -502,7 +619,13 @@ const RestBody = () => {
                 setIsWebRTCConnected(false);
                 send(
                     conn,
-                    getSocketJson("", "decline", token, role, counsellorRole)
+                    getSocketJson(
+                        "disconnect",
+                        "decline",
+                        token,
+                        role,
+                        counsellorRole
+                    )
                 );
 
                 setShowCallConnectingModal(true);
@@ -535,7 +658,6 @@ const RestBody = () => {
         }
     };
 
-    console.log(dial);
     return (
         <>
             <Modal show={showCallConnectingModal} centered>
@@ -545,6 +667,28 @@ const RestBody = () => {
                 <Modal.Body className="align-items-center d-inline-flex">
                     {modalBody}
                 </Modal.Body>
+            </Modal>
+            <Modal show={showIncomingCallModal} centered>
+                <Modal.Header>
+                    <Modal.Title>Incoming Call</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Footer>
+                    <Button
+                        className="btn btn-success"
+                        variant="secondary"
+                        onClick={sendAccept}
+                    >
+                        Accept
+                    </Button>
+                    <Button
+                        className="btn btn-danger"
+                        variant="primary"
+                        onClick={sendDeclineAndDisconnect}
+                    >
+                        Decline
+                    </Button>
+                </Modal.Footer>
             </Modal>
             <div className="row">
                 <div className="col-3"></div>
@@ -562,7 +706,7 @@ const RestBody = () => {
                                 />
                                 {isWebRTCConnected && (
                                     <span className="align-middle col-2">
-                                        {time}
+                                        {minutes + ":" + seconds}
                                     </span>
                                 )}
                             </div>

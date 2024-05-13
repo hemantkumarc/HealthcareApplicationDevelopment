@@ -8,7 +8,10 @@ const counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
 let localMediaStream;
-
+export const STATES = {
+    online: "connected",
+    busy: "busy",
+};
 export const initiateWebsocket = (sourceRole, connections) => {
     conn = new WebSocket("wss://" + SERVERIP + "/socket");
     connections.conn = conn;
@@ -252,7 +255,11 @@ export const handleStreamingAudio = (peerconnection) => {
     localMediaStream
         .then((stream) => {
             stream.getAudioTracks().forEach((track) => {
-                console.log("this is the local track adding now", track);
+                console.log(
+                    "this is the local track adding now and the stream",
+                    track,
+                    stream
+                );
                 peerconnection.addTrack(track, stream);
             });
         })

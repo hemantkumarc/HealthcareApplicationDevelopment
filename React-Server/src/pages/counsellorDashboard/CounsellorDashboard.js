@@ -329,38 +329,50 @@ function CounsellorDashboard() {
 
     const navigate = useNavigate();
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
-    const [showCallConnectingModal, setShowCallConnectingModal] =
-        useState(false);
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [showInCall, setShowIncall] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [inGetConsentMode, setInGetConsentMode] = useState(false);
 
-    const acceptIncommingCall = async () => {
-        if (selected == "active") {
+    const createCall = async () => {
+        setTimeout(() => {
+            setShowIncall(true);
+            setShowIncomingCallModal(false);
+        }, 3000);
+        conn.destRole = patientRole;
+        send(conn, getSocketJson("", "accept", token, role, patientRole));
+
+        patientPeerConnection = await initiateWebRTC(
+            conn,
+            role,
+            connections,
+            patientRole
+        );
+        connections.patientPeerConnection = patientPeerConnection;
+        patientPeerConnection.ontrack = (e) => {
+            console.log("setting the remote stream", e);
+
+            patientAudio.autoplay = true;
             setTimeout(() => {
-                setShowIncall(true);
-                setShowCallConnectingModal(false);
-            }, 3000);
-            conn.destRole = patientRole;
-            send(conn, getSocketJson("", "accept", token, role, patientRole));
-    
-            patientPeerConnection = await initiateWebRTC(
+                patientAudio.srcObject = e.streams[0];
+                console.log("setted audio");
+            }, 200);
+            console.log("this the audio obj", patientAudio);
+            send(
                 conn,
-                role,
-                connections,
-                patientRole
+                getSocketJson(
+                    "",
+                    "askConsent",
+                    token,
+                    counsellorRole,
+                    patientRole
+                )
             );
-            connections.patientPeerConnection = patientPeerConnection;
-            patientPeerConnection.ontrack = (e) => {
-                console.log("setting the remote stream", e);
-    
-                patientAudio.autoplay = true;
-                setTimeout(() => {
-                    patientAudio.srcObject = e.streams[0];
-                    console.log("setted audio");
-                }, 2000);
-                console.log("this the audio obj", patientAudio);
-            };
-        }
+            setTimeout(() => {
+                toggleMute();
+            }, 2000);
+            setInGetConsentMode(true);
+        };
     };
 
     const declineIcommingCall = () => {
@@ -368,7 +380,7 @@ function CounsellorDashboard() {
             conn,
             getSocketJson("decline", "decline", token, role, patientRole)
         );
-        setShowCallConnectingModal(false);
+        setShowIncomingCallModal(false);
     };
 
     const createWebsocketAndWebRTC = () => {
@@ -396,8 +408,8 @@ function CounsellorDashboard() {
                     if (data.data === "addedToken") {
                         console.log("adding token Successfull");
                     }
-                    if (data.data === "NewPatientConnect") {
-                        setShowCallConnectingModal(true);
+                    if (data.data.startsWith("NewConnection")) {
+                        setShowIncomingCallModal(true);
                     }
                     if (data.data === "srDrConnect") {
                         console.log("senior Doctor Connecting");
@@ -428,6 +440,12 @@ function CounsellorDashboard() {
                     if (data.source === patientRole && patientPeerConnection) {
                         handleEndCall(patientPeerConnection, patientRole);
                     }
+                }
+                if (data.event === "accept") {
+                    createCall();
+                }
+                if (data.event === "consentresponse") {
+                    console.log("this is the Consent response", data.data);
                 }
             });
         };
@@ -573,8 +591,9 @@ function CounsellorDashboard() {
         return null;
     }
 
-    const toggleMute = () => {
+    const toggleMute = (state) => {
         setIsMuted((state) => !state);
+
         console.log(patientPeerConnection);
         // navigator.mediaDevices
         //     .getUserMedia({ audio: true, video: false })
@@ -639,7 +658,7 @@ function CounsellorDashboard() {
         </>
     ) : (
         <>
-            <Modal show={showCallConnectingModal} centered>
+            <Modal show={showIncomingCallModal} centered>
                 <Modal.Header>
                     <Modal.Title>Incoming Call</Modal.Title>
                 </Modal.Header>
@@ -648,7 +667,7 @@ function CounsellorDashboard() {
                     <Button
                         className="btn btn-success"
                         variant="secondary"
-                        onClick={acceptIncommingCall}
+                        onClick={createCall}
                     >
                         Accept
                     </Button>

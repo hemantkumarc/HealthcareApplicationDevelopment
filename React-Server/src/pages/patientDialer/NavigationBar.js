@@ -5,16 +5,24 @@ import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import CallHistory from "./CallHistory";
 import logo from "../../assets/drVolteLogo.png";
-const NavigationBar = () => {
+import { getResponsePost } from "../../utils/utils";
+const NavigationBar = ({
+    isWebSocketConnected,
+    setIsWebSocketConnected,
+    functionsInRestBody,
+}) => {
     const navigate = useNavigate();
     const [showCallHistory, setShowCallHistory] = useState(false);
     const [status, setStatus] = useState("green");
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/patientlogin");
-    };
     const phnumber = localStorage.getItem("phNumber");
 
+    const handleLogout = () => {
+        let token = localStorage.getItem("token");
+        localStorage.clear();
+
+        token && getResponsePost("/logoutuser", token);
+        navigate("/patientlogin");
+    };
     const showModal = () => {
         setShowCallHistory((flag) => !flag);
     };
@@ -35,15 +43,32 @@ const NavigationBar = () => {
                         />
                     </div>
                     <Navbar.Brand href="#home">Dr.VoLTE</Navbar.Brand>
-                    <Navbar.Text className="justify-content-end rounded-pill phnumberText align-items-center d-inline-flex">
+                    <Navbar.Text
+                        className="justify-content-end rounded-pill phnumberText align-items-center d-inline-flex"
+                        onClick={() => {
+                            !isWebSocketConnected &&
+                                functionsInRestBody.createWebsocketConnection();
+                        }}
+                    >
                         {phnumber}
                         <hr style={{ width: "10px" }} />
-                        <lord-icon
-                            src="https://cdn.lordicon.com/pzetejwe.json"
-                            trigger="loop"
-                            delay="1000"
-                            style={{ width: "30px", height: "30px" }}
-                        ></lord-icon>
+                        {isWebSocketConnected ? (
+                            <lord-icon
+                                src="https://cdn.lordicon.com/pzetejwe.json"
+                                trigger="loop"
+                                delay="1000"
+                                style={{ width: "30px", height: "30px" }}
+                            ></lord-icon>
+                        ) : (
+                            <lord-icon
+                                src="https://cdn.lordicon.com/zjhryiyb.json"
+                                trigger="loop"
+                                delay="1000"
+                                state="morph-heart-broken"
+                                colors="primary:#e83a30,secondary:#ebe6ef,tertiary:#ffc738,quaternary:#f9c9c0,quinary:#7166ee"
+                                style={{ width: "30px", height: "30px" }}
+                            ></lord-icon>
+                        )}
                     </Navbar.Text>
 
                     <Navbar.Toggle aria-controls="responsive-navbar-nav" />
