@@ -24,27 +24,29 @@
 }
 
 
-#logo {
+#logo1 {
   font-size: 36px;
   padding-left: 20px;
+  margin-top: 1.5rem;
   color:  rgb(38, 37, 77);
 }
 
 #logoImg {
-  margin-left: 2rem;
+  margin-left: 2.7rem;
 }
 
 #username {
   margin-top: 10px;
 }
 
-#signIn {
-  margin-top: 170px;
+#signIn1 {
+  margin-top: 20px;
 }
 
-#title {
+#title1 {
   width: 150px;
-  margin-left: 2rem;
+  margin-left: 3rem;
+  margin-top: 0rem;
 }
 
 #eyeClosed {
@@ -65,7 +67,7 @@
   cursor: pointer;
 }
 
-#user {
+#user1 {
   width: 35px;
   height: 35px;
   float: right;

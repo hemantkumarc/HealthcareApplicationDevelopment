@@ -45,15 +45,20 @@ const adminRole = "ROLE_ADMIN",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
 
-let srDrList;
-let selectedItem;
-let selectedCounsellor;
-let counsellorsList;
-let familyData;
-let historyData;
-let resId;
-let patientList;
-
+var srDrList;
+var selectedItem;
+var selectedCounsellor;
+var counsellorsList;
+var familyData;
+var historyData;
+var resId;
+var patientList;
+var pID = 0;
+var counsellorCalls;
+var srDrInCall = [6];
+var srDrOnline = [5];
+var cInCall = [4, 5, 6, 7];
+var cOnline = [1, 2, 3, 4];
 //------------------------------------------------------------------------------------------------------------------------------
 
 function InCall({
@@ -65,19 +70,9 @@ function InCall({
     toggleMute,
     setIsMuted,
 }) {
-    // let peerconnection = connections.patientPeerConnection;
-    // const token = localStorage.getItem("token");
-    // const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
-
-    // useEffect(() => {
-    //     handlePeerConnectionClose(
-    //         conn,
-    //         peerconnection,
-    //         handleEndCall,
-    //         patientRole
-    //     );
-    //     setIsMuted(false);
-    // }, []);
+    var peerconnection = connections.patientPeerConnection;
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
 
     const [getPatientFamily, setPatientFamily] = useState(null);
     const [selectedID, setSelectedID] = useState(0);
@@ -88,7 +83,101 @@ function InCall({
     const [selectedTime, setSelectedTime] = useState(null);
     const [reason, setReason] = useState("");
 
-    var pID = 0;
+    const [isOpen, setIsOpen] = useState(false);
+    const [patientHistoryData, setPatientHistoryData] = useState([]);
+
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const date = today.getDate();
+    const currentDate = date + "/" + month + "/" + year;
+
+    const showTime =
+        today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+    const [show, setShow] = useState(false);
+    const [showCard, setCardModal] = useState(false);
+    const [showSchedule, setScheduleModal] = useState(false);
+    const [showRedirect, setRedirect] = useState(false);
+    const [showSelectedRedirect, setSelectedRedirect] = useState(false);
+
+    useEffect(() => {
+        handlePeerConnectionClose(
+            conn,
+            peerconnection,
+            handleEndCall,
+            patientRole
+        );
+        setIsMuted(false);
+    }, []);
+
+    useEffect(() => {
+        getOnlineStatus();
+        getSeniorDrs();
+        getCounsellors();
+        getPatientHistories();
+        getFamilies();
+        getPatients();
+    }, []);
+
+    const getPatients = async () => {
+        let res = await getResponseGet("/springdatarest/patients");
+        console.log("Patient Data", res?.data?._embedded?.patients);
+        patientList = res?.data?._embedded?.patients;
+    };
+
+    const getFamilies = async () => {
+        let res = await getResponseGet("/get_families?patient_id=1");
+        setPatientFamily(res?.data);
+        console.log("Yeahh Patient Family", res?.data);
+        setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
+        familyData = res?.data;
+        // setResId(familyData[pID].id)
+        resId = familyData[pID].id;
+    };
+
+    const getPatientHistories = async () => {
+        let res = await getResponseGet("/springdatarest/patientHistories");
+        setPatientHistoryData(res.data._embedded.patientHistories);
+        console.log("Patient Hitories: ", patientHistoryData);
+        historyData = res?.data?._embedded?.patientHistories;
+        console.log("Stupid", historyData);
+    };
+
+    const getCounsellors = async () => {
+        let res = await getResponseGet("/springdatarest/counsellors");
+        counsellorsList = res?.data?._embedded?.counsellors;
+        console.log("Counsellors", counsellorsList);
+
+        counsellorsList.forEach((counsellor) => {
+            if (cInCall.includes(counsellor.resourceId)) {
+                counsellor.state = "red";
+            } else if (cOnline.includes(counsellor.resourceId)) {
+                counsellor.state = "lightgreen";
+                console.log("CounsellorState: ", counsellor.state);
+            } else {
+                counsellor.state = "grey";
+            }
+        });
+    };
+
+    const getSeniorDrs = async () => {
+        let res = await getResponseGet("/springdatarest/seniorDrs");
+        srDrList = res?.data?._embedded?.seniorDrs;
+        console.log("Senior Doctors", srDrList);
+
+        srDrList.forEach((doc) => {
+            if (srDrInCall.includes(doc.resourceId)) {
+                doc.state = "red";
+            } else if (srDrOnline.includes(doc.resourceId)) {
+                doc.state = "lightgreen";
+            } else {
+                doc.state = "grey";
+            }
+        });
+
+        console.log("UList1", srDrList);
+    };
 
     const handleSelect = (eventKey) => {
         setSelectedID(eventKey);
@@ -116,7 +205,7 @@ function InCall({
         setReason(event.target.value);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Convert selected date and time to formatted strings
         const formattedDate = selectedDate
             ? dayjs(selectedDate).format("YYYY-MM-DD")
@@ -148,156 +237,22 @@ function InCall({
         // }
         // postCallback()
 
-        axios
-            .post(
-                "https://192.168.0.115:443/springdatarest/callBacks",
-                payload,
-                config
-            )
-            .then((res) => {
-                if (res.status == 201) {
-                    console.log("Schedule Response: ", res);
-                    toast.success(
-                        "Success: Your request was processed successfully!",
-                        {
-                            position: "top-right",
-                        }
-                    );
-                    closeScheduleModal();
-                }
+        let res = await getResponsePost("/springdatarest/callBacks", payload);
+        if (res.status == 201) {
+            console.log("Schedule Response: ", res);
+            toast.success("Success: Your request was processed successfully!", {
+                position: "top-right",
             });
+            closeScheduleModal();
+        }
     };
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [patientHistoryData, setPatientHistoryData] = useState([]);
-
-    const token =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2YXJ1biIsImZpcnN0TmFtZSI6bnVsbCwibGFzdE5hbWUiOm51bGwsInJvbGUiOiJST0xFX1NFTklPUkRSIiwiaWQiOjUsImV4cCI6MTcxNTYxMDMyMSwiaWF0IjoxNzE1NjA2NzIxfQ.u3XF5EdEetrrAVi10fGRoL7QvPqp6uQ0s2im1EmULfY";
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
+    const getOnlineStatus = async () => {
+        let res = await getResponseGet("/onlinestatus");
+        counsellorCalls = res?.data?.counsellorCalls;
     };
-
-    var counsellorCalls;
-    var srDrInCall = [6];
-    var srDrOnline = [5];
-    var cInCall = [4, 5, 6, 7];
-    var cOnline = [1, 2, 3, 4];
-
-    useEffect(() => {
-        axios
-            .get("https://192.168.0.115:443/onlinestatus", config)
-            .then((res) => {
-                counsellorCalls = res?.data?.counsellorCalls;
-                // srDrInCall = res?.data?.incall
-                // srDrOnline = res?.data?.ROLE_SENIORDR_online
-                // cInCall = res?.data?.ROLE_COUNSELLOR_incall
-                // cOnline = res?.data?.ROLE_COUNSELLOR_online
-                // console.log("Status", counsellorCalls)
-            });
-    });
-
-    useEffect(() => {
-        axios
-            .get("https://192.168.0.115:443/springdatarest/seniorDrs", config)
-            .then((res) => {
-                srDrList = res?.data?._embedded?.seniorDrs;
-                console.log("Senior Doctors", srDrList);
-
-                srDrList.forEach((doc) => {
-                    if (srDrInCall.includes(doc.resourceId)) {
-                        doc.state = "red";
-                    } else if (srDrOnline.includes(doc.resourceId)) {
-                        doc.state = "lightgreen";
-                    } else {
-                        doc.state = "grey";
-                    }
-                });
-
-                console.log("UList1", srDrList);
-            });
-    });
-
-    useEffect(() => {
-        axios
-            .get("https://192.168.0.115:443/springdatarest/counsellors", config)
-            .then((res) => {
-                counsellorsList = res?.data?._embedded?.counsellors;
-                console.log("Counsellors", counsellorsList);
-
-                counsellorsList.forEach((counsellor) => {
-                    if (cInCall.includes(counsellor.resourceId)) {
-                        counsellor.state = "red";
-                    } else if (cOnline.includes(counsellor.resourceId)) {
-                        counsellor.state = "lightgreen";
-                        console.log("CounsellorState: ", counsellor.state);
-                    } else {
-                        counsellor.state = "grey";
-                    }
-                });
-            });
-    });
 
     //Patient History
-    useEffect(() => {
-        axios
-            .get(
-                "https://192.168.0.115:443/springdatarest/patientHistories",
-                config
-            )
-            .then((res) => {
-                setPatientHistoryData(res.data._embedded.patientHistories);
-                console.log("Patient Hitories: ", patientHistoryData);
-                historyData = res?.data?._embedded?.patientHistories;
-                console.log("Stupid", historyData);
-            });
-    }, []);
-
-    //get Family of Patients
-    useEffect(() => {
-        // const getFamily = async () => {
-        //     let res = await getResponseGet('/get_families?patient_id=1')
-        //     setPatientFamily(res?.data)
-        //     console.log("Patient Family Yeah!!!", getPatientFamily)
-        // }
-        // getFamily()
-        axios
-            .get("https://192.168.0.115:443/get_families?patient_id=1", config)
-            .then((res) => {
-                setPatientFamily(res?.data);
-                console.log("Yeahh Patient Family", res?.data);
-                setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
-                familyData = res?.data;
-                // setResId(familyData[pID].id)
-                resId = familyData[pID].id;
-            });
-    }, []);
-
-    useEffect(() => {
-        axios
-            .get("https://192.168.0.115:443/springdatarest/patients", config)
-            .then((res) => {
-                console.log("Patient Data", res?.data?._embedded?.patients);
-                patientList = res?.data?._embedded?.patients;
-            });
-    });
-
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-    const date = today.getDate();
-    const currentDate = date + "/" + month + "/" + year;
-
-    const showTime =
-        today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-    const [show, setShow] = useState(false);
-    const [showCard, setCardModal] = useState(false);
-    const [showSchedule, setScheduleModal] = useState(false);
-    const [showRedirect, setRedirect] = useState(false);
-    const [showSelectedRedirect, setSelectedRedirect] = useState(false);
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -307,11 +262,13 @@ function InCall({
         console.log("Selected Item: ", selectedItem);
         setCardModal(true);
     };
+
     const closeCardModal = () => setCardModal(false);
 
     const handleShowRedirect = () => {
         setRedirect(true);
     };
+
     const handleCloseRedirect = () => setRedirect(false);
 
     const handleShowSelectedRedirect = (e) => {
@@ -319,6 +276,7 @@ function InCall({
         console.log("Selected Counsellor: ", selectedCounsellor);
         setSelectedRedirect(true);
     };
+
     const handleCloseSelectedRedirect = () => setSelectedRedirect(false);
 
     const showScheduleModal = () => setScheduleModal(true);
@@ -363,6 +321,7 @@ function InCall({
             </div>
         );
     }
+
     const searchModes = ["contains", "startsWith", "equals"];
 
     const [searchMode, setSearchMode] = useState("contains");
