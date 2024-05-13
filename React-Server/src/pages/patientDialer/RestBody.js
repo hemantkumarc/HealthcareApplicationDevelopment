@@ -14,7 +14,6 @@ import {
     send,
 } from "../../utils/utils";
 import { Button, Modal, ModalBody } from "react-bootstrap";
-import { Loop } from "@mui/icons-material";
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
@@ -175,7 +174,6 @@ const RestBody = ({
                             setTimeout(() => {
                                 counsellorAudio.srcObject = e.streams[0];
                                 console.log("setted audio");
-                                inGetConsentMode && counsellorAudio.pause();
                             }, 200);
                             setIsMuted(false);
                             setIsWebRTCConnected(true);

@@ -5,6 +5,7 @@ import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import CallHistory from "./CallHistory";
 import logo from "../../assets/drVolteLogo.png";
+import { getResponsePost } from "../../utils/utils";
 const NavigationBar = ({
     isWebSocketConnected,
     setIsWebSocketConnected,
@@ -13,12 +14,15 @@ const NavigationBar = ({
     const navigate = useNavigate();
     const [showCallHistory, setShowCallHistory] = useState(false);
     const [status, setStatus] = useState("green");
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/patientlogin");
-    };
     const phnumber = localStorage.getItem("phNumber");
 
+    const handleLogout = () => {
+        let token = localStorage.getItem("token");
+        localStorage.clear();
+
+        token && getResponsePost("/logoutuser", token);
+        navigate("/patientlogin");
+    };
     const showModal = () => {
         setShowCallHistory((flag) => !flag);
     };
