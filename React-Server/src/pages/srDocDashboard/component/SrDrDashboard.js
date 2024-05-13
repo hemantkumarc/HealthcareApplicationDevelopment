@@ -47,6 +47,24 @@ export default function SrDrDashboard() {
     });
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            if (loggedIn) {
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role !== "ROLE_SENIORDR") {
+                    navigate("/");
+                }
+                createWebsocketAndWebRTC();
+            } else {
+                navigate("/");
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
+    }, []);
+
     const createPatientPeerConnection = async () => {
         send(conn, getSocketJson("", "accept", token, role, patientRole));
 
@@ -67,6 +85,7 @@ export default function SrDrDashboard() {
             console.log("this the patientAudio obj", patientAudio);
         };
     };
+
     const createCounsellorPeerConnection = async () => {
         counsellorPeerConnection = await initiateWebRTC(
             conn,
@@ -87,12 +106,14 @@ export default function SrDrDashboard() {
     };
 
     const createWebsocketAndWebRTC = () => {
-        console.log("Hi caounsellor haha");
+        console.log("Hi srDoctor haha");
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onopen = () => {
+            setIsWebSocketConnected(true);
             conn.onclose = (msg) => {
                 console.log("socket connection closed", msg.data);
+                setIsWebSocketConnected(false);
             };
             function send(message) {
                 conn.send(JSON.stringify(message));
@@ -128,24 +149,6 @@ export default function SrDrDashboard() {
         };
     };
 
-    useEffect(() => {
-        const checkLoggedIn = async () => {
-            const loggedIn = await userLoggedIn();
-            if (loggedIn) {
-                const jwtdecoded = jwtDecode(token);
-                console.log("this is the jwtDecode after decoding", jwtdecoded);
-                if (jwtdecoded.role !== "ROLE_SENIORDR") {
-                    navigate("/");
-                }
-                createWebsocketAndWebRTC();
-            } else {
-                navigate("/");
-            }
-            // if(loggedIn)
-        };
-        checkLoggedIn();
-    }, []);
-
     const makeConnections = async (counsellorId, patientId) => {
         console.log("connecting to patient and counsellor");
         send(
@@ -171,7 +174,13 @@ export default function SrDrDashboard() {
     return (
         <div>
             <header className="srdocnavbar-header">
-                <SrDocNavBar search={search} setSearch={setSearch} />
+                <SrDocNavBar
+                    search={search}
+                    setSearch={setSearch}
+                    isWebSocketConnected={isWebSocketConnected}
+                    setIsWebSocketConnected={setIsWebSocketConnected}
+                    createWebsocketAndWebRTC={createWebsocketAndWebRTC}
+                />
             </header>
             <main>
                 <div className="outterbox">

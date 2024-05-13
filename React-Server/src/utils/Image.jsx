@@ -10,6 +10,7 @@ function ImageComponent({ profile_photo }) {
 
   const downloadImage = async () => {
     try {
+      console.log("this is profile photo",profile_photo);
       const response = await api.get(DOWNLOAD_IMAGE_ENDPOINT, {
         params: {
           imagePath: profile_photo,

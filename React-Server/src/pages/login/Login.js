@@ -52,7 +52,12 @@ const Login = () => {
             //console.log(JSON.stringify(response?.data));
             //console.log(JSON.stringify(response));
             const accessToken = response?.data?.token;
+            const name = response?.data?.firstName;
+            const id = response?.data?.id;
             localStorage.setItem("token", accessToken);
+            localStorage.setItem("name", name);
+            localStorage.setItem("id", id);
+
             const role = response?.data?.role;
             console.log(role);
 

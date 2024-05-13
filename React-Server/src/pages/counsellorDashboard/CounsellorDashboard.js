@@ -310,7 +310,8 @@ const srDrAudio = new Audio(),
 let token = localStorage.getItem("token");
 let patientsList;
 let selectedPatient;
-
+let callhistory;
+let patientId;
 //------------------------------------------------------------------------------------------------------------------------------
 
 function CounsellorDashboard() {
@@ -320,7 +321,7 @@ function CounsellorDashboard() {
 
     const [isOpen, setIsOpen] = useState(false);
 
-    const [selected, setSelected] = useState("busy");
+    const [selected, setSelected] = useState("active");
 
     const navigate = useNavigate();
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
@@ -328,6 +329,17 @@ function CounsellorDashboard() {
     const [showInCall, setShowIncall] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [inGetConsentMode, setInGetConsentMode] = useState(false);
+    const [callHistory, setCallHistory] = useState([]);
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+    useEffect(() => {
+        getCallHistory();
+
+        console.log("IDDDDDDD", window.localStorage.getItem("id"));
+    }, []);
 
     useEffect(() => {
         const getPatients = async () => {
@@ -364,6 +376,46 @@ function CounsellorDashboard() {
         };
         checkLoggedIn();
     }, []);
+
+    const getCallHistory = async () => {
+        let res = await getResponseGet(
+            `/springdatarest/callHistories/search/byids?counsellorid=${localStorage.getItem(
+                "id"
+            )}`
+        );
+        console.log("this is call history res: ", res);
+        setCallHistory(res?.data?._embedded?.callHistories);
+        // console.log("Call History", callHistory[0].callEnd);
+
+        let response = await getResponseGet(
+            res?.data?._embedded?.callHistories[0]._links.patient.href
+        );
+        console.log("Patient ID", response?.data);
+
+        patientId = response?.data?.resourceId;
+    };
+
+    const getDuration = (startTime, endTime) => {
+        console.log("this is call history", callHistory, startTime, endTime);
+        const callEnd = new Date(endTime);
+        const callStart = new Date(startTime);
+
+        // Calculate the time difference in milliseconds
+        const timeDifferenceMs = callEnd - callStart;
+
+        // Convert milliseconds to hours, minutes, and seconds
+        const hours = Math.floor(timeDifferenceMs / (1000 * 60 * 60));
+        const minutes = Math.floor(
+            (timeDifferenceMs % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((timeDifferenceMs % (1000 * 60)) / 1000);
+
+        // Format the result
+        const formattedTimeDifference = `${hours}:${minutes}:${seconds}`;
+
+        console.log(formattedTimeDifference); // Output: "24:0:0"
+        return formattedTimeDifference;
+    };
 
     const createCall = async () => {
         setTimeout(() => {
@@ -717,7 +769,10 @@ function CounsellorDashboard() {
                                     <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                                     <Navbar.Collapse id="responsive-navbar-nav">
                                         <Nav className="me-auto">
-                                            <Nav.Link href="#features">
+                                            <Nav.Link
+                                                href="#features"
+                                                onClick={handleShow}
+                                            >
                                                 Call History
                                             </Nav.Link>
                                         </Nav>
@@ -757,6 +812,41 @@ function CounsellorDashboard() {
                                 </Container>
                             </Navbar>
                         </AppBar>
+
+                        <Modal
+                            show={show}
+                            onHide={handleClose}
+                            aria-labelledby="contained-modal-title-vcenter"
+                            centered
+                        >
+                            <Modal.Header closeButton>
+                                <Modal.Title id="contained-modal-title-vcenter">
+                                    Call History
+                                </Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                
+                                    Patient ID - {patientId} Duration -{" "}
+                                    {getDuration(
+                                        callHistory[0]?.callStart,
+                                        callHistory[0]?.callEnd
+                                    )}
+                                    <hr /> <br />
+                                
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleClose}
+                                >
+                                    Close
+                                </Button>
+                                <Button variant="primary" onClick={handleClose}>
+                                    Save Changes
+                                </Button>
+                            </Modal.Footer>
+                        </Modal>
+
                         <Drawer
                             sx={{
                                 width: drawerWidth,
@@ -777,20 +867,26 @@ function CounsellorDashboard() {
                                         style={{
                                             height: "70px",
                                             width: "110px",
-                                            marginLeft: "-15px",
+                                            marginLeft: "-25px",
                                         }}
                                     />
                                 </div>
-
+                                {/* Counsellor Name */}
                                 <div>
-                                    <img
-                                        src={require("../../assets/doctor_3952988.png")}
-                                        alt=""
+                                    <p
                                         style={{
-                                            height: "50px",
-                                            width: "50px",
+                                            fontSize: "14px",
+                                            marginTop: "18px",
+                                            width: "130px",
+                                            marginRight: "-10px",
+                                            fontWeight: "bold",
+                                            marginLeft: "-30px",
                                         }}
-                                    />
+                                    >
+                                        {`Dr. ${window.localStorage.getItem(
+                                            "name"
+                                        )}`}
+                                    </p>
                                 </div>
                             </Toolbar>
                             <Divider />

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./NavigationBar.css";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
-import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import CallHistory from "./CallHistory";
 import logo from "../../assets/drVolteLogo.png";
@@ -13,7 +12,6 @@ const NavigationBar = ({
 }) => {
     const navigate = useNavigate();
     const [showCallHistory, setShowCallHistory] = useState(false);
-    const [status, setStatus] = useState("green");
     const phnumber = localStorage.getItem("phNumber");
 
     const handleLogout = () => {
