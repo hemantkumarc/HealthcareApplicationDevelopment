@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Container from "react-bootstrap/Container";
-import {Nav, Navbar, NavDropdown} from 'react-bootstrap'
+import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
     Button,
@@ -27,9 +27,9 @@ import { products, searchModeLabel } from "./data.js";
 import "./inCallStyle.css";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 import { getResponsePost } from "../../utils/utils.js";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import {
@@ -38,20 +38,21 @@ import {
     handlePeerConnectionClose,
     send,
 } from "../../utils/utils.js";
+import { Link } from "react-router-dom";
 
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
     srDrRole = "ROLE_SENIORDR";
 
-    let srDrList
-    let selectedItem
-    let selectedCounsellor
-    let counsellorsList
-    let familyData
-    let historyData
-    let resId
-    let patientList
+let srDrList;
+let selectedItem;
+let selectedCounsellor;
+let counsellorsList;
+let familyData;
+let historyData;
+let resId;
+let patientList;
 
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,27 +79,30 @@ function InCall({
     //     setIsMuted(false);
     // }, []);
 
-
-    const [getPatientFamily, setPatientFamily] = useState(null)
+    const [getPatientFamily, setPatientFamily] = useState(null);
     const [selectedID, setSelectedID] = useState(0);
     const [title, setTitle] = useState("");
     // const [resId, setResId] = useState(0)
 
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
-    const [reason, setReason] = useState('');
+    const [reason, setReason] = useState("");
 
-    var pID = 0
-    
+    var pID = 0;
+
     const handleSelect = (eventKey) => {
         setSelectedID(eventKey);
         pID = eventKey;
-        console.log("eventKey", pID)
-        setTitle(`${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`);
-        console.log(`${pID} ${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`)
-        resId = getPatientFamily[pID].id
+        console.log("eventKey", pID);
+        setTitle(
+            `${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
+        );
+        console.log(
+            `${pID} ${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
+        );
+        resId = getPatientFamily[pID].id;
         // setResId(getPatientFamily[pID].id)
-      };
+    };
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -114,21 +118,25 @@ function InCall({
 
     const handleSubmit = () => {
         // Convert selected date and time to formatted strings
-        const formattedDate = selectedDate ? dayjs(selectedDate).format('YYYY-MM-DD') : '';
-        const formattedTime = selectedTime ? dayjs(selectedTime).format('HH:mm:ss') : '';
-        
+        const formattedDate = selectedDate
+            ? dayjs(selectedDate).format("YYYY-MM-DD")
+            : "";
+        const formattedTime = selectedTime
+            ? dayjs(selectedTime).format("HH:mm:ss")
+            : "";
+
         // Do something with formattedDate, formattedTime, and reason
-        console.log('Formatted Date:', formattedDate);
-        console.log('Formatted Time:', formattedTime);
-        console.log('Reason:', reason);
+        console.log("Formatted Date:", formattedDate);
+        console.log("Formatted Time:", formattedTime);
+        console.log("Reason:", reason);
 
         const payload = {
-            "followupReason": reason,
-            "schedule": `${formattedDate}T${formattedTime}.000+00:00`,
-            "status": "scheduled",
-            "patient": "https://restapi/springdatarest/patients/2",
-            "counsellor": "https://restapi/springdatarest/counsellors/3"
-        }
+            followupReason: reason,
+            schedule: `${formattedDate}T${formattedTime}.000+00:00`,
+            status: "scheduled",
+            patient: "https://restapi/springdatarest/patients/2",
+            counsellor: "https://restapi/springdatarest/counsellors/3",
+        };
 
         // const postCallback = async () => {
         //     const postSchedule = await getResponsePost(
@@ -140,100 +148,112 @@ function InCall({
         // }
         // postCallback()
 
-        axios.post('https://192.168.0.100:443/springdatarest/callBacks', payload, config)
-        .then((res) => {
-            if (res.status == 201) {
-                console.log("Schedule Response: ", res);
-                toast.success('Success: Your request was processed successfully!', {
-                    position: "top-right"
-                });
-                closeScheduleModal()
-            }
-        })
+        axios
+            .post(
+                "https://192.168.0.115:443/springdatarest/callBacks",
+                payload,
+                config
+            )
+            .then((res) => {
+                if (res.status == 201) {
+                    console.log("Schedule Response: ", res);
+                    toast.success(
+                        "Success: Your request was processed successfully!",
+                        {
+                            position: "top-right",
+                        }
+                    );
+                    closeScheduleModal();
+                }
+            });
     };
 
     const [isOpen, setIsOpen] = useState(false);
-    const [patientHistoryData, setPatientHistoryData] = useState([])
+    const [patientHistoryData, setPatientHistoryData] = useState([]);
 
-    const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2YXJ1biIsImZpcnN0TmFtZSI6bnVsbCwibGFzdE5hbWUiOm51bGwsInJvbGUiOiJST0xFX1NFTklPUkRSIiwiaWQiOjUsImV4cCI6MTcxNTYxMDMyMSwiaWF0IjoxNzE1NjA2NzIxfQ.u3XF5EdEetrrAVi10fGRoL7QvPqp6uQ0s2im1EmULfY'
+    const token =
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2YXJ1biIsImZpcnN0TmFtZSI6bnVsbCwibGFzdE5hbWUiOm51bGwsInJvbGUiOiJST0xFX1NFTklPUkRSIiwiaWQiOjUsImV4cCI6MTcxNTYxMDMyMSwiaWF0IjoxNzE1NjA2NzIxfQ.u3XF5EdEetrrAVi10fGRoL7QvPqp6uQ0s2im1EmULfY";
     const config = {
-        headers: { Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-                }
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
     };
 
-
-    var counsellorCalls
-    var srDrInCall = [6]
-    var srDrOnline = [5]
-    var cInCall = [4, 5, 6, 7]
-    var cOnline = [1, 2, 3, 4]
-
-    useEffect(() => {
-        axios.get('https://192.168.0.100:443/onlinestatus', config)
-        .then(res => {
-            counsellorCalls = res?.data?.counsellorCalls
-            // srDrInCall = res?.data?.incall
-            // srDrOnline = res?.data?.ROLE_SENIORDR_online
-            // cInCall = res?.data?.ROLE_COUNSELLOR_incall
-            // cOnline = res?.data?.ROLE_COUNSELLOR_online
-            // console.log("Status", counsellorCalls)
-        })
-    })
+    var counsellorCalls;
+    var srDrInCall = [6];
+    var srDrOnline = [5];
+    var cInCall = [4, 5, 6, 7];
+    var cOnline = [1, 2, 3, 4];
 
     useEffect(() => {
-        axios.get('https://192.168.0.100:443/springdatarest/seniorDrs', config)
-        .then(res => {
-            srDrList = res?.data?._embedded?.seniorDrs
-            console.log("Senior Doctors", srDrList)
-
-            srDrList.forEach(doc => {
-                if (srDrInCall.includes(doc.resourceId)) {
-                    doc.state = "red";
-                }
-                else if (srDrOnline.includes(doc.resourceId)) {
-                    doc.state = "lightgreen";
-                }
-                else {
-                    doc.state = "grey"
-                }
+        axios
+            .get("https://192.168.0.115:443/onlinestatus", config)
+            .then((res) => {
+                counsellorCalls = res?.data?.counsellorCalls;
+                // srDrInCall = res?.data?.incall
+                // srDrOnline = res?.data?.ROLE_SENIORDR_online
+                // cInCall = res?.data?.ROLE_COUNSELLOR_incall
+                // cOnline = res?.data?.ROLE_COUNSELLOR_online
+                // console.log("Status", counsellorCalls)
             });
-        
-            console.log("UList1", srDrList)
-        })
-    })
+    });
 
     useEffect(() => {
-        axios.get('https://192.168.0.100:443/springdatarest/counsellors', config)
-        .then(res => {
-            counsellorsList = res?.data?._embedded?.counsellors
-            console.log("Counsellors", counsellorsList)
+        axios
+            .get("https://192.168.0.115:443/springdatarest/seniorDrs", config)
+            .then((res) => {
+                srDrList = res?.data?._embedded?.seniorDrs;
+                console.log("Senior Doctors", srDrList);
 
-            counsellorsList.forEach(counsellor => {
-                if (cInCall.includes(counsellor.resourceId)) {
-                    counsellor.state = "red";
-                }
-                else if (cOnline.includes(counsellor.resourceId)) {
-                    counsellor.state = "lightgreen";
-                    console.log("CounsellorState: ", counsellor.state)
-                }
-                else {
-                    counsellor.state = "grey"
-                }
+                srDrList.forEach((doc) => {
+                    if (srDrInCall.includes(doc.resourceId)) {
+                        doc.state = "red";
+                    } else if (srDrOnline.includes(doc.resourceId)) {
+                        doc.state = "lightgreen";
+                    } else {
+                        doc.state = "grey";
+                    }
+                });
+
+                console.log("UList1", srDrList);
             });
-        })
-    })
+    });
+
+    useEffect(() => {
+        axios
+            .get("https://192.168.0.115:443/springdatarest/counsellors", config)
+            .then((res) => {
+                counsellorsList = res?.data?._embedded?.counsellors;
+                console.log("Counsellors", counsellorsList);
+
+                counsellorsList.forEach((counsellor) => {
+                    if (cInCall.includes(counsellor.resourceId)) {
+                        counsellor.state = "red";
+                    } else if (cOnline.includes(counsellor.resourceId)) {
+                        counsellor.state = "lightgreen";
+                        console.log("CounsellorState: ", counsellor.state);
+                    } else {
+                        counsellor.state = "grey";
+                    }
+                });
+            });
+    });
 
     //Patient History
     useEffect(() => {
-        axios.get('https://192.168.0.100:443/springdatarest/patientHistories', config)
-        .then(res => {
-            setPatientHistoryData(res.data._embedded.patientHistories)
-            console.log("Patient Hitories: ", patientHistoryData)
-            historyData = res?.data?._embedded?.patientHistories
-            console.log("Stupid", historyData)
-        })
-    },[])
+        axios
+            .get(
+                "https://192.168.0.115:443/springdatarest/patientHistories",
+                config
+            )
+            .then((res) => {
+                setPatientHistoryData(res.data._embedded.patientHistories);
+                console.log("Patient Hitories: ", patientHistoryData);
+                historyData = res?.data?._embedded?.patientHistories;
+                console.log("Stupid", historyData);
+            });
+    }, []);
 
     //get Family of Patients
     useEffect(() => {
@@ -243,25 +263,26 @@ function InCall({
         //     console.log("Patient Family Yeah!!!", getPatientFamily)
         // }
         // getFamily()
-        axios.get('https://192.168.0.100:443/get_families?patient_id=1', config)
-        .then(res => {
-            setPatientFamily(res?.data)
-            console.log("Yeahh Patient Family", res?.data)
-            setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
-            familyData = res?.data
-            // setResId(familyData[pID].id)
-            resId = familyData[pID].id
-        })
-    }, [])
+        axios
+            .get("https://192.168.0.115:443/get_families?patient_id=1", config)
+            .then((res) => {
+                setPatientFamily(res?.data);
+                console.log("Yeahh Patient Family", res?.data);
+                setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
+                familyData = res?.data;
+                // setResId(familyData[pID].id)
+                resId = familyData[pID].id;
+            });
+    }, []);
 
     useEffect(() => {
-        axios.get('https://192.168.0.100:443/springdatarest/patients', config)
-        .then((res) => {
-            console.log("Patient Data", res?.data?._embedded?.patients)
-            patientList = res?.data?._embedded?.patients
-        })
-    })
-   
+        axios
+            .get("https://192.168.0.115:443/springdatarest/patients", config)
+            .then((res) => {
+                console.log("Patient Data", res?.data?._embedded?.patients);
+                patientList = res?.data?._embedded?.patients;
+            });
+    });
 
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -283,21 +304,21 @@ function InCall({
 
     const showCardModal = (e) => {
         selectedItem = e.itemData;
-        console.log("Selected Item: ", selectedItem)
+        console.log("Selected Item: ", selectedItem);
         setCardModal(true);
-    }
+    };
     const closeCardModal = () => setCardModal(false);
 
     const handleShowRedirect = () => {
         setRedirect(true);
-    }
+    };
     const handleCloseRedirect = () => setRedirect(false);
 
     const handleShowSelectedRedirect = (e) => {
         selectedCounsellor = e.itemData;
-        console.log("Selected Counsellor: ", selectedCounsellor)
+        console.log("Selected Counsellor: ", selectedCounsellor);
         setSelectedRedirect(true);
-    }
+    };
     const handleCloseSelectedRedirect = () => setSelectedRedirect(false);
 
     const showScheduleModal = () => setScheduleModal(true);
@@ -305,8 +326,8 @@ function InCall({
 
     // #7808d0
     const buttonStyle = {
-        '--clr': '#6280e3',
-        textDecoration: 'none',
+        "--clr": "#6280e3",
+        textDecoration: "none",
     };
 
     function ItemTemplate(srDrList) {
@@ -378,77 +399,115 @@ function InCall({
     }, []);
 
     function getPrescripton() {
-        console.log("Resource Id", resId)
-        const prescriptionObjs = historyData?.filter(item => item.resourceId === resId);
-        const placeholder = prescriptionObjs?.length > 0 ? prescriptionObjs[0].prescription : "..";
+        console.log("Resource Id", resId);
+        const prescriptionObjs = historyData?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            prescriptionObjs?.length > 0
+                ? prescriptionObjs[0].prescription
+                : "..";
 
-        return placeholder
+        return placeholder;
     }
 
     function getSymptoms() {
-        const symptomObjs = historyData?.filter(item => item.resourceId === resId);
-        const placeholder = symptomObjs?.length > 0 ? symptomObjs[0].symptoms : "..";
+        const symptomObjs = historyData?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            symptomObjs?.length > 0 ? symptomObjs[0].symptoms : "..";
 
-        return placeholder
+        return placeholder;
     }
 
     function getSummary() {
-        const summaryObjs = historyData?.filter(item => item.resourceId === resId);
-        const placeholder = summaryObjs?.length > 0 ? summaryObjs[0].summanry : "..";
+        const summaryObjs = historyData?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            summaryObjs?.length > 0 ? summaryObjs[0].summanry : "..";
 
-        return placeholder
+        return placeholder;
     }
 
     function getName() {
-        const nameObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = nameObjs?.length > 0 ? nameObjs[0].name : "Enter Name";
+        const nameObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            nameObjs?.length > 0 ? nameObjs[0].name : "Enter Name";
 
-        return placeholder
+        return placeholder;
     }
 
     function getGender() {
-        const genderObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = genderObjs?.length > 0 ? genderObjs[0].gender : "Select";
+        const genderObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            genderObjs?.length > 0 ? genderObjs[0].gender : "Select";
 
-        return placeholder
+        return placeholder;
     }
 
     function getDOB() {
-        const dobObjs = patientList?.filter(item => item.resourceId === resId);
+        const dobObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
         const placeholder = dobObjs?.length > 0 ? dobObjs[0].dob : "Choose DOB";
 
-        return placeholder
+        return placeholder;
     }
 
     function getAddress() {
-        const addressObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = addressObjs?.length > 0 ? addressObjs[0].location : "Apartment, studio, floor";
+        const addressObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            addressObjs?.length > 0
+                ? addressObjs[0].location
+                : "Apartment, studio, floor";
 
-        const address1Objs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder1 = address1Objs?.length > 0 ? address1Objs[0].state : "";
+        const address1Objs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder1 =
+            address1Objs?.length > 0 ? address1Objs[0].state : "";
 
-        return `${placeholder}, ${placeholder1}`
+        return `${placeholder}, ${placeholder1}`;
     }
 
     function getMajorIssues() {
-        const majorObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = majorObjs?.length > 0 ? majorObjs[0].major_issues : "Asthama, Diabetes...";
+        const majorObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            majorObjs?.length > 0
+                ? majorObjs[0].major_issues
+                : "Asthama, Diabetes...";
 
-        return placeholder
+        return placeholder;
     }
-    
-    function getMinorIssues() {
-        const minorObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = minorObjs?.length > 0 ? minorObjs[0].minor_issues : "...";
 
-        return placeholder
+    function getMinorIssues() {
+        const minorObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            minorObjs?.length > 0 ? minorObjs[0].minor_issues : "...";
+
+        return placeholder;
     }
 
     function getAllergies() {
-        const allergyObjs = patientList?.filter(item => item.resourceId === resId);
-        const placeholder = allergyObjs?.length > 0 ? allergyObjs[0].allergies : "...";
+        const allergyObjs = patientList?.filter(
+            (item) => item.resourceId === resId
+        );
+        const placeholder =
+            allergyObjs?.length > 0 ? allergyObjs[0].allergies : "...";
 
-        return placeholder
+        return placeholder;
     }
 
     return (
@@ -467,17 +526,26 @@ function InCall({
                             }}
                         />
                     </div>
-                    <Navbar.Brand style={{marginLeft: "-50px"}} href="#home">Dr.VoLTE</Navbar.Brand>
+                    <Navbar.Brand style={{ marginLeft: "-50px" }} href="#home">
+                        Dr.VoLTE
+                    </Navbar.Brand>
                     <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                     <Navbar.Collapse id="responsive-navbar-nav">
                         <Nav className="me-auto">
-                        <NavDropdown title={title} id="basic-nav-dropdown" onSelect={handleSelect}>
-                            {getPatientFamily?.map((item, index) => (
-                                <NavDropdown.Item key={index} eventKey={index}>
-                                {item.id} - {item.name}
-                                </NavDropdown.Item>
-                            ))}
-                        </NavDropdown>
+                            <NavDropdown
+                                title={title}
+                                id="basic-nav-dropdown"
+                                onSelect={handleSelect}
+                            >
+                                {getPatientFamily?.map((item, index) => (
+                                    <NavDropdown.Item
+                                        key={index}
+                                        eventKey={index}
+                                    >
+                                        {item.id} - {item.name}
+                                    </NavDropdown.Item>
+                                ))}
+                            </NavDropdown>
                         </Nav>
 
                         {/* <LiveIsland>
@@ -548,7 +616,13 @@ function InCall({
                             <Row className="mb-3">
                                 <Form.Group as={Col} controlId="formGridEmail">
                                     <Form.Label>Name</Form.Label>
-                                    <Form.Control placeholder={getName()} value={name} onChange={(e) => setName(e.target.value)}/>
+                                    <Form.Control
+                                        placeholder={getName()}
+                                        value={name}
+                                        onChange={(e) =>
+                                            setName(e.target.value)
+                                        }
+                                    />
                                 </Form.Group>
 
                                 <Form.Group
@@ -584,7 +658,11 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Address</Form.Label>
-                                <Form.Control placeholder={getAddress()} value={address} onChange={(e) => setAddress(e.target.value)}/>
+                                <Form.Control
+                                    placeholder={getAddress()}
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                />
                             </Form.Group>
 
                             <Form.Group
@@ -592,7 +670,13 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Major Issues</Form.Label>
-                                <Form.Control placeholder={getMajorIssues()} value={majorIssues} onChange={(e) => setMajorIssues(e.target.value)}/>
+                                <Form.Control
+                                    placeholder={getMajorIssues()}
+                                    value={majorIssues}
+                                    onChange={(e) =>
+                                        setMajorIssues(e.target.value)
+                                    }
+                                />
                             </Form.Group>
 
                             <Form.Group
@@ -600,7 +684,13 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Minor Issues</Form.Label>
-                                <Form.Control placeholder={getMinorIssues()} value={minorIssues} onChange={(e) => setMinorIssues(e.target.value)}/>
+                                <Form.Control
+                                    placeholder={getMinorIssues()}
+                                    value={minorIssues}
+                                    onChange={(e) =>
+                                        setMinorIssues(e.target.value)
+                                    }
+                                />
                             </Form.Group>
 
                             <Form.Group
@@ -608,7 +698,13 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Allergies</Form.Label>
-                                <Form.Control placeholder={getAllergies()} value={allergies} onChange={(e) => setAllergies(e.target.value)}/>
+                                <Form.Control
+                                    placeholder={getAllergies()}
+                                    value={allergies}
+                                    onChange={(e) =>
+                                        setAllergies(e.target.value)
+                                    }
+                                />
                             </Form.Group>
                         </Form>
                     </Card.Body>
@@ -626,7 +722,10 @@ function InCall({
                                     as="textarea"
                                     rows={3}
                                     placeholder={getPrescripton()}
-                                    value={prescription} onChange={(e) => setPrescription(e.target.value)}
+                                    value={prescription}
+                                    onChange={(e) =>
+                                        setPrescription(e.target.value)
+                                    }
                                 />
                             </Form.Group>
 
@@ -635,12 +734,15 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Symptoms</Form.Label>
-                                <Form.Control 
+                                <Form.Control
                                     as="textarea"
-                                    rows={2} 
-                                    placeholder={getSymptoms()} 
-                                    value={symptoms} onChange={(e) => setSymptoms(e.target.value)}
-                                    />
+                                    rows={2}
+                                    placeholder={getSymptoms()}
+                                    value={symptoms}
+                                    onChange={(e) =>
+                                        setSymptoms(e.target.value)
+                                    }
+                                />
                             </Form.Group>
 
                             <Form.Group
@@ -660,7 +762,8 @@ function InCall({
                                     as="textarea"
                                     rows={3}
                                     placeholder={getSummary()}
-                                    value={summary} onChange={(e) => setSummary(e.target.value)}
+                                    value={summary}
+                                    onChange={(e) => setSummary(e.target.value)}
                                 />
                             </Form.Group>
 
@@ -672,23 +775,45 @@ function InCall({
                                 Schedule Callback
                             </Button> */}
 
-                            <a id="callBack" style={buttonStyle} className="button" href="#"
-                                onClick={(e) => { 
+                            <Link
+                                id="callBack"
+                                style={buttonStyle}
+                                className="button"
+                                href="#"
+                                onClick={(e) => {
                                     e.preventDefault(); // Prevent default behavior of navigating
                                     showScheduleModal(); // Call your click handling function
                                 }}
                             >
                                 <span className="button__icon-wrapper">
-                                    <svg width="10" className="button__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+                                    <svg
+                                        width="10"
+                                        className="button__icon-svg"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
-                                    
-                                    <svg className="button__icon-svg  button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="10" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+
+                                    <svg
+                                        className="button__icon-svg  button__icon-svg--copy"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="10"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
                                 </span>
                                 Schedule Callback
-                            </a>
+                            </Link>
 
                             <Modal
                                 show={showSchedule}
@@ -706,10 +831,19 @@ function InCall({
                                                 <DemoContainer
                                                     components={["DatePicker"]}
                                                 >
-                                                    <DatePicker label="Choose Date" 
+                                                    <DatePicker
+                                                        label="Choose Date"
                                                         value={selectedDate}
-                                                        onChange={handleDateChange}
-                                                        renderInput={(params) => <TextField {...params} />}
+                                                        onChange={
+                                                            handleDateChange
+                                                        }
+                                                        renderInput={(
+                                                            params
+                                                        ) => (
+                                                            <TextField
+                                                                {...params}
+                                                            />
+                                                        )}
                                                     />
                                                 </DemoContainer>
                                             </LocalizationProvider>
@@ -719,10 +853,19 @@ function InCall({
                                                 <DemoContainer
                                                     components={["TimePicker"]}
                                                 >
-                                                    <TimePicker label="Select Time" 
+                                                    <TimePicker
+                                                        label="Select Time"
                                                         value={selectedTime}
-                                                        onChange={handleTimeChange}
-                                                        renderInput={(params) => <TextField {...params} />}
+                                                        onChange={
+                                                            handleTimeChange
+                                                        }
+                                                        renderInput={(
+                                                            params
+                                                        ) => (
+                                                            <TextField
+                                                                {...params}
+                                                            />
+                                                        )}
                                                     />
                                                 </DemoContainer>
                                             </LocalizationProvider>
@@ -753,7 +896,9 @@ function InCall({
                                                         label="Reason"
                                                         variant="filled"
                                                         value={reason}
-                                                        onChange={handleReasonChange}
+                                                        onChange={
+                                                            handleReasonChange
+                                                        }
                                                     />
                                                 </Box>
                                             </FormGroup>
@@ -799,8 +944,11 @@ function InCall({
                                 </Modal.Footer>
                             </Modal>
 
-                            <a style={buttonStyle} className="button" href="#"
-                                onClick={(e) => { 
+                            <a
+                                style={buttonStyle}
+                                className="button"
+                                href="#"
+                                onClick={(e) => {
                                     send(
                                         conn,
                                         getSocketJson(
@@ -810,34 +958,74 @@ function InCall({
                                             counsellorRole,
                                             patientRole
                                         )
-                                    )
+                                    );
                                 }}
                             >
                                 <span className="button__icon-wrapper">
-                                    <svg width="10" className="button__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+                                    <svg
+                                        width="10"
+                                        className="button__icon-svg"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
-                                    
-                                    <svg className="button__icon-svg  button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="10" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+
+                                    <svg
+                                        className="button__icon-svg  button__icon-svg--copy"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="10"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
                                 </span>
                                 Ask Consent
                             </a>
 
-                            <a id="contactSD" style={buttonStyle} className="button" href="#"
-                                onClick={(e) => { 
+                            <a
+                                id="contactSD"
+                                style={buttonStyle}
+                                className="button"
+                                href="#"
+                                onClick={(e) => {
                                     e.preventDefault(); // Prevent default behavior of navigating
                                     handleShow(); // Call your click handling function
                                 }}
                             >
                                 <span className="button__icon-wrapper">
-                                    <svg width="10" className="button__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+                                    <svg
+                                        width="10"
+                                        className="button__icon-svg"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
-                                    
-                                    <svg className="button__icon-svg  button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="10" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+
+                                    <svg
+                                        className="button__icon-svg  button__icon-svg--copy"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="10"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
                                 </span>
                                 Contact S.D
@@ -901,7 +1089,9 @@ function InCall({
                                     }}
                                 ></div>
                                 <Modal.Body style={{ padding: "0px" }}>
-                                    <Card style={{ width: "100%", margin: "0px"}}>
+                                    <Card
+                                        style={{ width: "100%", margin: "0px" }}
+                                    >
                                         <Card.Img
                                             variant="top"
                                             src={require("../../assets/shinchanDoctor.jpeg")}
@@ -909,19 +1099,26 @@ function InCall({
                                         />
                                         <Card.Body>
                                             <Card.Title>
-                                               {selectedItem?.name}
+                                                {selectedItem?.name}
                                             </Card.Title>
                                             <Card.Subtitle>
                                                 Specialization:{" "}
-                                                <b> {selectedItem?.specialization} </b>
+                                                <b>
+                                                    {" "}
+                                                    {
+                                                        selectedItem?.specialization
+                                                    }{" "}
+                                                </b>
                                             </Card.Subtitle>
                                         </Card.Body>
                                         <ListGroup className="list-group-flush">
                                             <ListGroup.Item>
-                                                Hospital: {selectedItem?.hospital_name}
+                                                Hospital:{" "}
+                                                {selectedItem?.hospital_name}
                                             </ListGroup.Item>
                                             <ListGroup.Item>
-                                                Qualification: {selectedItem?.qualification}
+                                                Qualification:{" "}
+                                                {selectedItem?.qualification}
                                             </ListGroup.Item>
                                             <ListGroup.Item>
                                                 E-Mail: {selectedItem?.email}
@@ -938,43 +1135,71 @@ function InCall({
                                     </Button>
                                     <Button
                                         variant="primary"
-                                        onClick={selectedItem?.state === "lightgreen" ? () => {
-                                            send(
-                                                conn,
-                                                getSocketJson(
-                                                    `${selectedItem?.resourceId}`,
-                                                    "redirectCounsellor",
-                                                    token,
-                                                    counsellorRole,
-                                                    patientRole
-                                                )
-                                            )
-                                        } : closeCardModal}
+                                        onClick={
+                                            selectedItem?.state === "lightgreen"
+                                                ? () => {
+                                                      send(
+                                                          conn,
+                                                          getSocketJson(
+                                                              `${selectedItem?.resourceId}`,
+                                                              "redirectCounsellor",
+                                                              token,
+                                                              counsellorRole,
+                                                              patientRole
+                                                          )
+                                                      );
+                                                  }
+                                                : closeCardModal
+                                        }
                                     >
                                         Connect
                                     </Button>
                                 </Modal.Footer>
                             </Modal>
 
-                            <a style={buttonStyle} className="button" href="#"
-                                onClick={(e) => { 
+                            <a
+                                style={buttonStyle}
+                                className="button"
+                                href="#"
+                                onClick={(e) => {
                                     e.preventDefault(); // Prevent default behavior of navigating
                                     handleShowRedirect(); // Call your click handling function
                                 }}
                             >
                                 <span className="button__icon-wrapper">
-                                    <svg width="10" className="button__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+                                    <svg
+                                        width="10"
+                                        className="button__icon-svg"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
-                                    
-                                    <svg className="button__icon-svg  button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="10" fill="none" viewBox="0 0 14 15">
-                                        <path fill="currentColor" d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"></path>
+
+                                    <svg
+                                        className="button__icon-svg  button__icon-svg--copy"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="10"
+                                        fill="none"
+                                        viewBox="0 0 14 15"
+                                    >
+                                        <path
+                                            fill="currentColor"
+                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                        ></path>
                                     </svg>
                                 </span>
                                 Redirect Counsellor
                             </a>
 
-                            <Modal show={showRedirect} onHide={handleCloseRedirect}>
+                            <Modal
+                                show={showRedirect}
+                                onHide={handleCloseRedirect}
+                            >
                                 <Modal.Header closeButton>
                                     <Modal.Title>
                                         Contact Senior Doctor
@@ -996,7 +1221,9 @@ function InCall({
                                             searchExpr="name"
                                             searchEnabled={true}
                                             searchMode={searchMode}
-                                            onItemClick={handleShowSelectedRedirect}
+                                            onItemClick={
+                                                handleShowSelectedRedirect
+                                            }
                                         />
                                     </div>
                                     <div className="options">
@@ -1024,7 +1251,10 @@ function InCall({
                                 </Modal.Footer>
                             </Modal>
 
-                            <Modal show={showSelectedRedirect} onHide={handleCloseSelectedRedirect}>
+                            <Modal
+                                show={showSelectedRedirect}
+                                onHide={handleCloseSelectedRedirect}
+                            >
                                 <div
                                     style={{
                                         backgroundColor: `${selectedCounsellor?.state}`,
@@ -1032,7 +1262,9 @@ function InCall({
                                     }}
                                 ></div>
                                 <Modal.Body style={{ padding: "0px" }}>
-                                    <Card style={{ width: "100%", margin: "0px"}}>
+                                    <Card
+                                        style={{ width: "100%", margin: "0px" }}
+                                    >
                                         <Card.Img
                                             variant="top"
                                             src={require("../../assets/shinchanDoctor.jpeg")}
@@ -1040,22 +1272,34 @@ function InCall({
                                         />
                                         <Card.Body>
                                             <Card.Title>
-                                               {selectedCounsellor?.name}
+                                                {selectedCounsellor?.name}
                                             </Card.Title>
                                             <Card.Subtitle>
                                                 Specialization:{" "}
-                                                <b> {selectedCounsellor?.specialization} </b>
+                                                <b>
+                                                    {" "}
+                                                    {
+                                                        selectedCounsellor?.specialization
+                                                    }{" "}
+                                                </b>
                                             </Card.Subtitle>
                                         </Card.Body>
                                         <ListGroup className="list-group-flush">
                                             <ListGroup.Item>
-                                                Hospital: {selectedCounsellor?.hospital_name}
+                                                Hospital:{" "}
+                                                {
+                                                    selectedCounsellor?.hospital_name
+                                                }
                                             </ListGroup.Item>
                                             <ListGroup.Item>
-                                                Qualification: {selectedCounsellor?.qualification}
+                                                Qualification:{" "}
+                                                {
+                                                    selectedCounsellor?.qualification
+                                                }
                                             </ListGroup.Item>
                                             <ListGroup.Item>
-                                                E-Mail: {selectedCounsellor?.email}
+                                                E-Mail:{" "}
+                                                {selectedCounsellor?.email}
                                             </ListGroup.Item>
                                         </ListGroup>
                                     </Card>
@@ -1069,24 +1313,28 @@ function InCall({
                                     </Button>
                                     <Button
                                         variant="primary"
-                                        onClick={selectedCounsellor?.state === "lightgreen" ? () => {
-                                            send(
-                                                conn,
-                                                getSocketJson(
-                                                    `${selectedCounsellor?.resourceId}`,
-                                                    "redirectCounsellor",
-                                                    token,
-                                                    counsellorRole,
-                                                    patientRole
-                                                )
-                                            )
-                                        } : handleCloseSelectedRedirect}
+                                        onClick={
+                                            selectedCounsellor?.state ===
+                                            "lightgreen"
+                                                ? () => {
+                                                      send(
+                                                          conn,
+                                                          getSocketJson(
+                                                              `${selectedCounsellor?.resourceId}`,
+                                                              "redirectCounsellor",
+                                                              token,
+                                                              counsellorRole,
+                                                              patientRole
+                                                          )
+                                                      );
+                                                  }
+                                                : handleCloseSelectedRedirect
+                                        }
                                     >
                                         Connect
                                     </Button>
                                 </Modal.Footer>
                             </Modal>
-
                         </Form>
                     </Card.Body>
                 </Card>
@@ -1099,7 +1347,9 @@ function InCall({
                         // Parse the date string
                         const parsedDate = new Date(item?.created);
                         // Format the date to your desired format (e.g., "YYYY-MM-DD")
-                        const formattedDate = parsedDate.toISOString().split('T')[0];
+                        const formattedDate = parsedDate
+                            .toISOString()
+                            .split("T")[0];
 
                         return (
                             <ListGroup.Item key={index} className="items">
@@ -1110,7 +1360,9 @@ function InCall({
                                         <Card.Text>{item?.summanry}</Card.Text>
                                         <hr />
                                         <Card.Title>Prescription</Card.Title>
-                                        <Card.Text>{item?.prescription}</Card.Text>
+                                        <Card.Text>
+                                            {item?.prescription}
+                                        </Card.Text>
                                     </Card.Body>
                                 </Card>
                             </ListGroup.Item>
