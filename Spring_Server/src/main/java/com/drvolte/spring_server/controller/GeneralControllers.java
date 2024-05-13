@@ -49,7 +49,7 @@ public class GeneralControllers {
     @PostMapping("/logoutuser")
     public ResponseEntity<String> logout(@RequestBody String token) {
         System.out.println("this is the token to invalidate " + token);
-        jwtAuthProvider.getInvalidTokens().add(token);
+        token = token.substring(1, token.length() - 1);
         String sessionId = webSocketConnections.getTokenToSessionId().get(token);
         webSocketConnections.getTokenToSessionId().remove(token);
         webSocketConnections.getSessionIdToToken().remove(sessionId);
@@ -57,28 +57,32 @@ public class GeneralControllers {
             DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
             Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
             Long id = decodedJWT.getClaim("id").asLong();
+            System.out.println(("this is the role and id for the token " + role + " " + id));
             for (String state : webSocketConnections.getRoleToStateToToken().get(role).keySet()) {
                 webSocketConnections.getRoleToStateToToken().get(role).get(state).remove(token);
             }
 
             String counsellorToken, srDrToken, patientToken;
-            counsellorToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_COUNSELLOR, null);
-            srDrToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_SENIORDR, null);
-            patientToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_PATIENT, null);
-            webSocketConnections.getTokenToRoleToToken().remove(token);
-            System.out.println("removing the token from tokentoroletotoken for logout:" + patientToken + " \n" + counsellorToken + "\n" + srDrToken);
-            if (patientToken != null)
-                webSocketConnections.getTokenToRoleToToken().remove(patientToken);
-            if (counsellorToken != null)
-                webSocketConnections.getTokenToRoleToToken().remove(counsellorToken);
-            if (srDrToken != null)
-                webSocketConnections.getTokenToRoleToToken().remove(srDrToken);
-
+            if (webSocketConnections.getTokenToRoleToToken().containsKey(token)) {
+                counsellorToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_COUNSELLOR, null);
+                srDrToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_SENIORDR, null);
+                patientToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_PATIENT, null);
+                webSocketConnections.getTokenToRoleToToken().remove(token);
+                System.out.println("removing the token from tokentoroletotoken for logout:" + patientToken + " \n" + counsellorToken + "\n" + srDrToken);
+                if (patientToken != null)
+                    webSocketConnections.getTokenToRoleToToken().remove(patientToken);
+                if (counsellorToken != null)
+                    webSocketConnections.getTokenToRoleToToken().remove(counsellorToken);
+                if (srDrToken != null)
+                    webSocketConnections.getTokenToRoleToToken().remove(srDrToken);
+            }
             webSocketConnections.getRoleToIdToToken().get(role).remove(id);
 
         } catch (JWTVerificationException ignored) {
-
+            System.out.println("Token validation erro");
         }
+
+        jwtAuthProvider.getInvalidTokens().add(token);
         return ResponseEntity.ok("Done");
     }
 
