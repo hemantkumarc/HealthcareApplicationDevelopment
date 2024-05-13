@@ -34,10 +34,16 @@ public class PatientHistory {
     @Column(name = "audio_recording", nullable = false)
     private String audio_recording;
 
+    @Column(name = "test_suggested")
+    private String test_suggested;
+
+    @Column(name = "gender")
+    private String gender;
+
     @Column(name = "created", nullable = false)
     private Date created;
 
-    public Long getResourceId(){
+    public Long getResourceId() {
         return id;
     }
 
