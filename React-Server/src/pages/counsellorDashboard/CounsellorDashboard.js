@@ -781,6 +781,17 @@ function CounsellorDashboard() {
                                         }}
                                     />
                                 </div>
+
+                                <div>
+                                    <img
+                                        src={require("../../assets/doctor_3952988.png")}
+                                        alt=""
+                                        style={{
+                                            height: "50px",
+                                            width: "50px"
+                                        }}
+                                    />
+                                </div>
                             </Toolbar>
                             <Divider />
                             <List>
