@@ -1,5 +1,6 @@
 package com.drvolte.spring_server.config;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.drvolte.spring_server.models.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,27 +22,33 @@ public class httpSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
-                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers(HttpMethod.POST, "/login", "/patients_register", "/mail/send/*").permitAll()
-                        .requestMatchers("/socket").permitAll()
-                        .requestMatchers("/hello").hasAnyRole(
-                                Roles.PATIENT.toString(),
-                                Roles.COUNSELLOR.toString(),
-                                Roles.ADMIN.toString(),
-                                Roles.SENIORDR.toString()
-                        )
-                        .requestMatchers("/mail/changePassword").hasAnyRole(
-                                Roles.COUNSELLOR.toString(),
-                                Roles.SENIORDR.toString()
-                        )
-                        .requestMatchers("/counsellor/**").hasRole(Roles.COUNSELLOR.toString())
-                        .requestMatchers("/seniordr/**").hasRole(Roles.SENIORDR.toString())
-                        .requestMatchers("/patient/**").hasRole(Roles.PATIENT.toString())
-                        .requestMatchers("/patienthistory/**").hasRole(Roles.PATIENT.toString())
-                        .anyRequest().authenticated());
+        try {
+            http.csrf(AbstractHttpConfigurer::disable)
+                    .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
+                    .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests((requests) -> requests
+                            .requestMatchers(HttpMethod.POST, "/login", "/patients_register", "/mail/send/*", "/logoutuser").permitAll()
+                            .requestMatchers("/socket").permitAll()
+                            .requestMatchers("/hello").hasAnyRole(
+                                    Roles.PATIENT.toString(),
+                                    Roles.COUNSELLOR.toString(),
+                                    Roles.ADMIN.toString(),
+                                    Roles.SENIORDR.toString()
+                            )
+                            .requestMatchers("/mail/changePassword").hasAnyRole(
+                                    Roles.COUNSELLOR.toString(),
+                                    Roles.SENIORDR.toString()
+                            )
+                            .requestMatchers("/counsellor/**").hasRole(Roles.COUNSELLOR.toString())
+                            .requestMatchers("/seniordr/**").hasRole(Roles.SENIORDR.toString())
+                            .requestMatchers("/patient/**").hasRole(Roles.PATIENT.toString())
+                            .requestMatchers("/patienthistory/**").hasRole(Roles.PATIENT.toString())
+                            .anyRequest().authenticated());
+        } catch (JWTVerificationException e) {
+            System.out.println("Token Expired or invalid token or token used in invalidated");
+        } catch (Exception e) {
+            System.out.println("Some Exception " + e);
+        }
         return http.build();
     }
 }

@@ -55,7 +55,9 @@ public class UserAuthenticationProvider {
 
     public Authentication validateToken(String token) throws JWTVerificationException {
 
-        if (this.invalidTokens.contains(token)) {
+        
+        if (this.invalidTokens.contains("\"" + token + "\"")) {
+            System.out.println("inside if contains");
             throw new JWTVerificationException("Invalid token " + token);
         }
         DecodedJWT decoded = verifier.verify(token);

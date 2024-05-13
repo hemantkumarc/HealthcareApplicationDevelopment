@@ -46,6 +46,42 @@ public class GeneralControllers {
         return ResponseEntity.ok(user);
     }
 
+    @PostMapping("/logoutuser")
+    public ResponseEntity<String> logout(@RequestBody String token) {
+        System.out.println("this is the token to invalidate " + token);
+        jwtAuthProvider.getInvalidTokens().add(token);
+        String sessionId = webSocketConnections.getTokenToSessionId().get(token);
+        webSocketConnections.getTokenToSessionId().remove(token);
+        webSocketConnections.getSessionIdToToken().remove(sessionId);
+        try {
+            DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
+            Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
+            Long id = decodedJWT.getClaim("id").asLong();
+            for (String state : webSocketConnections.getRoleToStateToToken().get(role).keySet()) {
+                webSocketConnections.getRoleToStateToToken().get(role).get(state).remove(token);
+            }
+
+            String counsellorToken, srDrToken, patientToken;
+            counsellorToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_COUNSELLOR, null);
+            srDrToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_SENIORDR, null);
+            patientToken = webSocketConnections.getTokenToRoleToToken().get(token).getOrDefault(Roles.ROLE_PATIENT, null);
+            webSocketConnections.getTokenToRoleToToken().remove(token);
+            System.out.println("removing the token from tokentoroletotoken for logout:" + patientToken + " \n" + counsellorToken + "\n" + srDrToken);
+            if (patientToken != null)
+                webSocketConnections.getTokenToRoleToToken().remove(patientToken);
+            if (counsellorToken != null)
+                webSocketConnections.getTokenToRoleToToken().remove(counsellorToken);
+            if (srDrToken != null)
+                webSocketConnections.getTokenToRoleToToken().remove(srDrToken);
+
+            webSocketConnections.getRoleToIdToToken().get(role).remove(id);
+
+        } catch (JWTVerificationException ignored) {
+
+        }
+        return ResponseEntity.ok("Done");
+    }
+
     @GetMapping("/hello")
     public ResponseEntity<String> sayHello() {
         return ResponseEntity.ok("Hello brother");
@@ -254,7 +290,10 @@ public class GeneralControllers {
         }
         System.out.println("this is retjson:" + retJson);
         // retJson.put("webSocketConnection", webSocketConnections);
-        return ResponseEntity.ok(retJson.toString());
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(retJson.toString());
     }
 
     @GetMapping("/webSocketConnections")
