@@ -8,7 +8,9 @@ import com.drvolte.spring_server.mappers.PatientMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PatientService {
@@ -39,5 +41,16 @@ public class PatientService {
             temp.setRole("ROLE_PATIENT");
             return temp;
         }
+    }
+
+    public List<Patient> getFamilies(Long patientId) {
+        Optional<Patient> patientsOptional = patientRepository.findById(patientId);
+        if (patientsOptional.isPresent()) {
+            String phNumber = patientsOptional.get().getPhNumber();
+            return patientRepository.findAllByPhNumber(phNumber);
+        } else {
+            return new ArrayList<Patient>();
+        }
+
     }
 }
