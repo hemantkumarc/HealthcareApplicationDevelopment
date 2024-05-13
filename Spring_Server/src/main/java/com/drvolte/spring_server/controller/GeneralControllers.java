@@ -118,15 +118,15 @@ public class GeneralControllers {
                 .put("missedCalls", new JSONArray())
                 .put("counsellorCalls", new JSONObject());
 
-        System.out.println("this the webscoketconenction setRoletostatetotoken value: "
-                + webSocketConnections.getRoleToStateToToken());
+        //System.out.println("this the webscoketconenction setRoletostatetotoken value: "
+        //       + webSocketConnections.getRoleToStateToToken());
 
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("connected")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("connected")) {
-                System.out.println(token);
+                // System.out.println(token);
                 try {
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
                     Long id = decodedJWT.getClaim("id").asLong();
@@ -136,14 +136,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No counsellor in online state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No counsellor in online state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("incall")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("incall")) {
-                System.out.println(token);
+                // System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -154,14 +154,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No counsellor in incall state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No counsellor in incall state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).containsKey("connected")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).get("connected")) {
-                System.out.println(token);
+                // System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -175,14 +175,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No SR_DR in online state" + webSocketConnections.getRoleToStateToToken());
+            //System.out.println("No SR_DR in online state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).containsKey("incall")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).get("incall")) {
-                System.out.println(token);
+                //System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -193,14 +193,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No SE_DR in incall state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No SE_DR in incall state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_SENIORDR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).containsKey("busy")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_SENIORDR).get("busy")) {
-                System.out.println(token);
+                //System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -211,14 +211,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No SE_DR in busy state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No SE_DR in busy state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_PATIENT)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).containsKey("connected")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).get("connected")) {
-                System.out.println(token);
+                // System.out.println(token);
                 try {
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
                     Long id = decodedJWT.getClaim("id").asLong();
@@ -228,14 +228,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No patient in online state" + webSocketConnections.getRoleToStateToToken());
+            //  System.out.println("No patient in online state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_PATIENT)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).containsKey("incall")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_PATIENT).get("incall")) {
-                System.out.println(token);
+                //System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -246,14 +246,14 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No patient in incall state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No patient in incall state" + webSocketConnections.getRoleToStateToToken());
         }
 
         if (webSocketConnections.getRoleToStateToToken().containsKey(Roles.ROLE_COUNSELLOR)
                 && webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).containsKey("busy")
         ) {
             for (String token : webSocketConnections.getRoleToStateToToken().get(Roles.ROLE_COUNSELLOR).get("busy")) {
-                System.out.println(token);
+                //System.out.println(token);
                 try {
 
                     DecodedJWT decodedJWT = jwtAuthProvider.getDecoded(token);
@@ -264,7 +264,7 @@ public class GeneralControllers {
                 }
             }
         } else {
-            System.out.println("No counsellor in busy state" + webSocketConnections.getRoleToStateToToken());
+            // System.out.println("No counsellor in busy state" + webSocketConnections.getRoleToStateToToken());
         }
 
 

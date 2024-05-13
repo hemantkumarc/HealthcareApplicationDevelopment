@@ -1,16 +1,15 @@
 package com.drvolte.spring_server.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
 import com.drvolte.spring_server.dtos.FileUploadResponseDTO;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 @Service
 public class FileStorageService {
@@ -61,7 +60,7 @@ public class FileStorageService {
     public byte[] downloadImage(String filePath) throws IOException {
 
         String currentDirectory = System.getProperty("user.dir");
-        String absoluteFilePath = currentDirectory + filePath;
+        String absoluteFilePath = currentDirectory + "\\" + filePath;
         return Files.readAllBytes(new File(absoluteFilePath).toPath());
     }
 
