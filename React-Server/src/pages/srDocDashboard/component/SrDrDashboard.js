@@ -22,7 +22,7 @@ import { useNavigate } from "react-router-dom";
 // 	userLoggedIn,
 // } from "../../utils/utils";
 // import InCall from "../inCall/InCall";
-
+const functionsInRestBody = { createWebsocketConnection: {} };
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
@@ -40,6 +40,7 @@ export default function SrDrDashboard() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
     const [search, setSearch] = useState("");
+    const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
     const [filters, setFilters] = useState({
         specialization: [],
         language: [],
@@ -145,15 +146,21 @@ export default function SrDrDashboard() {
         checkLoggedIn();
     }, []);
 
-    const makeConnections = async (counsellorId) => {
+    const makeConnections = async (counsellorId, patientId) => {
         console.log("connecting to patient and counsellor");
         send(
             conn,
-            getSocketJson("5", "connectpatient", token, role, patientRole)
+            getSocketJson(patientId, "connectpatient", token, role, patientRole)
         );
         send(
             conn,
-            getSocketJson("2", "connectcounsellor", token, role, counsellorRole)
+            getSocketJson(
+                counsellorId,
+                "connectcounsellor",
+                token,
+                role,
+                counsellorRole
+            )
         );
     };
     // const [sorts, setSorts] = useState({ arrangeBy, sortBy });

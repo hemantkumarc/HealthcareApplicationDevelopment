@@ -788,7 +788,7 @@ function CounsellorDashboard() {
                                         alt=""
                                         style={{
                                             height: "50px",
-                                            width: "50px"
+                                            width: "50px",
                                         }}
                                     />
                                 </div>
