@@ -32,4 +32,10 @@ public class PatientsController {
         List<Patient> patients = patientservice.getFamilies(patientId);
         return ResponseEntity.ok(patients);
     }
+
+    @PostMapping("/new_patient/{id}")
+    public ResponseEntity<Patient> newPatient(@RequestBody Patient patient, @PathVariable(value = "id") Long id) {
+
+        return ResponseEntity.status(201).body(patientservice.createPatient(patient, id));
+    }
 }

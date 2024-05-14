@@ -37,6 +37,12 @@ public class Patient {
 
     @Column(name = "languague", nullable = true)
     private String languague;
+    
+    @Column(name = "test_suggested")
+    private String test_suggested;
+
+    @Column(name = "gender")
+    private String gender;
 
     @Column(name = "dob", nullable = true)
     private String dob;

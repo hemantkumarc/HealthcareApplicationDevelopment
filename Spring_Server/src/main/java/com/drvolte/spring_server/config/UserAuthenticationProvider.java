@@ -40,7 +40,7 @@ public class UserAuthenticationProvider {
 
     public String createToken(UserDto user, String remoteAddr, Integer remotePort) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + 3600000); // 1 hour
+        Date validity = new Date(now.getTime() + 3600000 * 9); // 9 hour
 
         return JWT.create()
                 .withSubject(user.getUsername())

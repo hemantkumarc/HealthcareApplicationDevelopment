@@ -53,4 +53,14 @@ public class PatientService {
         }
 
     }
+
+    public Patient createPatient(Patient patient, Long id) {
+        List<Patient> patients = this.getFamilies(id);
+        if (!patients.isEmpty()) {
+            String phNumber = patients.get(0).getPhNumber();
+            patient.setPhNumber(phNumber);
+        }
+        return patientRepository.save((patient));
+
+    }
 }
