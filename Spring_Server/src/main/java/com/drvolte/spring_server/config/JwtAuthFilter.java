@@ -29,12 +29,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        logger.info(request.getRequestURL().toString());
+        logger.info(request.getRequestURL().toString() + " from " + request.getRemoteAddr());
+        String remoteAddr = request.getRemoteAddr();
+        Integer remotePort = request.getRemotePort();
         if (header != null) {
             String[] authELements = header.split(" ");
             if (authELements.length == 2 && authELements[0].equals("Bearer")) {
                 try {
-                    SecurityContextHolder.getContext().setAuthentication(this.userAuthProvider.validateToken(authELements[1]));
+                    SecurityContextHolder.getContext().setAuthentication(this.userAuthProvider.validateToken(authELements[1], remoteAddr, remotePort));
 
                 } catch (RuntimeException e) {
                     SecurityContextHolder.clearContext();

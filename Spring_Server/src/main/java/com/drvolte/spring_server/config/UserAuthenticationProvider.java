@@ -38,7 +38,7 @@ public class UserAuthenticationProvider {
         this.invalidTokens = new HashSet<String>();
     }
 
-    public String createToken(UserDto user) {
+    public String createToken(UserDto user, String remoteAddr, Integer remotePort) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000); // 1 hour
 
@@ -49,11 +49,13 @@ public class UserAuthenticationProvider {
                 .withExpiresAt(validity)
                 .withClaim("firstName", user.getFirstName())
                 .withClaim("lastName", user.getLastName())
+                .withClaim("addr", remoteAddr)
+                .withClaim("port", remotePort)
                 .withClaim("role", user.getRole())
                 .sign(algorithm);
     }
 
-    public Authentication validateToken(String token) throws JWTVerificationException {
+    public Authentication validateToken(String token, String remoteAddr, Integer remotePort) throws JWTVerificationException {
 
 
         if (this.invalidTokens.contains("\"" + token + "\"")) {
@@ -72,6 +74,13 @@ public class UserAuthenticationProvider {
                     .build();
             return new UsernamePasswordAuthenticationToken(patientResponseDto, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
         }
+        String tokenAddr = decoded.getClaim("addr").asString();
+        if (!tokenAddr.equals(remoteAddr)) {
+            System.out.println(tokenAddr + " " + remoteAddr);
+            throw new JWTVerificationException("IP Address or Port illegal");
+        }
+
+
         UserDto user = UserDto.builder()
                 .username(decoded.getSubject())
                 .firstName(decoded.getClaim("firstName").asString())

@@ -9,6 +9,7 @@ import com.drvolte.spring_server.models.Roles;
 import com.drvolte.spring_server.models.WebSocketConnection;
 import com.drvolte.spring_server.service.FileStorageService;
 import com.drvolte.spring_server.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +38,15 @@ public class GeneralControllers {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsdto) {
+    public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsdto, HttpServletRequest request) {
         System.out.println(credentialsdto);
         UserDto user = userService.login(credentialsdto);
         System.out.println("userdto from login" + user);
-        user.setToken(userAuthProvider.createToken(user));
+
+        System.out.println("Creating new Jwt with ip and port ");
+        String remoteAddr = request.getRemoteAddr();
+        Integer remotePort = request.getRemotePort();
+        user.setToken(userAuthProvider.createToken(user, remoteAddr, remotePort));
         System.out.println(user);
         return ResponseEntity.ok(user);
     }
