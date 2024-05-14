@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 import { getResponsePost } from "../../utils/utils.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Dropdown from "react-bootstrap/Dropdown";
 
 import {
     getResponseGet,
@@ -59,6 +60,7 @@ var srDrInCall = [6];
 var srDrOnline = [5];
 var cInCall = [4, 5, 6, 7];
 var cOnline = [1, 2, 3, 4];
+let newUserSelected;
 //------------------------------------------------------------------------------------------------------------------------------
 
 function InCall({
@@ -69,6 +71,7 @@ function InCall({
     getIsMuted,
     toggleMute,
     setIsMuted,
+    patID,
 }) {
     var peerconnection = connections.patientPeerConnection;
     const token = localStorage.getItem("token");
@@ -127,7 +130,7 @@ function InCall({
     };
 
     const getFamilies = async () => {
-        let res = await getResponseGet("/get_families?patient_id=1");
+        let res = await getResponseGet(`/get_families?patient_id=${patID}`);
         setPatientFamily(res?.data);
         console.log("Yeahh Patient Family", res?.data);
         setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
@@ -180,17 +183,39 @@ function InCall({
     };
 
     const handleSelect = (eventKey) => {
-        setSelectedID(eventKey);
-        pID = eventKey;
-        console.log("eventKey", pID);
-        setTitle(
-            `${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
-        );
-        console.log(
-            `${pID} ${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
-        );
-        resId = getPatientFamily[pID].id;
-        // setResId(getPatientFamily[pID].id)
+        if (eventKey != "newUser") {
+            setSelectedID(eventKey);
+            pID = eventKey;
+            console.log("eventKey", pID);
+            setTitle(
+                `${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
+            );
+            console.log(
+                `${pID} ${getPatientFamily[pID]?.id} - ${getPatientFamily[pID]?.name}`
+            );
+            resId = getPatientFamily[pID].id;
+            // setResId(getPatientFamily[pID].id)
+        } else {
+            setTitle(`New User`);
+        }
+    };
+
+    const handleUser = () => {
+        newUserSelected = "New User";
+        setTitle("New User");
+        setSelectedID(101);
+        resId = 101;
+        console.log("Heyyyyyy Newww Userrrr");
+        console.log("TITLE CHANGED!", title);
+        getName();
+        getDOB();
+        getAddress();
+        getMajorIssues();
+        getMinorIssues();
+        getAllergies();
+        getPrescripton();
+        getSymptoms();
+        getSummary();
     };
 
     const handleDateChange = (date) => {
@@ -238,7 +263,7 @@ function InCall({
         // postCallback()
 
         let res = await getResponsePost("/springdatarest/callBacks", payload);
-        if (res.status == 201) {
+        if (res.status === 201) {
             console.log("Schedule Response: ", res);
             toast.success("Success: Your request was processed successfully!", {
                 position: "top-right",
@@ -333,12 +358,14 @@ function InCall({
     );
 
     const [name, setName] = useState(getName());
+    const [selectedGender, setSelectedGender] = useState("");
     const [address, setAddress] = useState(getAddress());
     const [majorIssues, setMajorIssues] = useState(getMajorIssues());
     const [minorIssues, setMinorIssues] = useState(getMinorIssues());
     const [allergies, setAllergies] = useState(getAllergies());
     const [prescription, setPrescription] = useState(getPrescripton());
     const [symptoms, setSymptoms] = useState(getSymptoms());
+    const [testSuggested, setTestSuggested] = useState("...");
     const [summary, setSummary] = useState(getSummary());
 
     useEffect(() => {
@@ -355,7 +382,7 @@ function InCall({
 
         // Clear the timeout if the component unmounts before the 2 seconds
         return () => clearTimeout(timeout);
-    }, []);
+    }, [resId]);
 
     function getPrescripton() {
         console.log("Resource Id", resId);
@@ -469,6 +496,35 @@ function InCall({
         return placeholder;
     }
 
+    const handleGenderChange = (event) => {
+        setSelectedGender(event.target.value);
+    };
+
+    const dataPayload = {
+        name: name,
+        gender: selectedGender,
+        dob: getDOB(),
+        location: address,
+        state: address,
+        major_issues: majorIssues,
+        minor_issues: minorIssues,
+        ph_no: "",
+        language: "",
+        allergies: "",
+        blood_group: "",
+        test_suggested: testSuggested
+    };
+
+    const handleAllDataSubmit = async () => {
+        const res = await getResponsePost(`/new_patient/${patID}`, dataPayload);
+        if (res.status === 200) {
+            console.log("Data Push Response: ", res);
+            toast.success("Success: Your request was processed successfully!", {
+                position: "top-right",
+            });
+        }
+    };
+
     return (
         <div id="parentElement">
             <Navbar collapseOnSelect expand="lg" className="bg-body-tertiary">
@@ -492,7 +548,7 @@ function InCall({
                     <Navbar.Collapse id="responsive-navbar-nav">
                         <Nav className="me-auto">
                             <NavDropdown
-                                title={title}
+                                title={title ? title : "New User"}
                                 id="basic-nav-dropdown"
                                 onSelect={handleSelect}
                             >
@@ -504,6 +560,30 @@ function InCall({
                                         {item.id} - {item.name}
                                     </NavDropdown.Item>
                                 ))}
+                                <Dropdown.Divider />
+                                <NavDropdown.Item eventKey="newUser">
+                                    <div className="row">
+                                        <lord-icon
+                                            className="col-6"
+                                            src="https://cdn.lordicon.com/pdsourfn.json"
+                                            trigger="hover"
+                                            style={{
+                                                width: "30px",
+                                                height: "30px",
+                                            }}
+                                        ></lord-icon>
+                                        <div
+                                            style={{
+                                                marginLeft: "9px",
+                                                marginTop: "2px",
+                                            }}
+                                            className="col-6"
+                                            onClick={handleUser}
+                                        >
+                                            Add User
+                                        </div>
+                                    </div>
+                                </NavDropdown.Item>
                             </NavDropdown>
                         </Nav>
 
@@ -525,8 +605,7 @@ function InCall({
                                 className="btn btn-light fs-4"
                                 onClick={() => toggleMute()}
                             >
-                                {/* !getIsMuted() */}
-                                {!true ? (
+                                {!getIsMuted() ? (
                                     <lord-icon
                                         src="https://cdn.lordicon.com/jibstvae.json"
                                         trigger="in"
@@ -554,6 +633,8 @@ function InCall({
                             <Nav.Link eventKey={2}>
                                 <Button
                                     onClick={(e) => {
+                                        console.log("Data PAYLOAD", dataPayload)
+                                        handleAllDataSubmit();
                                         handleEndCall();
                                     }}
                                     variant="danger"
@@ -589,7 +670,10 @@ function InCall({
                                     controlId="formGridPassword"
                                 >
                                     <Form.Label>Gender</Form.Label>
-                                    <Form.Select>
+                                    <Form.Select
+                                        onChange={handleGenderChange}
+                                        value={selectedGender}
+                                    >
                                         <option>Select</option>
                                         <option>Male</option>
                                         <option>Female</option>
@@ -709,7 +793,13 @@ function InCall({
                                 controlId="formGridAddress2"
                             >
                                 <Form.Label>Test Suggested</Form.Label>
-                                <Form.Control placeholder="..." />
+                                <Form.Control
+                                    placeholder="..."
+                                    value={testSuggested}
+                                    onChange={(e) =>
+                                        setTestSuggested(e.target.value)
+                                    }
+                                />
                             </Form.Group>
 
                             <Form.Group

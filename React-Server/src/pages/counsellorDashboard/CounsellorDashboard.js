@@ -26,6 +26,7 @@ import "rsuite/Calendar/styles/index.css";
 import { List } from "rsuite";
 import "rsuite/List/styles/index.css";
 import "./todoStyle.css";
+import coughPath from "../../assets/Audios/cough.mp3";
 import { TodoWrapper } from "./todo/TodoWrapper";
 import { useNavigate } from "react-router-dom";
 import Timeline from "@mui/lab/Timeline";
@@ -36,6 +37,7 @@ import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import {
     getResponseGet,
+    getResponsePost,
     getSocketJson,
     initiateWebRTC,
     initiateWebsocket,
@@ -312,6 +314,8 @@ let patientsList;
 let selectedPatient;
 let callhistory;
 let patientId;
+var patID;
+var coughAudio = new Audio(coughPath);
 //------------------------------------------------------------------------------------------------------------------------------
 
 function CounsellorDashboard() {
@@ -331,6 +335,9 @@ function CounsellorDashboard() {
     const [inGetConsentMode, setInGetConsentMode] = useState(false);
     const [callHistory, setCallHistory] = useState([]);
     const [show, setShow] = useState(false);
+    const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
+
+    coughAudio.loop = true;
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -388,11 +395,32 @@ function CounsellorDashboard() {
         // console.log("Call History", callHistory[0].callEnd);
 
         let response = await getResponseGet(
-            res?.data?._embedded?.callHistories[0]._links.patient.href
+            res?.data?._embedded?.callHistories[0]?._links.patient.href
         );
         console.log("Patient ID", response?.data);
 
         patientId = response?.data?.resourceId;
+    };
+
+    const getDateTime = (dateStr) => {
+        const dateString = "2024-04-02T06:00:00.000+00:00";
+        const dateObj = new Date(dateString);
+
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+
+        const hours = String(dateObj.getHours()).padStart(2, "0");
+        const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+        const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+
+        const formattedDate = `${year}-${month}-${day}`;
+        const formattedTime = `${hours}:${minutes}:${seconds}`;
+
+        console.log("Date:", formattedDate);
+        console.log("Time:", formattedTime);
+
+        return `${formattedDate} ${formattedTime}`;
     };
 
     const getDuration = (startTime, endTime) => {
@@ -400,7 +428,6 @@ function CounsellorDashboard() {
         const callEnd = new Date(endTime);
         const callStart = new Date(startTime);
 
-        // Calculate the time difference in milliseconds
         const timeDifferenceMs = callEnd - callStart;
 
         // Convert milliseconds to hours, minutes, and seconds
@@ -421,6 +448,7 @@ function CounsellorDashboard() {
         setTimeout(() => {
             setShowIncall(true);
             setShowIncomingCallModal(false);
+            coughAudio.pause();
         }, 3000);
         conn.destRole = patientRole;
         send(conn, getSocketJson("", "accept", token, role, patientRole));
@@ -453,7 +481,7 @@ function CounsellorDashboard() {
             );
             setTimeout(() => {
                 toggleMute();
-            }, 2000);
+            }, 10000);
             setInGetConsentMode(true);
         };
     };
@@ -463,6 +491,7 @@ function CounsellorDashboard() {
             conn,
             getSocketJson("decline", "decline", token, role, patientRole)
         );
+        coughAudio.pause();
         setShowIncomingCallModal(false);
     };
 
@@ -471,7 +500,9 @@ function CounsellorDashboard() {
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onopen = () => {
+            setIsWebSocketConnected(true);
             conn.onclose = (msg) => {
+                setIsWebSocketConnected(false);
                 console.log("socket connection closed", msg.data);
             };
             function send(message) {
@@ -492,6 +523,11 @@ function CounsellorDashboard() {
                         console.log("adding token Successfull");
                     }
                     if (data.data.startsWith("NewConnection")) {
+                        console.log("Checking Patient ID......", data.data);
+                        var str = "NewConnection:3";
+                        var parts = str.split(":");
+                        patID = parts[1];
+                        coughAudio.play();
                         setShowIncomingCallModal(true);
                     }
                     if (data.data === "srDrConnect") {
@@ -517,10 +553,12 @@ function CounsellorDashboard() {
                 }
                 if (data.event === "decline") {
                     console.log("Got decline the call", data);
+                    coughAudio.pause();
+                    setShowIncomingCallModal(false);
                     if (data.source === srDrRole && srDrPeerConnection) {
                         handleEndCall(srDrPeerConnection, srDrRole);
                     }
-                    if (data.source === patientRole && patientPeerConnection) {
+                    if (data.source === patientRole) {
                         handleEndCall(patientPeerConnection, patientRole);
                     }
                 }
@@ -612,6 +650,7 @@ function CounsellorDashboard() {
 
     const handleLogout = () => {
         localStorage.clear();
+        token && getResponsePost("/logoutuser", token);
         navigate("/");
     };
 
@@ -712,6 +751,7 @@ function CounsellorDashboard() {
     return showInCall ? (
         <>
             <InCall
+                patID={patID}
                 conn={conn}
                 connections={connections}
                 setShowIncall={setShowIncall}
@@ -825,14 +865,19 @@ function CounsellorDashboard() {
                                 </Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
-                                
-                                    Patient ID - {patientId} Duration -{" "}
-                                    {getDuration(
-                                        callHistory[0]?.callStart,
-                                        callHistory[0]?.callEnd
-                                    )}
-                                    <hr /> <br />
-                                
+                                <Modal.Body>
+                                    {callHistory.map((call) => (
+                                        <div key={call.callId}>
+                                            Patient ID - {patientId} Duration -{" "}
+                                            {getDuration(
+                                                call.callStart,
+                                                call.callEnd
+                                            )}{" "}
+                                            Date - {getDateTime(call.callStart)}
+                                            <hr /> <br />
+                                        </div>
+                                    ))}
+                                </Modal.Body>
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button
@@ -874,6 +919,7 @@ function CounsellorDashboard() {
                                 {/* Counsellor Name */}
                                 <div>
                                     <p
+                                        onClick={createWebsocketAndWebRTC}
                                         style={{
                                             fontSize: "14px",
                                             marginTop: "18px",
@@ -886,49 +932,126 @@ function CounsellorDashboard() {
                                         {`Dr. ${window.localStorage.getItem(
                                             "name"
                                         )}`}
+                                        {isWebSocketConnected ? (
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/pzetejwe.json"
+                                                trigger="loop"
+                                                delay="1000"
+                                                style={{
+                                                    width: "30px",
+                                                    height: "30px",
+                                                }}
+                                            ></lord-icon>
+                                        ) : (
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/zjhryiyb.json"
+                                                trigger="loop"
+                                                delay="1000"
+                                                state="morph-heart-broken"
+                                                colors="primary:#e83a30,secondary:#ebe6ef,tertiary:#ffc738,quaternary:#f9c9c0,quinary:#7166ee"
+                                                style={{
+                                                    width: "30px",
+                                                    height: "30px",
+                                                }}
+                                            ></lord-icon>
+                                        )}
                                     </p>
                                 </div>
                             </Toolbar>
                             <Divider />
                             <List>
-                                {[
-                                    "Inbox",
-                                    "Starred",
-                                    "Send email",
-                                    "Drafts",
-                                ].map((text, index) => (
-                                    <ListItem key={text} disablePadding>
-                                        <ListItemButton>
-                                            <ListItemIcon>
-                                                {index % 2 === 0 ? (
-                                                    <InboxIcon />
-                                                ) : (
-                                                    <MailIcon />
-                                                )}
-                                            </ListItemIcon>
-                                            <ListItemText primary={text} />
-                                        </ListItemButton>
-                                    </ListItem>
-                                ))}
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox-3.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Inbox" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/starred-email-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Starred" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Send Email" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/email-time-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Drafts" />
+                                    </ListItemButton>
+                                </ListItem>
                             </List>
                             <Divider />
                             <List>
-                                {["All mail", "Trash", "Spam"].map(
-                                    (text, index) => (
-                                        <ListItem key={text} disablePadding>
-                                            <ListItemButton>
-                                                <ListItemIcon>
-                                                    {index % 2 === 0 ? (
-                                                        <InboxIcon />
-                                                    ) : (
-                                                        <MailIcon />
-                                                    )}
-                                                </ListItemIcon>
-                                                <ListItemText primary={text} />
-                                            </ListItemButton>
-                                        </ListItem>
-                                    )
-                                )}
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox-4.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="All Mail" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/cancel-email-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Trash" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/email-warning-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Spam" />
+                                    </ListItemButton>
+                                </ListItem>
                             </List>
                             <img
                                 src={require("../../assets/Singing Contract (1).gif")}

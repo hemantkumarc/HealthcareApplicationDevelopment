@@ -150,6 +150,9 @@ const RestBody = ({
                             setShowIncomingCallModal(true);
                         }
                     }
+                    if (data.data === "Connected") {
+                        setShowCallConnectingModal(false);
+                    }
                 }
                 if (data.event === "accept") {
                     if (data.source === counsellorRole) {
@@ -541,6 +544,7 @@ const RestBody = ({
         );
         callOnwait.pause();
         callingTone.pause();
+        askConsentAudio.pause();
 
         addnumber("");
         if (inCallQueue) {

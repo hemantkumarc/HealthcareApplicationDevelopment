@@ -14,6 +14,7 @@ import {
     userLoggedIn,
 } from "../../../utils/utils";
 import { useNavigate } from "react-router-dom";
+
 // import {
 // 	getSocketJson,
 // 	initiateWebRTC,
@@ -150,21 +151,27 @@ export default function SrDrDashboard() {
     };
 
     const makeConnections = async (counsellorId, patientId) => {
-        console.log("connecting to patient and counsellor");
+        console.log(
+            "connecting to patient and counsellor",
+            counsellorId,
+            patientId
+        );
+
         send(
             conn,
             getSocketJson(patientId, "connectpatient", token, role, patientRole)
         );
-        send(
-            conn,
-            getSocketJson(
-                counsellorId,
-                "connectcounsellor",
-                token,
-                role,
-                counsellorRole
-            )
-        );
+
+        // send(
+        //     conn,
+        //     getSocketJson(
+        //         counsellorId,
+        //         "connectcounsellor",
+        //         token,
+        //         role,
+        //         counsellorRole
+        //     )
+        // );
     };
     // const [sorts, setSorts] = useState({ arrangeBy, sortBy });
     const [sorts, setSorts] = useState({
@@ -180,6 +187,7 @@ export default function SrDrDashboard() {
                     isWebSocketConnected={isWebSocketConnected}
                     setIsWebSocketConnected={setIsWebSocketConnected}
                     createWebsocketAndWebRTC={createWebsocketAndWebRTC}
+                    connections={connections}
                 />
             </header>
             <main>

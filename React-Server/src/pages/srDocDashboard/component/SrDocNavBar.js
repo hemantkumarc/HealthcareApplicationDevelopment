@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useEffect, useState } from "react";
 import "../style/SrDocNavBar.css";
 import drVolteLogo from "../../../assets/drVolteLogo.png";
 import { useNavigate } from "react-router-dom";
@@ -6,19 +6,57 @@ import SearchCounsellor from "./SearchCounsellor";
 import StatusToggle from "./StatusToggle";
 import SearchResult from "./SearchResult";
 import { Navbar, Nav, Button, Container } from "react-bootstrap";
+import { FiMoon, FiSun } from "react-icons/fi";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiAlertCircle } from "react-icons/fi";
+import {
+    getResponseGet,
+    getResponsePost,
+    getSocketJson,
+    initiateWebRTC,
+    initiateWebsocket,
+    send,
+    userLoggedIn,
+} from "../../../utils/utils";
+let patientPeerConnection, srDrPeerConnection;
+// const connections = {
+//     conn: null,
+//     counsellorPeerConnection: null,
+//     srDrPeerConnection: null,
+//     patientPeerConnection: null,
+// };
+
+const adminRole = "ROLE_ADMIN",
+    counsellorRole = "ROLE_COUNSELLOR",
+    patientRole = "ROLE_PATIENT",
+    srDrRole = "ROLE_SENIORDR";
+
+let token = localStorage.getItem("token");
+
+const TOGGLE_CLASSES =
+    "text-sm font-medium flex items-center gap-2 px-3 md:pl-3 md:pr-3.5 py-3 md:py-1.5 transition-colors relative z-10";
 
 export default function SrDocNavBar({
     setSearch,
     isWebSocketConnected,
     setIsWebSocketConnected,
     createWebsocketAndWebRTC,
+    connections,
 }) {
+    token = localStorage.getItem("token");
     const navigate = useNavigate();
     const name = localStorage.getItem("name");
     const handleLogout = () => {
         localStorage.clear();
+
+        token && getResponsePost("/logoutuser", token);
         navigate("/");
     };
+
+    const [selected, setSelected] = useState("active");
+    useEffect(() => {
+        token = localStorage.getItem("token");
+    }, []);
 
     return (
         <Navbar
@@ -29,9 +67,18 @@ export default function SrDocNavBar({
         >
             <Container>
                 <Navbar.Brand href="#home">
-                    <img src={drVolteLogo} alt="logo" className="img-logo" />
-                    Dr.VoLTE
+                    <img
+                        style={{ width: "130px" }}
+                        src={drVolteLogo}
+                        alt="logo"
+                        className="img-logo"
+                    />
                 </Navbar.Brand>
+                <Navbar.Text
+                    style={{ marginLeft: "-60px", marginRight: "20px" }}
+                >
+                    Dr.VoLTE
+                </Navbar.Text>
                 <Navbar.Text
                     className="justify-content-end rounded-pill phnumberText align-items-center d-inline-flex"
                     onClick={() => {
@@ -61,16 +108,17 @@ export default function SrDocNavBar({
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="ml-auto" style={{ alignItems: "center" }}>
-                        <Nav.Link>
-                            <div className="search-container">
-                                <StatusToggle />
-                                {/* <label class="inline-flex items-center cursor-pointer">
-  <input type="checkbox" value="" class="sr-only peer" />
-  <div class="relative w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-  <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Large toggle</span>
-</label> */}
-                            </div>
-                        </Nav.Link>
+                        <div
+                            className={`grid h-[67px] place-content-center px-4 transition-colors ${
+                                selected === "busy" ? "bg-gray" : "bg-gray"
+                            }`}
+                        >
+                            <SliderToggle
+                                selected={selected}
+                                setSelected={setSelected}
+                                connections={connections}
+                            />
+                        </div>
                         <Nav.Link>
                             <div className="search-container">
                                 <SearchCounsellor setSearch={setSearch} />
@@ -92,3 +140,66 @@ export default function SrDocNavBar({
         </Navbar>
     );
 }
+
+const SliderToggle = ({ selected, setSelected, connections }) => {
+    console.log("this connections var: ", connections);
+    return (
+        <div className="relative flex w-fit items-center rounded-full">
+            <button
+                className={`${TOGGLE_CLASSES} ${
+                    selected === "busy" ? "text-white" : "text-slate-800"
+                }`}
+                onClick={() => {
+                    setSelected("busy");
+                    send(
+                        connections.conn,
+                        getSocketJson(
+                            "connected:busy",
+                            "changestate",
+                            token,
+                            counsellorRole
+                        )
+                    );
+                }}
+            >
+                <FiMoon className="relative z-10 text-lg md:text-sm" />
+                <span className="relative z-10">Busy</span>
+            </button>
+            <button
+                className={`${TOGGLE_CLASSES} ${
+                    selected === "active" ? "text-white" : "text-slate-800"
+                }`}
+                onClick={() => {
+                    setSelected("active");
+                    send(
+                        connections.conn,
+                        getSocketJson(
+                            "busy:connected",
+                            "changestate",
+                            token,
+                            counsellorRole
+                        )
+                    );
+                }}
+            >
+                <FiSun className="relative z-10 text-lg md:text-sm" />
+                <span className="relative z-10">Active</span>
+            </button>
+            <div
+                className={`absolute inset-0 z-0 flex ${
+                    selected === "active" ? "justify-end" : "justify-start"
+                }`}
+            >
+                <motion.span
+                    layout
+                    transition={{ type: "spring", damping: 15, stiffness: 250 }}
+                    className={`h-full w-1/2 rounded-full ${
+                        selected === "busy"
+                            ? "bg-gradient-to-r from-red-500 to-red-700"
+                            : "bg-gradient-to-r from-violet-600 to-indigo-600"
+                    }`}
+                />
+            </div>
+        </div>
+    );
+};

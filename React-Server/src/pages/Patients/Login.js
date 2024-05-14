@@ -91,10 +91,10 @@ const PatientLogin = () => {
             <video src={videoBg} autoPlay muted loop />
             <div className="wrapper-container">
                 <div className="wrapper">
-                    <div className="logo">
+                    <div className="logoU">
                         <img
                             src={require("../../assets/drVolteLogo.png")}
-                            alt="logo"
+                            alt="logon"
                             className="Logo-img"
                         />
                     </div>
@@ -110,7 +110,7 @@ const PatientLogin = () => {
                                     setPhnumber(e.target.value);
                                 }}
                             />
-                            <FaUser className="icon" />
+                            <FaUser id="userIcon" className="icon" />
                         </div>
                         <div className="state-selection g-0 row align-items-center">
                             <label className="col-4">State</label>

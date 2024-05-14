@@ -121,4 +121,9 @@
   .input-box:focus + .underline {
     transform: scaleX(1);
   }
+
+  .emailIcons {
+    height: 30px;
+    width: 30px;
+}
   

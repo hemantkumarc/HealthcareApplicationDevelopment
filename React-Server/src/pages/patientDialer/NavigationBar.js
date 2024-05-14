@@ -28,15 +28,15 @@ const NavigationBar = ({
         <div>
             <Navbar collapseOnSelect expand="lg" className="bg-body-tertiary">
                 <Container className="navBarContainer">
-                    <div id="logo">
+                    <div id="logo2">
                         <img
                             src={logo}
                             alt="logo"
                             style={{
                                 height: "70px",
-                                width: "87px",
-                                marginTop: "-25px",
-                                marginLeft: "-60px",
+                                width: "120px",
+                                marginTop: "-3px",
+                                marginLeft: "-30px",
                             }}
                         />
                     </div>

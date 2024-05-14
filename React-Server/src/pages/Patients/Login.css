@@ -128,3 +128,9 @@ video {
 .statesOption:hover {
     background-color: #e0e0e0;
 }
+
+#userIcon {
+    margin-top: -34px;
+    margin-bottom: 20px;
+    margin-left: 15px;
+}

@@ -15,28 +15,16 @@ export default function Counsellor({
     const [onlineCounselorIds, setOnlineCounselorIds] = useState(new Set());
     const [inCallCounselorIds, setInCallCounselorIds] = useState(new Set());
     const [busyCounselorIds, setBusyCounselorIds] = useState(new Set());
+    const [callsData, setCallsData] = useState([]);
 
     const [callData, setCallData] = useState();
 
     useEffect(() => {
         console.log("i am here");
-        const fetchData = async () => {
-            try {
-                const response = await getResponseGet(
-                    "/springdatarest/counsellors"
-                );
-                console.log("this is spring data", response);
-                const fetchedData = response?.data?._embedded?.counsellors;
-                if (fetchedData) {
-                    setSpringData(fetchedData);
-                    // setSortedCounsellors(fetchedData);
-                    console.log("counsellor", fetchedData);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
         fetchData();
+
+        const intervalId = setInterval(onlineCounsellors, 10000);
+        return () => clearInterval(intervalId);
     }, []);
 
     const updateCounselorStatus = (updatedCounselor) => {
@@ -50,52 +38,25 @@ export default function Counsellor({
     };
 
     useEffect(() => {
-        const onlineCounsellors = async () => {
-            try {
-                const response = await getResponseGet("/onlinestatus");
-                const onlineIds = response?.data?.ROLE_COUNSELLOR_online || [];
-                const inCallIds = response?.data?.ROLE_COUNSELLOR_incall || [];
-                const busyIds = response?.data?.ROLE_COUNSELLOR_busy || [];
-
-                setOnlineCounselorIds(new Set(onlineIds));
-                setInCallCounselorIds(new Set(inCallIds));
-                setBusyCounselorIds(new Set(busyIds));
-
-                // 	const { ROLE_COUNSELLOR_incall, ROLE_COUNSELLOR_online } = response?.data;
-                // 	const incallSet = new Set(ROLE_COUNSELLOR_incall);
-                // 	const onlineSet = new Set(ROLE_COUNSELLOR_online);
-                console.log("spring response", response);
-                console.log("Incall Counsellors:", inCallIds);
-                console.log("Online Counsellors:", onlineIds);
-
-                if (response.data.counsellorCalls) {
-                    console.log(
-                        "in counsellor: ",
-                        typeof response.data.counsellorCalls
-                    );
-                    setCallData(response.data.counsellorCalls);
-                }
-
-                const updatedSpringData = springData.map((counselor) => ({
-                    ...counselor,
-                    status: onlineIds.includes(counselor.resourceId)
-                        ? "Online"
-                        : inCallIds.includes(counselor.resourceId)
-                        ? "In-Call"
-                        : busyIds.includes(counselor.resourceId)
-                        ? "Busy"
-                        : "Offline",
-                }));
-                console.log(updatedSpringData);
-                setSpringData(updatedSpringData);
-            } catch (error) {
-                console.error("Error fetching online status:", error);
-            }
-        };
-        // onlineCounsellors();
-        const intervalId = setInterval(onlineCounsellors, 10000);
-        return () => clearInterval(intervalId);
-    }, [springData]);
+        // console.log(
+        //     "counsellor",
+        //     onlineCounselorIds,
+        //     inCallCounselorIds,
+        //     busyCounselorIds
+        // );
+        const updatedSpringData = springData.map((counselor) => ({
+            ...counselor,
+            status: onlineCounselorIds?.has(counselor.resourceId)
+                ? "Online"
+                : inCallCounselorIds?.has(counselor.resourceId)
+                ? "In-Call"
+                : busyCounselorIds?.has(counselor.resourceId)
+                ? "Busy"
+                : "Offline",
+        }));
+        console.log(updatedSpringData);
+        setSpringData(updatedSpringData);
+    }, [onlineCounselorIds, inCallCounselorIds, busyCounselorIds]);
 
     useEffect(() => {
         const sorted = springData
@@ -167,6 +128,45 @@ export default function Counsellor({
         setSortedCounsellors(sorted);
     }, [springData, filters, search, sorts]);
 
+    const onlineCounsellors = async () => {
+        try {
+            const response = await getResponseGet("/onlinestatus");
+            const onlineIds = response?.data?.ROLE_COUNSELLOR_online || [];
+            const inCallIds = response?.data?.ROLE_COUNSELLOR_incall || [];
+            const busyIds = response?.data?.ROLE_COUNSELLOR_busy || [];
+            const callsData = response?.data?.counsellorCalls || [];
+
+            setOnlineCounselorIds(new Set(onlineIds));
+            setInCallCounselorIds(new Set(inCallIds));
+            setBusyCounselorIds(new Set(busyIds));
+            setCallData(callsData);
+
+            // 	const { ROLE_COUNSELLOR_incall, ROLE_COUNSELLOR_online } = response?.data;
+            // 	const incallSet = new Set(ROLE_COUNSELLOR_incall);
+            // 	const onlineSet = new Set(ROLE_COUNSELLOR_online);
+        } catch (error) {
+            console.error("Error fetching online status:", error);
+        }
+    };
+
+    const fetchData = async () => {
+        try {
+            const response = await getResponseGet(
+                "/springdatarest/counsellors"
+            );
+            console.log("this is spring data", response);
+            const fetchedData = response?.data?._embedded?.counsellors;
+            if (fetchedData) {
+                setSpringData(fetchedData);
+                // setSortedCounsellors(fetchedData);
+                console.log("counsellor", fetchedData);
+
+                onlineCounsellors();
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
     return (
         <div className="counsellor-container">
             <div className="card-container">
