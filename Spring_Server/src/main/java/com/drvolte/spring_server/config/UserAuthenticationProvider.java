@@ -48,7 +48,6 @@ public class UserAuthenticationProvider {
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .withClaim("firstName", user.getFirstName())
-                .withClaim("lastName", user.getLastName())
                 .withClaim("addr", remoteAddr)
                 .withClaim("port", remotePort)
                 .withClaim("role", user.getRole())
@@ -101,7 +100,7 @@ public class UserAuthenticationProvider {
 
     public String createTokenForPatient(PatientResponseDto patientResponseDto) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + 3600000); // 1 hour
+        Date validity = new Date(now.getTime() + 3600000 * 9); // 1 hour
         return JWT.create()
                 .withClaim("id", patientResponseDto.getId())
                 .withIssuedAt(now)

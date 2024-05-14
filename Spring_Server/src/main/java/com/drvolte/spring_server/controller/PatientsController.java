@@ -38,4 +38,10 @@ public class PatientsController {
 
         return ResponseEntity.status(201).body(patientservice.createPatient(patient, id));
     }
+
+    @PutMapping("/new_patient/{id}")
+    public ResponseEntity<Patient> updatePatient(@RequestBody Patient patient, @PathVariable(value = "id") Long id) {
+
+        return ResponseEntity.status(201).body(patientservice.updatePatient(patient, id));
+    }
 }

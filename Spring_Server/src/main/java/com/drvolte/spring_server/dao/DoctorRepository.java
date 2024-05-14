@@ -7,6 +7,7 @@ import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
@@ -24,4 +25,5 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
             @Param(value = "specialization") String specialization
     );
 
+    Optional<Doctor> findByEmail(String firstName);
 } 

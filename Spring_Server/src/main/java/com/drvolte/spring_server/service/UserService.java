@@ -19,6 +19,7 @@ public class UserService {
     private final UserMapper userMapper;
 
     public UserDto login(CredentialsDto credentialsDto) {
+        System.out.println("This is the username logging");
         User user = userRepository.findByUsername(credentialsDto.username())
                 .orElseThrow(() -> new AppException("Username Not Found", HttpStatus.NOT_FOUND));
         System.out.println("inside the userservices" + user);

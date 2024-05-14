@@ -3,8 +3,11 @@ package com.drvolte.spring_server.controller;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.drvolte.spring_server.config.UserAuthenticationProvider;
+import com.drvolte.spring_server.dao.DoctorRepository;
 import com.drvolte.spring_server.dtos.CredentialsDto;
 import com.drvolte.spring_server.dtos.UserDto;
+import com.drvolte.spring_server.entity.Doctor;
+import com.drvolte.spring_server.exceptions.AppException;
 import com.drvolte.spring_server.models.Roles;
 import com.drvolte.spring_server.models.WebSocketConnection;
 import com.drvolte.spring_server.service.FileStorageService;
@@ -13,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,14 +31,18 @@ public class GeneralControllers {
     private final UserService userService;
     @Autowired
     private final UserAuthenticationProvider userAuthProvider;
+
+    private final DoctorRepository doctorRepository;
+
     private final WebSocketConnection webSocketConnections;
     private final UserAuthenticationProvider jwtAuthProvider;
 
-    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider, WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider, FileStorageService storageService) {
+    public GeneralControllers(UserService userService, UserAuthenticationProvider userAuthProvider, WebSocketConnection webSocketConnections, UserAuthenticationProvider jwtAuthProvider, FileStorageService storageServicee, DoctorRepository doctorRepository) {
         this.userService = userService;
         this.userAuthProvider = userAuthProvider;
         this.webSocketConnections = webSocketConnections;
         this.jwtAuthProvider = jwtAuthProvider;
+        this.doctorRepository = doctorRepository;
     }
 
     @PostMapping("/login")
@@ -42,13 +50,19 @@ public class GeneralControllers {
         System.out.println(credentialsdto);
         UserDto user = userService.login(credentialsdto);
         System.out.println("userdto from login" + user);
-
-        System.out.println("Creating new Jwt with ip and port ");
-        String remoteAddr = request.getRemoteAddr();
-        Integer remotePort = request.getRemotePort();
-        user.setToken(userAuthProvider.createToken(user, remoteAddr, remotePort));
-        System.out.println(user);
-        return ResponseEntity.ok(user);
+        Doctor doctor = doctorRepository.findByEmail(user.getUsername()).orElse(null);
+        if (doctor != null) {
+            System.out.println("Creating new Jwt with ip and port ");
+            String remoteAddr = request.getRemoteAddr();
+            Integer remotePort = request.getRemotePort();
+            user.setId(doctor.getId());
+            user.setToken(userAuthProvider.createToken(user, remoteAddr, remotePort));
+            System.out.println(user);
+            return ResponseEntity.ok(user);
+        } else {
+            System.out.println("username not found" + user);
+            throw new AppException("Username Not Found", HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping("/logoutuser")

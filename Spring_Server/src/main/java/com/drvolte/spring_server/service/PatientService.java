@@ -63,4 +63,19 @@ public class PatientService {
         return patientRepository.save((patient));
 
     }
+
+    public Patient updatePatient(Patient patient, Long id) {
+        Optional<Patient> patients = patientRepository.findById(id);
+        if (patients.isPresent()) {
+            Patient fectchedPatient = patients.get();
+            String phNumber = fectchedPatient.getPhNumber();
+            patient.setPhNumber(phNumber);
+            patient.setId(id);
+        } else {
+            System.out.println("this patient is not present: " + id + " " + patient);
+        }
+        return patientRepository.save((patient));
+    }
+
+
 }
