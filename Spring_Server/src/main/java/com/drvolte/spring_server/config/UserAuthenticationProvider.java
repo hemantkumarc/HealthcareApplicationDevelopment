@@ -74,11 +74,10 @@ public class UserAuthenticationProvider {
             return new UsernamePasswordAuthenticationToken(patientResponseDto, null, AuthorityUtils.createAuthorityList(roles.toArray(new String[0])));
         }
         String tokenAddr = decoded.getClaim("addr").asString();
-        if (!tokenAddr.equals(remoteAddr)) {
+        if (!tokenAddr.equals("Ignore") && !tokenAddr.equals(remoteAddr)) {
             System.out.println(tokenAddr + " " + remoteAddr);
             throw new JWTVerificationException("IP Address or Port illegal");
         }
-
 
         UserDto user = UserDto.builder()
                 .username(decoded.getSubject())
@@ -116,6 +115,7 @@ public class UserAuthenticationProvider {
                 .withClaim("name", name)
                 .withClaim("email", email)
                 .withClaim("role", role)
+                .withClaim("addr", "Ignore")
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .sign(algorithm);

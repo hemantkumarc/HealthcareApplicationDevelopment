@@ -9,17 +9,14 @@ import com.drvolte.spring_server.dao.UserRepository;
 import com.drvolte.spring_server.entity.Counsellor;
 import com.drvolte.spring_server.entity.SeniorDr;
 import com.drvolte.spring_server.entity.User;
-import com.drvolte.spring_server.exceptions.AppException;
 import com.drvolte.spring_server.models.ChangePasswordStructure;
 import com.drvolte.spring_server.models.EmailStructure;
 import com.drvolte.spring_server.models.Roles;
 import com.drvolte.spring_server.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -42,7 +39,7 @@ public class EmailController {
     private UserRepository userRepository;
 
     @PostMapping("/send/{mailId}")
-    public ResponseEntity<String> sendMail(@PathVariable String mailId){
+    public ResponseEntity<String> sendMail(@PathVariable String mailId) {
         EmailStructure emailStructure = new EmailStructure();
 
         Optional<SeniorDr> seniorDoc = seniorDrRepository.findSeniorDrsByEmailOrQualificationOrSpecialization(mailId, "", "").stream().findFirst();
@@ -66,14 +63,14 @@ public class EmailController {
                 doctor_status = counsellor.getStatus();
             }
         }
-        if(doctor_status.equals("enabled"))
-        {
+        if (doctor_status.equals("enabled")) {
             // Doctor is enabled => Doctor is present in the Users table => Allow Doctor to reset his password !
             String token = "";
             token = userAuthProvider.createTokenForEnrollDoctor(mailId, name, role);
+            String ip = System.getProperty("server.address");
             emailStructure.setSubject("[Dr. Volte] Register Doctor");
             emailStructure.setMessage("Please click on the following link to create password and register yourself ! \n" +
-                    "\nUse http://localhost:3000/adminSignUpDoctor?token="+ token + "" +
+                    "\nUse https://" + ip + ":3000/adminSignUpDoctor?token=" + token +
                     "\n\nRegards, \n Admin @ DrVolte");
             emailService.sendMail(mailId, emailStructure);
         }

@@ -49,12 +49,17 @@ public class GeneralControllers {
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsdto, HttpServletRequest request) {
         System.out.println(credentialsdto);
         UserDto user = userService.login(credentialsdto);
-        System.out.println("userdto from login" + user);
+
+        String remoteAddr = request.getRemoteAddr();
+        Integer remotePort = request.getRemotePort();
+        if (user.getRole().equals(Roles.ROLE_ADMIN.toString())) {
+            user.setToken(userAuthProvider.createToken(user, remoteAddr, remotePort));
+            System.out.println("userdto from login " + user);
+            return ResponseEntity.ok(user);
+        }
         Doctor doctor = doctorRepository.findByEmail(user.getUsername()).orElse(null);
         if (doctor != null) {
             System.out.println("Creating new Jwt with ip and port ");
-            String remoteAddr = request.getRemoteAddr();
-            Integer remotePort = request.getRemotePort();
             user.setId(doctor.getId());
             user.setToken(userAuthProvider.createToken(user, remoteAddr, remotePort));
             System.out.println(user);

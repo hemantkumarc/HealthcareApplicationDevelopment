@@ -12,10 +12,17 @@ import java.util.List;
 public interface CallHistoryRepository extends JpaRepository<CallHistory, Long> {
 
     @RestResource(path = "/byids")
-    List<CallHistory> findByCounsellorIdOrPatientIdOrderByCallStart(
-            @Param(value = "counsellorid") Long counsellorId,
-            @Param(value = "patientid") Long patientId
+    List<CallHistory> findByPatientIdOrCounsellorIdOrderByCallStart(
+            @Param(value = "patientid") Long patientId,
+
+            @Param(value = "counsellorid") Long counsellorId
     );
 
+
+    @RestResource(path = "/patientIdAndStatus")
+    List<CallHistory> findByPatientIdAndStatus(
+            @Param(value = "patientid") Long patientId,
+            @Param(value = "status") String status
+    );
 
 }

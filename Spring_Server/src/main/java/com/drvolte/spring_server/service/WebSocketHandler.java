@@ -15,10 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -313,7 +310,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
         DecodedJWT sourceDecodedJWT = jwtAuthProvider.getDecoded(sourceToken);
         Long sourceId = sourceDecodedJWT.getClaim("id").asLong();
         Roles sourceRole = Roles.valueOf(socketMessage.getSource());
-        for (String tempToken : webSocketConnections.getTokenToRoleToToken().keySet()) {
+        Iterator<String> tempTokenIterator = webSocketConnections.getTokenToRoleToToken().keySet().iterator();
+        while (tempTokenIterator.hasNext()) {
+            String tempToken = tempTokenIterator.next();
             try {
                 tempdecodedJWT = jwtAuthProvider.getDecoded(tempToken);
                 Long tempId = tempdecodedJWT.getClaim("id").asLong();
@@ -323,7 +322,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         Roles role = Roles.valueOf(tempdecodedJWT.getClaim("role").asString());
                         Long id = tempdecodedJWT.getClaim("id").asLong();
                         System.out.println(("this is the role and id for the token " + role + " " + id));
-                        for (String state : webSocketConnections.getRoleToStateToToken().get(role).keySet()) {
+                        Iterator<String> stateIterator = webSocketConnections.getRoleToStateToToken().get(role).keySet().iterator();
+                        while (stateIterator.hasNext()) {
+                            String state = stateIterator.next();
                             webSocketConnections.getRoleToStateToToken().get(role).get(state).remove(tempToken);
                         }
 
@@ -332,7 +333,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                             counsellorToken = webSocketConnections.getTokenToRoleToToken().get(tempToken).getOrDefault(Roles.ROLE_COUNSELLOR, null);
                             srDrToken = webSocketConnections.getTokenToRoleToToken().get(tempToken).getOrDefault(Roles.ROLE_SENIORDR, null);
                             patientToken = webSocketConnections.getTokenToRoleToToken().get(tempToken).getOrDefault(Roles.ROLE_PATIENT, null);
-                            webSocketConnections.getTokenToRoleToToken().remove(tempToken);
+                            tempTokenIterator.remove();
                             System.out.println("removing the token from tokentoroletotoken for logout:" + patientToken + " \n" + counsellorToken + "\n" + srDrToken);
                             if (patientToken != null)
                                 webSocketConnections.getTokenToRoleToToken().remove(patientToken);
@@ -349,12 +350,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 }
             } catch (JWTVerificationException e) {
                 System.out.println("jwt invalid in getTokenroletoken " + tempToken);
-                webSocketConnections.getTokenToRoleToToken().remove(tempToken);
+                tempTokenIterator.remove();
             }
 
         }
-
-        for (String tempSessionId : webSocketConnections.getSessionIdToToken().keySet()) {
+        Iterator<String> tempSessionIdIterator = webSocketConnections.getSessionIdToToken().keySet().iterator();
+        while (tempSessionIdIterator.hasNext()) {
+            String tempSessionId = tempSessionIdIterator.next();
             String tempToken = webSocketConnections.getSessionIdToToken().get(tempSessionId);
             try {
                 tempdecodedJWT = jwtAuthProvider.getDecoded(tempToken);
@@ -362,25 +364,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 Roles tempRole = Roles.valueOf(tempdecodedJWT.getClaim("role").asString());
 
                 if (sourceId.equals(tempId) && sourceRole.equals(tempRole))
-                    webSocketConnections.getSessionIdToToken().remove(tempSessionId);
+                    tempSessionIdIterator.remove();
             } catch (JWTVerificationException e) {
-                webSocketConnections.getSessionIdToToken().remove(tempSessionId);
+                tempSessionIdIterator.remove();
             }
 
         }
         this.webSocketConnections.getSessionIdToToken().put(session.getId(), sourceToken);
 
 
-        for (String tempToken : webSocketConnections.getTokenToSessionId().keySet()) {
-            String tempSessionId = webSocketConnections.getTokenToSessionId().get(tempToken);
+        tempTokenIterator = webSocketConnections.getTokenToSessionId().keySet().iterator();
+        while (tempTokenIterator.hasNext()) {
+            String tempToken = tempTokenIterator.next();
             try {
                 tempdecodedJWT = jwtAuthProvider.getDecoded(tempToken);
                 Long tempId = tempdecodedJWT.getClaim("id").asLong();
                 Roles tempRole = Roles.valueOf(tempdecodedJWT.getClaim("role").asString());
                 if (sourceId.equals(tempId) && sourceRole.equals(tempRole))
-                    webSocketConnections.getTokenToSessionId().remove(tempToken);
+                    tempTokenIterator.remove();
             } catch (JWTVerificationException e) {
-                webSocketConnections.getTokenToSessionId().remove(tempToken);
+                tempTokenIterator.remove();
             }
 
         }
@@ -392,22 +395,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
             Roles role = Roles.valueOf(decodedJWT.getClaim("role").asString());
             Long id = decodedJWT.getClaim("id").asLong();
             if (webSocketConnections.getRoleToStateToToken().containsKey(role)) {
-                for (String tempState : webSocketConnections.getRoleToStateToToken().get(role).keySet()) {
-                    for (String tempToken : webSocketConnections.getRoleToStateToToken().get(role).get(tempState)) {
+                Iterator<String> tempStateIterator = webSocketConnections.getRoleToStateToToken().get(role).keySet().iterator();
+                while (tempStateIterator.hasNext()) {
+                    String tempState = tempStateIterator.next();
+                    tempTokenIterator = webSocketConnections.getRoleToStateToToken().get(role).get(tempState).iterator();
+                    while (tempTokenIterator.hasNext()) {
+                        String tempToken = tempTokenIterator.next();
                         try {
                             tempdecodedJWT = jwtAuthProvider.getDecoded(tempToken);
                             Long tempId = tempdecodedJWT.getClaim("id").asLong();
                             Roles tempRole = Roles.valueOf(tempdecodedJWT.getClaim("role").asString());
                             if (sourceId.equals(tempId) && sourceRole.equals(tempRole))
-                                webSocketConnections.getRoleToStateToToken()
-                                        .get(role)
-                                        .get(tempState)
-                                        .remove(tempToken);
+                                tempTokenIterator.remove();
                         } catch (JWTVerificationException e) {
-                            webSocketConnections.getRoleToStateToToken()
-                                    .get(role)
-                                    .get(tempState)
-                                    .remove(tempToken);
+                            tempStateIterator.remove();
                         }
                     }
                 }
