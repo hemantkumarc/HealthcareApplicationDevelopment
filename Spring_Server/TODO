@@ -1,0 +1,9 @@
+ DONE - handle login of patient
+ Done - handle multiple webrtc clients
+ Done little - record, mapstruct learn
+ DONE - handle patient authentication and authorization'
+  - handleConnectForCounsellor here the cousellor token set is created new instead of checking if already exiasts or not that have to be cheked and then the token set needs to be updatded
+ DONE - Use the Roles model to set the role in the token and also use the same in authorization
+ Doing - Create an api for counsellor patient patient_history and senior Docktor
+  - handle senior doctor joining or listening
+  REST Everything is in react code
