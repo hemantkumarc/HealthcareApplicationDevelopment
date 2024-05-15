@@ -52,7 +52,12 @@ const Login = () => {
             //console.log(JSON.stringify(response?.data));
             //console.log(JSON.stringify(response));
             const accessToken = response?.data?.token;
+            const name = response?.data?.firstName;
+            const id = response?.data?.id;
             localStorage.setItem("token", accessToken);
+            localStorage.setItem("name", name);
+            localStorage.setItem("id", id);
+
             const role = response?.data?.role;
             console.log(role);
 
@@ -111,17 +116,17 @@ const Login = () => {
                         className="login100-form validate-form"
                         id="loginForm"
                     >
-                        <div id="logo">
+                        <div id="logo1">
                             <img
                                 src={require("../../assets/drVolteLogo.png")}
                                 alt="logo"
                                 className="Logo-img"
                                 id="logoImg"
                             />
-                            <div id="title">Dr. VoLTE</div>
+                            <div id="title1">Dr. VoLTE</div>
                         </div>
                         <span
-                            id="signIn"
+                            id="signIn1"
                             className="login100-form-title p-b-37"
                         >
                             Sign In
@@ -143,7 +148,7 @@ const Login = () => {
                             <img
                                 src={require("../../assets/wired-lineal-21-avatar.gif")}
                                 alt="User"
-                                id="user"
+                                id="user1"
                             />
                             <span className="focus-input100"></span>
                         </div>
@@ -177,6 +182,7 @@ const Login = () => {
                             )}
                             <span className="focus-input100"></span>
                         </div>
+                        <a href="/forgotpassword">ForgotPassword</a>
                         <div class="container-login100-form-btn">
                             <button
                                 id="submitBtn"

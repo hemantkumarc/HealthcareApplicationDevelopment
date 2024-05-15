@@ -24,9 +24,9 @@ export default function DoctorNavBar({ setSearch }) {
     >
       <Container>
         <Navbar.Brand href="#home">
-          <img src={drVolteLogo} alt="logo" className="img-logo" />
-          Dr.VoLTE
+          <img style={{width: "130px"}} src={drVolteLogo} alt="logo" className="img-logo" />
         </Navbar.Brand>
+        <Navbar.Text style={{marginLeft: "-45px", marginRight: "15px"}}>Dr.VoLTE</Navbar.Text>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">

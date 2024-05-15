@@ -3,17 +3,20 @@ import React, { useEffect, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { getResponseGet, getResponsePost } from "../../utils/utils";
 
-const CallHistory = ({ apiOption }) => {
+const Notification = () => {
     const [isDataLoaded, setIsDataLoaded] = useState(false);
     const [callHistories, setCallHistories] = useState(null);
     const id = localStorage.getItem("id");
     useEffect(() => {
         const getCallHistory = async () => {
             let response = await getResponseGet(
-                `/springdatarest/callHistories/search/byids?patientid=` + id
+                `/springdatarest/callHistories/search/patientIdAndStatus?patientid=` +
+                    id +
+                    "&status=missed"
             );
             console.log(response);
             setCallHistories(response?.data?._embedded?.callHistories);
+
             setTimeout(() => {
                 setIsDataLoaded(true);
             }, 1000);
@@ -67,7 +70,8 @@ const CallHistory = ({ apiOption }) => {
             {isDataLoaded ? (
                 callHistories.map((call) => (
                     <div key={call.callId}>
-                        {id} - {getDuration(call.callStart, call.callEnd)} -{" "}
+                        Missed Call {" " + id} -{" "}
+                        {getDuration(call.callStart, call.callEnd)} -{" "}
                         {getDateTime(call.callStart)}
                         <hr /> <br />
                     </div>
@@ -84,4 +88,4 @@ const CallHistory = ({ apiOption }) => {
     );
 };
 
-export default CallHistory;
+export default Notification;

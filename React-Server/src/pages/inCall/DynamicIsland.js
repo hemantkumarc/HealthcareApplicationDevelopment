@@ -25,9 +25,6 @@ const DynamicIsland = () => {
     var initTime = new Date();
 
     const showTimer = (ms) => {
-        const milliseconds = Math.floor((ms % 1000) / 10)
-            .toString()
-            .padStart(2, "0");
         const second = Math.floor((ms / 1000) % 60)
             .toString()
             .padStart(2, "0");
@@ -38,7 +35,7 @@ const DynamicIsland = () => {
         setTime(
             // hour.padStart(2, "0") +
             // ":" +
-            minute + ":" + second + ":" + milliseconds
+            minute + ":" + second
         );
     };
 
@@ -51,7 +48,7 @@ const DynamicIsland = () => {
                 setTime("00:00:00:00");
                 clearInterval(id);
             }
-        }, 1);
+        }, 1000);
         return () => clearInterval(id);
     });
     const [isOpen, setIsOpen] = useState(false);
@@ -280,7 +277,7 @@ const DynamicIsland = () => {
             {isOpen && (
                 <>
                     <StyledPlayBarWrapper>
-                        <h4 style={{ marginLeft: "79px", color: "beige" }}>
+                        <h4 style={{ marginLeft: "145%", color: "beige", marginTop: "15%" }}>
                             {time}
                         </h4>
                     </StyledPlayBarWrapper>

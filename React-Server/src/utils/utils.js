@@ -122,7 +122,8 @@ export const initiateWebRTC = async (
     socketConn,
     sourceRole,
     connections,
-    destRole
+    destRole,
+    streamAudio
 ) => {
     // {
     // iceServers: [
@@ -166,7 +167,7 @@ export const initiateWebRTC = async (
         console.log("Error:", error);
     }
     console.log("ahem!!");
-    handleStreamingAudio(peerConnection);
+    handleStreamingAudio(peerConnection, streamAudio);
     return peerConnection;
 };
 
@@ -245,7 +246,7 @@ export const handlePeerConnectionClose = (
 /**
  * @param {RTCPeerConnection} peerconnection The Peerconnection
  */
-export const handleStreamingAudio = (peerconnection) => {
+export const handleStreamingAudio = (peerconnection, streamAudio) => {
     console.log("adding the local track to the peerconnection");
     localMediaStream = navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -260,6 +261,7 @@ export const handleStreamingAudio = (peerconnection) => {
                     track,
                     stream
                 );
+                track.enabled = streamAudio != null ? streamAudio : true;
                 peerconnection.addTrack(track, stream);
             });
         })

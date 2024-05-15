@@ -93,7 +93,8 @@ const RestBody = ({
     };
 
     const createWebsocketConnection = () => {
-        console.log("Creating a new WebSocket connection...");
+        console.log("Creating a new WebSocket connection...", conn);
+        if (isWebRTCConnected && conn && conn.readyState <= 1) return;
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onclose = (msg) => {
@@ -118,7 +119,6 @@ const RestBody = ({
             }, 3000);
         };
         conn.onopen = (e) => {
-            setIsWebSocketConnected(true);
             console.log("socket connection opened", conn, e);
             send(conn, getSocketJson("", "settoken", token, role));
             conn.addEventListener("message", async (e) => {
@@ -136,6 +136,9 @@ const RestBody = ({
                             "Invalid JWT token, idont know why, logging out now"
                         );
                         localStorage.clear();
+                        callingTone.pause();
+                        callOnwait.pause();
+                        askConsentAudio.pause();
                         navigate("/patientlogin");
                     }
 
@@ -149,6 +152,12 @@ const RestBody = ({
                         } else {
                             setShowIncomingCallModal(true);
                         }
+                    }
+                    if (data.data === "Connected") {
+                        setShowCallConnectingModal(false);
+                    }
+                    if (data.data === "addedToken") {
+                        setIsWebSocketConnected(true);
                     }
                 }
                 if (data.event === "accept") {
@@ -388,17 +397,19 @@ const RestBody = ({
     };
 
     const contactCounsellor = async (targetid) => {
+        console.log("contact counsellor", targetid, declinedCounsellors);
         if (targetid) {
             send(
                 conn,
                 getSocketJson(
-                    String(id[0]),
+                    String(targetid),
                     "connect",
                     token,
                     role,
                     counsellorRole
                 )
             );
+            return;
         }
 
         let response = await getResponseGet("/onlinestatus");
@@ -455,6 +466,7 @@ const RestBody = ({
             setTimeout(() => {
                 setShowCallConnectingModal(false);
             }, 3000);
+            declinedCounsellors.clear();
         }
     };
 
@@ -541,7 +553,8 @@ const RestBody = ({
         );
         callOnwait.pause();
         callingTone.pause();
-
+        askConsentAudio.pause();
+        declinedCounsellors.clear();
         addnumber("");
         if (inCallQueue) {
             send(

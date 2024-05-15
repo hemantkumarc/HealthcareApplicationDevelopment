@@ -13,7 +13,6 @@ import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -24,10 +23,10 @@ import MailIcon from "@mui/icons-material/Mail";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { Calendar, Whisper, Popover, Badge } from "rsuite";
 import "rsuite/Calendar/styles/index.css";
-import ListGroup from "react-bootstrap/ListGroup";
 import { List } from "rsuite";
 import "rsuite/List/styles/index.css";
 import "./todoStyle.css";
+import coughPath from "../../assets/Audios/cough.mp3";
 import { TodoWrapper } from "./todo/TodoWrapper";
 import { useNavigate } from "react-router-dom";
 import Timeline from "@mui/lab/Timeline";
@@ -37,6 +36,8 @@ import TimelineConnector from "@mui/lab/TimelineConnector";
 import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import {
+    getResponseGet,
+    getResponsePost,
     getSocketJson,
     initiateWebRTC,
     initiateWebsocket,
@@ -48,8 +49,15 @@ import { defineElement } from "lord-icon-element";
 import InCall from "../inCall/InCall";
 import { jwtDecode } from "jwt-decode";
 import { Modal } from "react-bootstrap";
+import { FiMoon, FiSun } from "react-icons/fi";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiAlertCircle } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 defineElement(lottie.loadAnimation);
+
+const TOGGLE_CLASSES =
+    "text-sm font-medium flex items-center gap-2 px-3 md:pl-3 md:pr-3.5 py-3 md:py-1.5 transition-colors relative z-10";
 
 const drawerWidth = 240;
 
@@ -252,6 +260,42 @@ function getTodoList(date) {
     }
 }
 
+function formatDateString(dateString) {
+    const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear();
+    return `${day} ${months[monthIndex]}`;
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const amPM = hours >= 12 ? "PM" : "AM";
+
+    // Convert to 12-hour format
+    hours = hours % 12;
+    hours = hours ? hours : 12; // Handle midnight (0 hours)
+
+    console.log(hours + ":" + (minutes < 10 ? "0" : "") + minutes + " " + amPM);
+    return `${hours}:${(minutes < 10 ? "0" : "") + minutes} ${amPM}`;
+}
+
 const adminRole = "ROLE_ADMIN",
     counsellorRole = "ROLE_COUNSELLOR",
     patientRole = "ROLE_PATIENT",
@@ -265,19 +309,147 @@ const connections = {
 };
 const srDrAudio = new Audio(),
     patientAudio = new Audio();
+
+let token = localStorage.getItem("token");
+let patientsList;
+let selectedPatient;
+let callhistory;
+let patientId;
+var coughAudio = new Audio(coughPath);
+//------------------------------------------------------------------------------------------------------------------------------
+
 function CounsellorDashboard() {
+    const [callbacks, setCallbacks] = useState([]);
+
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const [selected, setSelected] = useState("active");
+
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [showInCall, setShowIncall] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [inGetConsentMode, setInGetConsentMode] = useState(false);
+    const [callHistory, setCallHistory] = useState([]);
+    const [show, setShow] = useState(false);
+    const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
+    const [patID, setPatIDm] = useState(0);
+    var consentResponse;
+    coughAudio.loop = true;
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+    useEffect(() => {
+        getCallHistory();
+
+        console.log("IDDDDDDD", window.localStorage.getItem("id"));
+    }, []);
+
+    useEffect(() => {
+        const getPatients = async () => {
+            let res = await getResponseGet("/springdatarest/patients");
+            patientsList = res?.data?._embedded?.patients;
+            console.log("Patients: ", patientsList);
+        };
+        getPatients();
+
+        const getCallbacks = async () => {
+            let response = await getResponseGet("/springdatarest/callBacks");
+            setCallbacks(response?.data?._embedded?.callBacks);
+            console.log("Callbacks: ", callbacks);
+        };
+        getCallbacks();
+    }, []);
+
+    useEffect(() => {
+        const checkLoggedIn = async () => {
+            const loggedIn = await userLoggedIn();
+            token = localStorage.getItem("token");
+            if (loggedIn && token) {
+                console.log("this is token", token);
+                const jwtdecoded = jwtDecode(token);
+                console.log("this is the jwtDecode after decoding", jwtdecoded);
+                if (jwtdecoded.role !== "ROLE_COUNSELLOR") {
+                    navigate("/");
+                }
+                createWebsocketAndWebRTC();
+            } else {
+                navigate("/");
+            }
+            // if(loggedIn)
+        };
+        checkLoggedIn();
+    }, []);
+
+    const getCallHistory = async () => {
+        let res = await getResponseGet(
+            `/springdatarest/callHistories/search/byids?counsellorid=${localStorage.getItem(
+                "id"
+            )}`
+        );
+        console.log("this is call history res: ", res);
+        setCallHistory(res?.data?._embedded?.callHistories);
+        // console.log("Call History", callHistory[0].callEnd);
+
+        let response = await getResponseGet(
+            res?.data?._embedded?.callHistories[0]?._links.patient.href
+        );
+        console.log("Patient ID", response?.data);
+
+        patientId = response?.data?.resourceId;
+    };
+
+    const getDateTime = (dateStr) => {
+        const dateString = "2024-04-02T06:00:00.000+00:00";
+        const dateObj = new Date(dateString);
+
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+
+        const hours = String(dateObj.getHours()).padStart(2, "0");
+        const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+        const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+
+        const formattedDate = `${year}-${month}-${day}`;
+        const formattedTime = `${hours}:${minutes}:${seconds}`;
+
+        console.log("Date:", formattedDate);
+        console.log("Time:", formattedTime);
+
+        return `${formattedDate} ${formattedTime}`;
+    };
+
+    const getDuration = (startTime, endTime) => {
+        console.log("this is call history", callHistory, startTime, endTime);
+        const callEnd = new Date(endTime);
+        const callStart = new Date(startTime);
+
+        const timeDifferenceMs = callEnd - callStart;
+
+        // Convert milliseconds to hours, minutes, and seconds
+        const hours = Math.floor(timeDifferenceMs / (1000 * 60 * 60));
+        const minutes = Math.floor(
+            (timeDifferenceMs % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((timeDifferenceMs % (1000 * 60)) / 1000);
+
+        // Format the result
+        const formattedTimeDifference = `${hours}:${minutes}:${seconds}`;
+
+        console.log(formattedTimeDifference); // Output: "24:0:0"
+        return formattedTimeDifference;
+    };
 
     const createCall = async () => {
         setTimeout(() => {
             setShowIncall(true);
             setShowIncomingCallModal(false);
+            coughAudio.pause();
         }, 3000);
         conn.destRole = patientRole;
         send(conn, getSocketJson("", "accept", token, role, patientRole));
@@ -308,9 +480,6 @@ function CounsellorDashboard() {
                     patientRole
                 )
             );
-            setTimeout(() => {
-                toggleMute();
-            }, 2000);
             setInGetConsentMode(true);
         };
     };
@@ -320,17 +489,23 @@ function CounsellorDashboard() {
             conn,
             getSocketJson("decline", "decline", token, role, patientRole)
         );
+        coughAudio.pause();
         setShowIncomingCallModal(false);
     };
 
+    const getConstResponse = () => consentResponse;
+
     const createWebsocketAndWebRTC = () => {
-        console.log("Hi caounsellor haha");
+        console.log("Creating a new WebSocket connection...", conn);
+        if (isWebSocketConnected && conn && conn.readyState <= 1) return;
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
+        conn.onclose = (msg) => {
+            setIsWebSocketConnected(false);
+            console.log("socket connection closed", msg.data);
+        };
         conn.onopen = () => {
-            conn.onclose = (msg) => {
-                console.log("socket connection closed", msg.data);
-            };
+            console.log("connection opened", conn);
             function send(message) {
                 conn.send(JSON.stringify(message));
             }
@@ -347,8 +522,14 @@ function CounsellorDashboard() {
                 if (data.event === "reply") {
                     if (data.data === "addedToken") {
                         console.log("adding token Successfull");
+                        setIsWebSocketConnected(true);
                     }
                     if (data.data.startsWith("NewConnection")) {
+                        console.log("Checking Patient ID......", data.data);
+                        var str = data.data;
+                        var parts = str.split(":");
+                        setPatIDm(parts[1]);
+                        coughAudio.play();
                         setShowIncomingCallModal(true);
                     }
                     if (data.data === "srDrConnect") {
@@ -371,13 +552,22 @@ function CounsellorDashboard() {
                             console.log("this the audio obj", srDrAudio);
                         };
                     }
+                    if (data.data === "NotAvailable") {
+                        console.log("Patient is not avaialbe ");
+                        toast.error("Patient has switched off his phone!", {
+                            position: "top-right",
+                        });
+                        setIsOpen(false);
+                    }
                 }
                 if (data.event === "decline") {
                     console.log("Got decline the call", data);
+                    coughAudio.pause();
+                    setShowIncomingCallModal(false);
                     if (data.source === srDrRole && srDrPeerConnection) {
                         handleEndCall(srDrPeerConnection, srDrRole);
                     }
-                    if (data.source === patientRole && patientPeerConnection) {
+                    if (data.source === patientRole) {
                         handleEndCall(patientPeerConnection, patientRole);
                     }
                 }
@@ -467,26 +657,9 @@ function CounsellorDashboard() {
         }
     };
 
-    useEffect(() => {
-        const checkLoggedIn = async () => {
-            const loggedIn = await userLoggedIn();
-            if (loggedIn) {
-                const jwtdecoded = jwtDecode(token);
-                console.log("this is the jwtDecode after decoding", jwtdecoded);
-                if (jwtdecoded.role !== "ROLE_COUNSELLOR") {
-                    navigate("/");
-                }
-                createWebsocketAndWebRTC();
-            } else {
-                navigate("/");
-            }
-            // if(loggedIn)
-        };
-        checkLoggedIn();
-    }, []);
-
     const handleLogout = () => {
         localStorage.clear();
+        token && getResponsePost("/logoutuser", token);
         navigate("/");
     };
 
@@ -587,6 +760,7 @@ function CounsellorDashboard() {
     return showInCall ? (
         <>
             <InCall
+                patID={patID}
                 conn={conn}
                 connections={connections}
                 setShowIncall={setShowIncall}
@@ -644,16 +818,32 @@ function CounsellorDashboard() {
                                     <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                                     <Navbar.Collapse id="responsive-navbar-nav">
                                         <Nav className="me-auto">
-                                            <Nav.Link href="#features">
+                                            <Nav.Link
+                                                href="#features"
+                                                onClick={handleShow}
+                                            >
                                                 Call History
                                             </Nav.Link>
                                         </Nav>
                                         <Nav>
+                                            <div
+                                                className={`grid h-[67px] place-content-center px-4 transition-colors ${
+                                                    selected === "busy"
+                                                        ? "bg-gray"
+                                                        : "bg-gray"
+                                                }`}
+                                            >
+                                                <SliderToggle
+                                                    selected={selected}
+                                                    setSelected={setSelected}
+                                                />
+                                            </div>
+
                                             <Nav.Link href="#deets">
                                                 <IoIosNotifications
                                                     style={{
                                                         fontSize: "35px",
-                                                        marginTop: "3px",
+                                                        marginTop: "9px",
                                                         marginRight: "8px",
                                                     }}
                                                 />
@@ -671,6 +861,40 @@ function CounsellorDashboard() {
                                 </Container>
                             </Navbar>
                         </AppBar>
+
+                        <Modal
+                            show={show}
+                            onHide={handleClose}
+                            aria-labelledby="contained-modal-title-vcenter"
+                            centered
+                        >
+                            <Modal.Header closeButton>
+                                <Modal.Title id="contained-modal-title-vcenter">
+                                    Call History
+                                </Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Modal.Body>
+                                    {callHistory?.map((call) => (
+                                        <div key={call.callId}>
+                                            Patient ID - {patientId} Duration -{" "}
+                                            {getDuration(
+                                                call.callStart,
+                                                call.callEnd
+                                            )}{" "}
+                                            Date - {getDateTime(call.callStart)}
+                                            <hr /> <br />
+                                        </div>
+                                    ))}
+                                </Modal.Body>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button variant="primary" onClick={handleClose}>
+                                    Okay
+                                </Button>
+                            </Modal.Footer>
+                        </Modal>
+
                         <Drawer
                             sx={{
                                 width: drawerWidth,
@@ -684,77 +908,155 @@ function CounsellorDashboard() {
                             anchor="left"
                         >
                             <Toolbar>
-                                <div id="logo">
-                                    <img
-                                        src={require("../../assets/drVolteLogo.png")}
-                                        alt="logo"
-                                        style={{
-                                            height: "70px",
-                                            width: "87px",
-                                            marginTop: "-25px",
-                                            marginLeft: "-60px",
-                                        }}
-                                    />
-                                </div>
-                                <div id="user">
-                                    <img
-                                        src={require("../../assets/curly-hair-man.png")}
-                                        alt="user"
-                                    />
-                                </div>
                                 <div>
                                     <img
-                                        id="profileInfo"
-                                        src={require("../../assets/sign-up.png")}
-                                        alt="profile"
+                                        src={require("../../assets/drVolteLogo.png")}
+                                        alt=""
                                         style={{
                                             height: "70px",
-                                            width: "80px",
-                                            marginBottom: "-3px",
+                                            width: "110px",
+                                            marginLeft: "-25px",
                                         }}
                                     />
+                                </div>
+                                {/* Counsellor Name */}
+                                <div>
+                                    <p
+                                        onClick={() => {
+                                            createWebsocketAndWebRTC();
+                                        }}
+                                        style={{
+                                            fontSize: "14px",
+                                            marginTop: "18px",
+                                            width: "130px",
+                                            marginRight: "-10px",
+                                            fontWeight: "bold",
+                                            marginLeft: "-30px",
+                                        }}
+                                    >
+                                        {`Dr. ${window.localStorage.getItem(
+                                            "name"
+                                        )}`}
+                                        {isWebSocketConnected ? (
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/pzetejwe.json"
+                                                trigger="loop"
+                                                delay="1000"
+                                                style={{
+                                                    width: "30px",
+                                                    height: "30px",
+                                                }}
+                                            ></lord-icon>
+                                        ) : (
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/zjhryiyb.json"
+                                                trigger="loop"
+                                                delay="1000"
+                                                state="morph-heart-broken"
+                                                colors="primary:#e83a30,secondary:#ebe6ef,tertiary:#ffc738,quaternary:#f9c9c0,quinary:#7166ee"
+                                                style={{
+                                                    width: "30px",
+                                                    height: "30px",
+                                                }}
+                                            ></lord-icon>
+                                        )}
+                                    </p>
                                 </div>
                             </Toolbar>
                             <Divider />
                             <List>
-                                {[
-                                    "Inbox",
-                                    "Starred",
-                                    "Send email",
-                                    "Drafts",
-                                ].map((text, index) => (
-                                    <ListItem key={text} disablePadding>
-                                        <ListItemButton>
-                                            <ListItemIcon>
-                                                {index % 2 === 0 ? (
-                                                    <InboxIcon />
-                                                ) : (
-                                                    <MailIcon />
-                                                )}
-                                            </ListItemIcon>
-                                            <ListItemText primary={text} />
-                                        </ListItemButton>
-                                    </ListItem>
-                                ))}
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox-3.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Inbox" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/starred-email-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Starred" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Send Email" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/email-time-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Drafts" />
+                                    </ListItemButton>
+                                </ListItem>
                             </List>
                             <Divider />
                             <List>
-                                {["All mail", "Trash", "Spam"].map(
-                                    (text, index) => (
-                                        <ListItem key={text} disablePadding>
-                                            <ListItemButton>
-                                                <ListItemIcon>
-                                                    {index % 2 === 0 ? (
-                                                        <InboxIcon />
-                                                    ) : (
-                                                        <MailIcon />
-                                                    )}
-                                                </ListItemIcon>
-                                                <ListItemText primary={text} />
-                                            </ListItemButton>
-                                        </ListItem>
-                                    )
-                                )}
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/inbox-4.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="All Mail" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/cancel-email-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Trash" />
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <ListItem disablePadding>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            <img
+                                                src={require("../../assets/email-warning-2.png")}
+                                                alt="user"
+                                                className="emailIcons"
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Spam" />
+                                    </ListItemButton>
+                                </ListItem>
                             </List>
                             <img
                                 src={require("../../assets/Singing Contract (1).gif")}
@@ -762,23 +1064,8 @@ function CounsellorDashboard() {
                             />
                         </Drawer>
 
-                        <div className="row bgDash">
-                            <Card
-                                id="pieCard"
-                                className="col-3"
-                                onClick={(e) => {
-                                    send(
-                                        conn,
-                                        getSocketJson(
-                                            "5",
-                                            "connect",
-                                            token,
-                                            counsellorRole,
-                                            patientRole
-                                        )
-                                    );
-                                }}
-                            >
+                        <div className="row bgDash mContent">
+                            <Card id="pieCard" className="col-3">
                                 <PieChart
                                     series={[
                                         {
@@ -896,66 +1183,69 @@ function CounsellorDashboard() {
                                         id="listAppointments"
                                         style={{ backgroundColor: "GrayText" }}
                                     >
-                                        <List.Item className="listItem">
-                                            Rahul Sharma | 30th April
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Arvind Kohli | 2nd May
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Mann Singh | 16th May
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "30px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
-                                        <List.Item className="listItem">
-                                            Shashi Shastri | 3rd June
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/anqzffqz.json"
-                                                trigger="click"
-                                                state="morph-check"
-                                                style={{
-                                                    width: "30px",
-                                                    height: "30px",
-                                                    float: "right",
-                                                    marginRight: "28px",
-                                                    marginBottom: "-10px",
-                                                }}
-                                            ></lord-icon>
-                                        </List.Item>
+                                        {callbacks?.map((item, index) => {
+                                            const formattedDate =
+                                                formatDateString(
+                                                    item?.schedule
+                                                );
+
+                                            var patientName;
+                                            patientsList?.forEach((patient) => {
+                                                if (
+                                                    patient.resourceId ==
+                                                    item?.resourceId
+                                                ) {
+                                                    patientName = patient.name;
+                                                }
+                                            });
+                                            if (item?.status === "scheduled") {
+                                                return (
+                                                    <List.Item
+                                                        key={index}
+                                                        className="listItem"
+                                                    >
+                                                        {patientName} |{" "}
+                                                        {formattedDate}
+                                                        <lord-icon
+                                                            src="https://cdn.lordicon.com/anqzffqz.json"
+                                                            trigger="click"
+                                                            state="morph"
+                                                            style={{
+                                                                width: "30px",
+                                                                height: "30px",
+                                                                float: "right",
+                                                                marginRight:
+                                                                    "30px",
+                                                                marginBottom:
+                                                                    "-10px",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => {
+                                                                setIsOpen(true);
+                                                                setSelectedItem(
+                                                                    item
+                                                                );
+                                                            }}
+                                                        ></lord-icon>
+                                                        <SpringModal
+                                                            isOpen={isOpen}
+                                                            setIsOpen={
+                                                                setIsOpen
+                                                            }
+                                                            selectedItem={
+                                                                selectedItem
+                                                            }
+                                                            name={patientName}
+                                                            date={
+                                                                item?.schedule
+                                                            }
+                                                        />
+                                                    </List.Item>
+                                                );
+                                            } else {
+                                                return null; // No content for items with status other than "scheduled"
+                                            }
+                                        })}
                                     </List>
                                 </div>
 
@@ -971,5 +1261,166 @@ function CounsellorDashboard() {
         </>
     );
 }
+
+const SliderToggle = ({ selected, setSelected }) => {
+    return (
+        <div className="relative flex w-fit items-center rounded-full">
+            <button
+                className={`${TOGGLE_CLASSES} ${
+                    selected === "busy" ? "text-white" : "text-slate-800"
+                }`}
+                onClick={() => {
+                    setSelected("busy");
+                    send(
+                        conn,
+                        getSocketJson(
+                            "connected:busy",
+                            "changestate",
+                            token,
+                            counsellorRole,
+                            patientRole
+                        )
+                    );
+                }}
+            >
+                <FiMoon className="relative z-10 text-lg md:text-sm" />
+                <span className="relative z-10">Busy</span>
+            </button>
+            <button
+                className={`${TOGGLE_CLASSES} ${
+                    selected === "active" ? "text-white" : "text-slate-800"
+                }`}
+                onClick={() => {
+                    setSelected("active");
+                    send(
+                        conn,
+                        getSocketJson(
+                            "busy:connected",
+                            "changestate",
+                            token,
+                            counsellorRole,
+                            patientRole
+                        )
+                    );
+                }}
+            >
+                <FiSun className="relative z-10 text-lg md:text-sm" />
+                <span className="relative z-10">Active</span>
+            </button>
+            <div
+                className={`absolute inset-0 z-0 flex ${
+                    selected === "active" ? "justify-end" : "justify-start"
+                }`}
+            >
+                <motion.span
+                    layout
+                    transition={{ type: "spring", damping: 15, stiffness: 250 }}
+                    className={`h-full w-1/2 rounded-full ${
+                        selected === "busy"
+                            ? "bg-gradient-to-r from-red-500 to-red-700"
+                            : "bg-gradient-to-r from-violet-600 to-indigo-600"
+                    }`}
+                />
+            </div>
+        </div>
+    );
+};
+
+const SpringModal = ({ isOpen, setIsOpen, selectedItem, name, date }) => {
+    console.log("Selected Item: ", selectedItem);
+    var time = formatTime(date);
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsOpen(false)}
+                    className="bg-slate-900/20 backdrop-blur p-8 fixed inset-0 z-50 grid place-items-center overflow-y-scroll cursor-pointer"
+                >
+                    <motion.div
+                        initial={{ scale: 0, rotate: "12.5deg" }}
+                        animate={{ scale: 1, rotate: "0deg" }}
+                        exit={{ scale: 0, rotate: "0deg" }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-gradient-to-br from-violet-600 to-indigo-600 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
+                    >
+                        <FiAlertCircle className="text-white/10 rotate-12 text-[250px] absolute z-0 -top-24 -left-24" />
+                        <div className="relative z-10">
+                            <div className="bg-white w-16 h-16 mb-2 rounded-full text-3xl text-indigo-600 grid place-items-center mx-auto">
+                                <FiAlertCircle />
+                            </div>
+                            <h3 className="text-3xl font-bold text-center mb-2">
+                                Appointment!
+                            </h3>
+                            <p className="text-center mb-6 text-white text-xl">
+                                Name:{" "}
+                                <span className="font-semibold">{name}</span>
+                            </p>
+
+                            <div>
+                                <p
+                                    style={{
+                                        marginTop: "-20px",
+                                        marginLeft: "20px",
+                                    }}
+                                    className="text-center mb-6 text-white text-xl"
+                                >
+                                    Reason:{" "}
+                                    <span className="font-semibold">
+                                        {selectedItem.followupReason}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <p
+                                    style={{
+                                        marginTop: "-20px",
+                                        marginLeft: "-70px",
+                                    }}
+                                    className="text-center mb-6 text-white text-xl"
+                                >
+                                    Time:{" "}
+                                    <span className="font-semibold">
+                                        {time}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="bg-transparent hover:bg-white/10 transition-colors text-white font-semibold w-full py-2 rounded"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    // onClick={() => setIsOpen(false)}
+                                    onClick={(e) => {
+                                        send(
+                                            conn,
+                                            getSocketJson(
+                                                "5",
+                                                "connect",
+                                                token,
+                                                counsellorRole,
+                                                patientRole
+                                            )
+                                        );
+                                    }}
+                                    className="bg-white hover:opacity-90 transition-opacity text-indigo-600 font-semibold w-full py-2 rounded"
+                                >
+                                    Call
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+};
 
 export default CounsellorDashboard;
