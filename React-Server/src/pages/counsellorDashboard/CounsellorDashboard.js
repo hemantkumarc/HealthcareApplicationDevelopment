@@ -52,6 +52,7 @@ import { Modal } from "react-bootstrap";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiAlertCircle } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 defineElement(lottie.loadAnimation);
 
@@ -314,7 +315,6 @@ let patientsList;
 let selectedPatient;
 let callhistory;
 let patientId;
-var patID;
 var coughAudio = new Audio(coughPath);
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -336,6 +336,7 @@ function CounsellorDashboard() {
     const [callHistory, setCallHistory] = useState([]);
     const [show, setShow] = useState(false);
     const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
+    const [patID, setPatIDm] = useState(0);
     var consentResponse;
     coughAudio.loop = true;
 
@@ -496,7 +497,7 @@ function CounsellorDashboard() {
 
     const createWebsocketAndWebRTC = () => {
         console.log("Creating a new WebSocket connection...", conn);
-        if (conn && conn.readyState <= 1) return;
+        if (isWebSocketConnected && conn && conn.readyState <= 1) return;
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onclose = (msg) => {
@@ -504,6 +505,7 @@ function CounsellorDashboard() {
             console.log("socket connection closed", msg.data);
         };
         conn.onopen = () => {
+            console.log("connection opened", conn);
             function send(message) {
                 conn.send(JSON.stringify(message));
             }
@@ -526,7 +528,7 @@ function CounsellorDashboard() {
                         console.log("Checking Patient ID......", data.data);
                         var str = data.data;
                         var parts = str.split(":");
-                        patID = parts[1];
+                        setPatIDm(parts[1]);
                         coughAudio.play();
                         setShowIncomingCallModal(true);
                     }
@@ -549,6 +551,13 @@ function CounsellorDashboard() {
                             }, 2000);
                             console.log("this the audio obj", srDrAudio);
                         };
+                    }
+                    if (data.data === "NotAvailable") {
+                        console.log("Patient is not avaialbe ");
+                        toast.error("Patient has switched off his phone!", {
+                            position: "top-right",
+                        });
+                        setIsOpen(false);
                     }
                 }
                 if (data.event === "decline") {

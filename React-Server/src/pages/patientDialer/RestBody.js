@@ -94,7 +94,7 @@ const RestBody = ({
 
     const createWebsocketConnection = () => {
         console.log("Creating a new WebSocket connection...", conn);
-        if (conn && conn.readyState <= 1) return;
+        if (isWebRTCConnected && conn && conn.readyState <= 1) return;
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
         conn.onclose = (msg) => {

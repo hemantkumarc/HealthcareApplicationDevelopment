@@ -34,7 +34,7 @@ const NavigationBar = ({
             >
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        CallHistory{notification ? " Notification" : "jhgf"}
+                        CallHistory{notification ? " Notification" : ""}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="text-center">

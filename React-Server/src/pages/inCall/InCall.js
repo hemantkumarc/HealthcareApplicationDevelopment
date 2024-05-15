@@ -94,7 +94,7 @@ function InCall({
 
     const [isOpen, setIsOpen] = useState(false);
     const [patientHistoryData, setPatientHistoryData] = useState([]);
-    const [isPut, setPut] = useState(0);
+    const [isPut, setPut] = useState(false);
 
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -143,16 +143,17 @@ function InCall({
     const getFamilies = async () => {
         let res = await getResponseGet(`/get_families?patient_id=${patID}`);
         setPatientFamily(res?.data);
+        console.log("get families res: ", res, patID);
         console.log("Yeahh Patient Family", res?.data);
-        if (`${res?.data[pID].name}` == "null") {
+        if (`${res?.data[pID]?.name}` === "null") {
             setTitle("New User");
         } else {
-            setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
+            setTitle(`${res?.data[pID]?.id} - ${res?.data[pID]?.name}`);
         }
 
         familyData = res?.data;
         // setResId(familyData[pID].id)
-        resId = familyData[pID].id;
+        resId = familyData[pID]?.id;
         console.log("PatientID in Call ---------------", patID);
     };
 
@@ -255,7 +256,7 @@ function InCall({
     }, [historyData]);
 
     const handleUser = () => {
-        setPut(1);
+        setPut(true);
         newUserSelected = "New User";
         setTitle("New User");
         setSelectedID(101);
@@ -651,6 +652,7 @@ function InCall({
                 );
             }
         }
+        setPut(false);
     };
 
     return (
