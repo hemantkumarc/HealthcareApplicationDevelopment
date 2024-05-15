@@ -19,6 +19,8 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/patientlogin" element={<PatientLogin />} />
                 <Route path="/patientdialer" element={<PatientDialer />} />
+                <Route path="/forgotpassword" element={<ForgotPassword />} />
+
                 <Route
                     path="/counsellorDashboard"
                     element={<CounsellorDashboard />}

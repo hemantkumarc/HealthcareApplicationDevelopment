@@ -336,7 +336,7 @@ function CounsellorDashboard() {
     const [callHistory, setCallHistory] = useState([]);
     const [show, setShow] = useState(false);
     const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
-
+    var consentResponse;
     coughAudio.loop = true;
 
     const handleClose = () => setShow(false);
@@ -491,6 +491,8 @@ function CounsellorDashboard() {
         coughAudio.pause();
         setShowIncomingCallModal(false);
     };
+
+    const getConstResponse = () => consentResponse;
 
     const createWebsocketAndWebRTC = () => {
         console.log("Creating a new WebSocket connection...", conn);

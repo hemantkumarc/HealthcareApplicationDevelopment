@@ -56,10 +56,16 @@ var resId;
 var patientList;
 var pID = 0;
 var counsellorCalls;
-var srDrInCall = [6];
-var srDrOnline = [5];
-var cInCall = [4, 5, 6, 7];
-var cOnline = [1, 2, 3, 4];
+var srDrInCall;
+var srDrOnline;
+var cInCall;
+var cOnline;
+var srDrBusy;
+var cBusy;
+var pInCall;
+var pOnline;
+var inCallWaiting;
+var missedCalls;
 let newUserSelected;
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +94,7 @@ function InCall({
 
     const [isOpen, setIsOpen] = useState(false);
     const [patientHistoryData, setPatientHistoryData] = useState([]);
-    const [isPut, setPut] = useState(0)
+    const [isPut, setPut] = useState(0);
 
     const today = new Date();
     const month = today.getMonth() + 1;
@@ -104,9 +110,10 @@ function InCall({
     const [showSchedule, setScheduleModal] = useState(false);
     const [showRedirect, setRedirect] = useState(false);
     const [showSelectedRedirect, setSelectedRedirect] = useState(false);
-    const [getPatientList, setPatientList] = useState([])
+    const [getPatientList, setPatientList] = useState([]);
 
     useEffect(() => {
+        console.log(conn, peerconnection);
         handlePeerConnectionClose(
             conn,
             peerconnection,
@@ -120,7 +127,7 @@ function InCall({
         getOnlineStatus();
         getSeniorDrs();
         getCounsellors();
-        
+
         getFamilies();
         getPatients();
     }, []);
@@ -129,25 +136,24 @@ function InCall({
         let res = await getResponseGet("/springdatarest/patients");
         console.log("Patient Data", res?.data?._embedded?.patients);
         patientList = res?.data?._embedded?.patients;
-        setPatientList(res?.data?._embedded?.patients)
-        console.log("PATIENT LIST", patientList)
+        setPatientList(res?.data?._embedded?.patients);
+        console.log("PATIENT LIST", patientList);
     };
 
     const getFamilies = async () => {
         let res = await getResponseGet(`/get_families?patient_id=${patID}`);
         setPatientFamily(res?.data);
         console.log("Yeahh Patient Family", res?.data);
-        if(`${res?.data[pID].name}` == "null") {
-            setTitle("New User")
-        }
-        else {
+        if (`${res?.data[pID].name}` == "null") {
+            setTitle("New User");
+        } else {
             setTitle(`${res?.data[pID].id} - ${res?.data[pID].name}`);
         }
-        
+
         familyData = res?.data;
         // setResId(familyData[pID].id)
         resId = familyData[pID].id;
-        console.log("PatientID in Call ---------------", patID)
+        console.log("PatientID in Call ---------------", patID);
     };
 
     // const getPatientHistories = async () => {
@@ -194,10 +200,12 @@ function InCall({
     };
 
     const getPatientByID = async () => {
-        let res = await getResponseGet(`/springdatarest/patientHistories/search/byattributes?patientid=${resId}&consent=true`);
+        let res = await getResponseGet(
+            `/springdatarest/patientHistories/search/byattributes?patientid=${resId}&consent=true`
+        );
         setPatientHistoryData(res?.data?._embedded?.patientHistories);
         console.log("Patient Hitory" + `${resId}: `, patientHistoryData);
-        historyData = res?.data?._embedded?.patientHistories
+        historyData = res?.data?._embedded?.patientHistories;
         console.log("Patient History Data, Var - historyData", historyData);
     };
 
@@ -214,7 +222,7 @@ function InCall({
             );
             resId = getPatientFamily[pID].id;
             // setResId(getPatientFamily[pID].id)
-            getPatientByID()
+            getPatientByID();
             // setName(getName());
             // setAddress(getAddress());
             // setMajorIssues(getMajorIssues());
@@ -224,11 +232,10 @@ function InCall({
             // setSymptoms(getSymptoms());
             // setSummary(getSummary());
 
-            
             //getPatientByID();
-            } else {
-                setTitle(`New User`);
-            }
+        } else {
+            setTitle(`New User`);
+        }
     };
 
     useEffect(() => {
@@ -323,6 +330,11 @@ function InCall({
     const getOnlineStatus = async () => {
         let res = await getResponseGet("/onlinestatus");
         counsellorCalls = res?.data?.counsellorCalls;
+        console.log("ONLINE_STATUS", res?.data);
+        srDrInCall = res?.data?.ROLE_SENIORDR_incall;
+        srDrOnline = res?.data?.ROLE_SENIORDR_online;
+        cInCall = res?.data?.ROLE_COUNSELLOR_incall;
+        cOnline = res?.data?.ROLE_COUNSELLOR_online;
     };
 
     //Patient History
@@ -358,6 +370,10 @@ function InCall({
     // #7808d0
     const buttonStyle = {
         "--clr": "#6280e3",
+        textDecoration: "none",
+    };
+    const buttonDisableStyle = {
+        "--clr": "#c8ccdb",
         textDecoration: "none",
     };
 
@@ -434,12 +450,13 @@ function InCall({
 
     function getPrescripton() {
         console.log("Resource Id", resId);
-        
+
         const prescriptionObjs = historyData?.filter(
             (item) => item.resourceId === resId
         );
-        const placeholder =
-            patientHistoryData[0]?.prescription ? patientHistoryData[0]?.prescription : "..";
+        const placeholder = patientHistoryData[0]?.prescription
+            ? patientHistoryData[0]?.prescription
+            : "..";
 
         return placeholder;
     }
@@ -448,8 +465,9 @@ function InCall({
         const symptomObjs = historyData?.filter(
             (item) => item.resourceId === resId
         );
-        const placeholder =
-            patientHistoryData[0]?.symptoms ? patientHistoryData[0]?.symptoms : "..";
+        const placeholder = patientHistoryData[0]?.symptoms
+            ? patientHistoryData[0]?.symptoms
+            : "..";
 
         return placeholder;
     }
@@ -458,8 +476,9 @@ function InCall({
         const summaryObjs = historyData?.filter(
             (item) => item.resourceId === resId
         );
-        const placeholder =
-            patientHistoryData[0]?.summanry ? patientHistoryData[0]?.summanry : "..";
+        const placeholder = patientHistoryData[0]?.summanry
+            ? patientHistoryData[0]?.summanry
+            : "..";
 
         return placeholder;
     }
@@ -559,7 +578,7 @@ function InCall({
         language: "",
         allergies: allergies,
         blood_group: "",
-        test_suggested: testSuggested
+        test_suggested: testSuggested,
     };
 
     const historyPayload = {
@@ -569,47 +588,69 @@ function InCall({
         consent: "true",
         audio_recording: "",
         created: "2024-04-01T05:00:00.000+00:00",
-        patient: `https://192.168.0.115/springdatarest/patientHistories/patient/${patID}`
-    }
+        patient: `https://192.168.0.115/springdatarest/patientHistories/patient/${patID}`,
+    };
 
     const handleAllDataSubmit = async () => {
-        if(isPut) {
-            const res = await getResponsePost(`/new_patient/${patID}`, dataPayload);
+        if (isPut) {
+            const res = await getResponsePost(
+                `/new_patient/${patID}`,
+                dataPayload
+            );
             if (res.status === 200) {
                 console.log("Data Post Response: ", res);
-                toast.success("Success: Your request was processed successfully!", {
-                    position: "top-right",
-                });
+                toast.success(
+                    "Success: Your request was processed successfully!",
+                    {
+                        position: "top-right",
+                    }
+                );
             }
 
-            const resHis = await getResponsePost(`/springdatarest/patientHistories`, historyPayload);
+            const resHis = await getResponsePost(
+                `/springdatarest/patientHistories`,
+                historyPayload
+            );
 
             if (resHis.status === 200) {
                 console.log("History Post Response: ", resHis);
-                toast.success("Success: Your request was processed successfully!", {
-                    position: "top-right",
-                });
+                toast.success(
+                    "Success: Your request was processed successfully!",
+                    {
+                        position: "top-right",
+                    }
+                );
             }
-        }
-        else {
-            const putResponse = await getResponsePut(`/new_patient/${patID}`, dataPayload)
+        } else {
+            const putResponse = await getResponsePut(
+                `/new_patient/${patID}`,
+                dataPayload
+            );
             if (putResponse.status === 200) {
                 console.log("PUT Response: ", putResponse);
-                toast.success("Success: Your request was processed successfully!", {
-                    position: "top-right",
-                });
+                toast.success(
+                    "Success: Your request was processed successfully!",
+                    {
+                        position: "top-right",
+                    }
+                );
             }
 
-            const resHis = await getResponsePut(`/springdatarest/patientHistories/${resId}`, historyPayload);
+            const resHis = await getResponsePut(
+                `/springdatarest/patientHistories/${resId}`,
+                historyPayload
+            );
 
             if (resHis.status === 200) {
                 console.log("History Post Response: ", resHis);
-                toast.success("Success: Your request was processed successfully!", {
-                    position: "top-right",
-                });
+                toast.success(
+                    "Success: Your request was processed successfully!",
+                    {
+                        position: "top-right",
+                    }
+                );
             }
         }
-        
     };
 
     return (
@@ -911,87 +952,84 @@ function InCall({
                                 Schedule Callback
                             </Button> */}
 
-                            {
-                                role === counsellorRole ?
-                            
-                            (<Link
-                                id="callBack"
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Prevent default behavior of navigating
-                                    showScheduleModal(); // Call your click handling function
-                                }}
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                            {role === counsellorRole ? (
+                                <Link
+                                    id="callBack"
+                                    style={buttonStyle}
+                                    className="button"
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent default behavior of navigating
+                                        showScheduleModal(); // Call your click handling function
+                                    }}
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Schedule Callback
-                            </Link>) : 
-                            
-                            <Link
-                                id="callBack"
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                disabled
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Schedule Callback
+                                </Link>
+                            ) : (
+                                <Link
+                                    id="callBack"
+                                    style={buttonDisableStyle}
+                                    className="button"
+                                    href="#"
+                                    disabled
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Schedule Callback
-                            </Link>
-                        
-                        }
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Schedule Callback
+                                </Link>
+                            )}
 
                             <Modal
                                 show={showSchedule}
@@ -1122,177 +1160,169 @@ function InCall({
                                 </Modal.Footer>
                             </Modal>
 
-                            {
-                                role === counsellorRole ?
-                                (<a
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                onClick={(e) => {
-                                    send(
-                                        conn,
-                                        getSocketJson(
-                                            "",
-                                            "askConsent",
-                                            token,
-                                            counsellorRole,
-                                            patientRole
-                                        )
-                                    );
-                                }}
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Ask Consent
-                            </a>) :
-
-                            (
+                            {role === counsellorRole ? (
                                 <a
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                disabled
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                                    style={buttonStyle}
+                                    className="button"
+                                    href="#"
+                                    onClick={(e) => {
+                                        send(
+                                            conn,
+                                            getSocketJson(
+                                                "",
+                                                "askConsent",
+                                                token,
+                                                counsellorRole,
+                                                patientRole
+                                            )
+                                        );
+                                    }}
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Ask Consent
-                            </a>
-                            ) 
-                        }
-
-                        {
-                            role === counsellorRole ?
-                            
-                            (<a
-                                id="contactSD"
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Prevent default behavior of navigating
-                                    handleShow(); // Call your click handling function
-                                }}
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Contact S.D
-                            </a>) : 
-
-                            (
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Ask Consent
+                                </a>
+                            ) : (
                                 <a
-                                id="contactSD"
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                disabled
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                                    style={buttonDisableStyle}
+                                    className="button"
+                                    href="#"
+                                    disabled
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Contact S.D
-                            </a>
-                            )
-                            
-                        }
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Ask Consent
+                                </a>
+                            )}
+
+                            {role === counsellorRole ? (
+                                <a
+                                    id="contactSD"
+                                    style={buttonStyle}
+                                    className="button"
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent default behavior of navigating
+                                        handleShow(); // Call your click handling function
+                                    }}
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Contact S.D
+                                </a>
+                            ) : (
+                                <a
+                                    id="contactSD"
+                                    style={buttonDisableStyle}
+                                    className="button"
+                                    href="#"
+                                    disabled
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Contact S.D
+                                </a>
+                            )}
 
                             <Modal show={show} onHide={handleClose}>
                                 <Modal.Header closeButton>
@@ -1420,84 +1450,82 @@ function InCall({
                                 </Modal.Footer>
                             </Modal>
 
-                            {
-                                role === counsellorRole ?
-                            
-                            (<a
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Prevent default behavior of navigating
-                                    handleShowRedirect(); // Call your click handling function
-                                }}
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                            {role === counsellorRole ? (
+                                <a
+                                    style={buttonStyle}
+                                    className="button"
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent default behavior of navigating
+                                        handleShowRedirect(); // Call your click handling function
+                                    }}
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Redirect Counsellor
-                            </a>) : 
-                            
-                            <a
-                                style={buttonStyle}
-                                className="button"
-                                href="#"
-                                disabled
-                            >
-                                <span className="button__icon-wrapper">
-                                    <svg
-                                        width="10"
-                                        className="button__icon-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Redirect Counsellor
+                                </a>
+                            ) : (
+                                <a
+                                    style={buttonDisableStyle}
+                                    className="button"
+                                    href="#"
+                                    disabled
+                                >
+                                    <span className="button__icon-wrapper">
+                                        <svg
+                                            width="10"
+                                            className="button__icon-svg"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
 
-                                    <svg
-                                        className="button__icon-svg  button__icon-svg--copy"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="10"
-                                        fill="none"
-                                        viewBox="0 0 14 15"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
-                                        ></path>
-                                    </svg>
-                                </span>
-                                Redirect Counsellor
-                            </a>
-                        }
+                                        <svg
+                                            className="button__icon-svg  button__icon-svg--copy"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="10"
+                                            fill="none"
+                                            viewBox="0 0 14 15"
+                                        >
+                                            <path
+                                                fill="currentColor"
+                                                d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    Redirect Counsellor
+                                </a>
+                            )}
 
                             <Modal
                                 show={showRedirect}

@@ -182,6 +182,7 @@ const Login = () => {
                             )}
                             <span className="focus-input100"></span>
                         </div>
+                        <a href="/forgotpassword">ForgotPassword</a>
                         <div class="container-login100-form-btn">
                             <button
                                 id="submitBtn"

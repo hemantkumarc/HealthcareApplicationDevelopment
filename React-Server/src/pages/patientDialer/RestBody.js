@@ -402,13 +402,14 @@ const RestBody = ({
             send(
                 conn,
                 getSocketJson(
-                    String(id[0]),
+                    String(targetid),
                     "connect",
                     token,
                     role,
                     counsellorRole
                 )
             );
+            return;
         }
 
         let response = await getResponseGet("/onlinestatus");
@@ -465,6 +466,7 @@ const RestBody = ({
             setTimeout(() => {
                 setShowCallConnectingModal(false);
             }, 3000);
+            declinedCounsellors.clear();
         }
     };
 

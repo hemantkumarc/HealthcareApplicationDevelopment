@@ -16,6 +16,7 @@ import {
 } from "../../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
+import InCall from "../../inCall/InCall";
 
 // import {
 // 	getSocketJson,
@@ -52,6 +53,8 @@ export default function SrDrDashboard() {
     const [showListeningCall, setShowListeningCall] = useState(false);
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
     const [showJoinCall, setShowJoinCall] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [patID, setPatID] = useState(0);
 
     const [filters, setFilters] = useState({
         specialization: [],
@@ -76,6 +79,37 @@ export default function SrDrDashboard() {
         };
         checkLoggedIn();
     }, []);
+
+    const getIsMuted = () => isMuted;
+
+    const toggleMute = () => {
+        setIsMuted((state) => !state);
+        console.log(counsellorPeerConnection);
+        if (
+            counsellorPeerConnection.connectionState === "disconnected" ||
+            counsellorPeerConnection.connectionState === "closed" ||
+            counsellorPeerConnection.connectionState === "failed"
+        ) {
+            disconnectCall(counsellorPeerConnection, counsellorRole);
+            return;
+        }
+        console.log(
+            "this is the getSenders",
+            counsellorPeerConnection.getSenders()
+        );
+        const counselloraudioTracks = counsellorPeerConnection?.getSenders();
+        counselloraudioTracks?.forEach((track) => {
+            console.log("track", track);
+            track.track.enabled = isMuted;
+            // track.enabled = !isMuted; // Toggle the track's enabled state
+        });
+        const patientaudioTracks = patientPeerConnection?.getSenders();
+        patientaudioTracks?.forEach((track) => {
+            console.log("track", track);
+            track.track.enabled = isMuted;
+            // track.enabled = !isMuted; // Toggle the track's enabled state
+        });
+    };
 
     const createPatientPeerConnection = async () => {
         send(conn, getSocketJson("", "accept", token, role, patientRole));
@@ -117,6 +151,8 @@ export default function SrDrDashboard() {
             disconnectCall,
             patientRole
         );
+
+        setShowJoinCall(streamAudio);
     };
 
     const createCounsellorPeerConnection = async () => {
@@ -238,14 +274,15 @@ export default function SrDrDashboard() {
             patientId,
             streamAudioSelected
         );
+        setPatID(patientId);
         streamAudio = streamAudioSelected;
-        setShowListeningCall(true);
+        setShowListeningCall(!streamAudio);
         patientId = String(patientId);
         counsellorId = String(counsellorId);
-        // send(
-        //     conn,
-        //     getSocketJson(patientId, "connectpatient", token, role, patientRole)
-        // );
+        send(
+            conn,
+            getSocketJson(patientId, "connectpatient", token, role, patientRole)
+        );
 
         send(
             conn,
@@ -292,46 +329,64 @@ export default function SrDrDashboard() {
         setShowIncomingCallModal(false);
         setShowJoinCall(false);
     };
-    return (
-        <div>
-            <Modal show={showListeningCall && !streamAudio} centered>
-                <Modal.Header>
-                    <Modal.Title>Listening Call</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="align-items-center d-inline-flex">
-                    <lord-icon
-                        src="https://cdn.lordicon.com/aollngfh.json"
-                        trigger="loop"
-                        delay="2000"
-                        style={{ width: "250px", height: "250px" }}
-                    ></lord-icon>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button
-                        className="btn btn-danger"
-                        variant="primary"
-                        onClick={() => {
-                            send(
-                                conn,
-                                getSocketJson(
-                                    "",
-                                    "decline",
-                                    token,
-                                    counsellorRole
-                                )
-                            );
-                            send(
-                                conn,
-                                getSocketJson("", "decline", token, patientRole)
-                            );
-                            disconnectCall();
-                        }}
-                    >
-                        End
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-            {/* <Modal show={showIncomingCallModal} centered>
+    return showJoinCall ? (
+        <>
+            <InCall
+                patID={patID}
+                conn={conn}
+                connections={connections}
+                handleEndCall={disconnectCall}
+                getIsMuted={getIsMuted}
+                toggleMute={toggleMute}
+                setIsMuted={setIsMuted}
+            />
+        </>
+    ) : (
+        <>
+            <div>
+                <Modal show={showListeningCall && !streamAudio} centered>
+                    <Modal.Header>
+                        <Modal.Title>Listening Call</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="align-items-center d-inline-flex">
+                        <lord-icon
+                            src="https://cdn.lordicon.com/aollngfh.json"
+                            trigger="loop"
+                            delay="2000"
+                            style={{ width: "250px", height: "250px" }}
+                        ></lord-icon>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button
+                            className="btn btn-danger"
+                            variant="primary"
+                            onClick={() => {
+                                send(
+                                    conn,
+                                    getSocketJson(
+                                        "",
+                                        "decline",
+                                        token,
+                                        counsellorRole
+                                    )
+                                );
+                                send(
+                                    conn,
+                                    getSocketJson(
+                                        "",
+                                        "decline",
+                                        token,
+                                        patientRole
+                                    )
+                                );
+                                disconnectCall();
+                            }}
+                        >
+                            End
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+                {/* <Modal show={showIncomingCallModal} centered>
                 <Modal.Header>
                     <Modal.Title>Incoming Call</Modal.Title>
                 </Modal.Header>
@@ -353,40 +408,41 @@ export default function SrDrDashboard() {
                     </Button>
                 </Modal.Footer>
             </Modal> */}
-            <header className="srdocnavbar-header">
-                <SrDocNavBar
-                    search={search}
-                    setSearch={setSearch}
-                    isWebSocketConnected={isWebSocketConnected}
-                    setIsWebSocketConnected={setIsWebSocketConnected}
-                    createWebsocketAndWebRTC={createWebsocketAndWebRTC}
-                    connections={connections}
-                />
-            </header>
-            <main>
-                <div className="outterbox">
-                    <div className="row">
-                        <div className="col-2">
-                            <div className="sidebar">
-                                <SideBar
-                                    setFilters={setFilters}
-                                    setSorts={setSorts}
-                                />
+                <header className="srdocnavbar-header">
+                    <SrDocNavBar
+                        search={search}
+                        setSearch={setSearch}
+                        isWebSocketConnected={isWebSocketConnected}
+                        setIsWebSocketConnected={setIsWebSocketConnected}
+                        createWebsocketAndWebRTC={createWebsocketAndWebRTC}
+                        connections={connections}
+                    />
+                </header>
+                <main>
+                    <div className="outterbox">
+                        <div className="row">
+                            <div className="col-2">
+                                <div className="sidebar">
+                                    <SideBar
+                                        setFilters={setFilters}
+                                        setSorts={setSorts}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="col-10">
-                            <div className="counsellor-list">
-                                <Counsellor
-                                    filters={filters}
-                                    search={search}
-                                    sorts={sorts}
-                                    makeConnections={makeConnections}
-                                />
+                            <div className="col-10">
+                                <div className="counsellor-list">
+                                    <Counsellor
+                                        filters={filters}
+                                        search={search}
+                                        sorts={sorts}
+                                        makeConnections={makeConnections}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
+        </>
     );
 }

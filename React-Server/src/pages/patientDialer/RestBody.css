@@ -6,3 +6,12 @@
 .phone-dialer .form-control {
     min-height: 70px;
 }
+.timer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.timer span {
+    font-size: 2rem;
+}
