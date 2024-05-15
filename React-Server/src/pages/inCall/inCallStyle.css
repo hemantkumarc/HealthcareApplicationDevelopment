@@ -1,0 +1,145 @@
+/* #cardForm {
+margin: 20px 60% auto 20px;
+} */
+
+#logoInCall {
+  height: 90px;
+  width: 90px;
+  margin-top: -20px;
+}
+
+.mArea {
+  margin-top: 30px;
+}
+
+.cards {
+    margin: 10px;
+    /* background: rgba(255, 255, 255, 0.5); */
+    background: rgba(255, 255, 255, 0.192);
+    backdrop-filter: blur(10px);
+}
+
+.btnCard {
+    margin: 10px;
+    margin-left: 45px;
+    background:cadetblue;
+    color: aliceblue;
+}
+
+.listHistory {
+    margin: 10px;
+}
+
+.items {
+    margin: 0px;
+    padding: 0px;
+}
+
+#parentElement {
+    /* background-color: rgb(240, 248, 255); */
+    background: url(../../assets/photo-1508614999368-9260051292e5.webp);
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 1050px;
+}
+
+.dx-list-item-content > div {
+    padding: 5px;
+    font-size: 15px;
+  }
+  
+  .options {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(191, 191, 191, 0.15);
+  }
+  
+  .options .caption {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .option {
+    margin-top: 10px;
+  }
+  
+  .option > span {
+    margin-right: 10px;
+  }
+  
+  .option > .dx-selectbox {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 350px;
+    width: 100%;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .button {
+  line-height: 1;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  background-color: var(--clr);
+  color: #fff;
+  border-radius: 10rem;
+  font-weight: 600;
+  padding: .55rem 0.8rem;
+  padding-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color .3s;
+}
+
+.button__icon-wrapper {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  position: relative;
+  color: var(--clr);
+  background-color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.button:hover {
+  background-color: #000;
+}
+
+.button:hover .button__icon-wrapper {
+  color: #000;
+}
+
+.button__icon-svg--copy {
+  position: absolute;
+  transform: translate(-150%, 150%);
+}
+
+.button:hover .button__icon-svg:first-child {
+  transition: transform .3s ease-in-out;
+  transform: translate(150%, -150%);
+}
+
+.button:hover .button__icon-svg--copy {
+  transition: transform .3s ease-in-out .1s;
+  transform: translate(0);
+}
+
+#contactSD {
+  margin-left: 27px;
+  margin-right: 15px;
+  margin-top: 10px;
+}
+
+#callBack {
+  margin-left: 25px;
+  margin-right: 15px;
+  margin-top: 10px;
+}
