@@ -15,7 +15,6 @@ export default function Counsellor({
     const [onlineCounselorIds, setOnlineCounselorIds] = useState(new Set());
     const [inCallCounselorIds, setInCallCounselorIds] = useState(new Set());
     const [busyCounselorIds, setBusyCounselorIds] = useState(new Set());
-    const [callsData, setCallsData] = useState([]);
 
     const [callData, setCallData] = useState();
 

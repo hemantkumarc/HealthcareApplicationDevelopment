@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import "./NavigationBar.css";
-import { Navbar, Container, Nav, Button } from "react-bootstrap";
+import { Navbar, Container, Nav, Button, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import CallHistory from "./CallHistory";
 import logo from "../../assets/drVolteLogo.png";
 import { getResponsePost } from "../../utils/utils";
+import Notification from "./Notification";
 const NavigationBar = ({
     isWebSocketConnected,
     setIsWebSocketConnected,
@@ -13,7 +14,8 @@ const NavigationBar = ({
     const navigate = useNavigate();
     const [showCallHistory, setShowCallHistory] = useState(false);
     const phnumber = localStorage.getItem("phNumber");
-
+    const [notification, setNotification] = useState(false);
+    const [callLogs, setCallLogs] = useState(false);
     const handleLogout = () => {
         let token = localStorage.getItem("token");
         localStorage.clear();
@@ -26,6 +28,28 @@ const NavigationBar = ({
     };
     return (
         <div>
+            <Modal
+                show={showCallHistory}
+                onHide={() => setShowCallHistory(false)}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        CallHistory{notification ? " Notification" : "jhgf"}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="text-center">
+                    {callLogs && !notification && <CallHistory />}
+                    {!callLogs && notification && <Notification />}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowCallHistory(false)}
+                    >
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <Navbar collapseOnSelect expand="lg" className="bg-body-tertiary">
                 <Container className="navBarContainer">
                     <div id="logo2">
@@ -44,8 +68,8 @@ const NavigationBar = ({
                     <Navbar.Text
                         className="justify-content-end rounded-pill phnumberText align-items-center d-inline-flex"
                         onClick={() => {
-                            !isWebSocketConnected &&
-                                functionsInRestBody.createWebsocketConnection();
+                            console.log("websocket connection status: ");
+                            functionsInRestBody.createWebsocketConnection();
                         }}
                     >
                         {phnumber}
@@ -73,7 +97,11 @@ const NavigationBar = ({
                     <Navbar.Collapse id="responsive-navbar-nav">
                         <Nav className="me-auto"></Nav>
                         <Button
-                            onClick={() => showModal()}
+                            onClick={() => {
+                                setCallLogs(true);
+                                setNotification(false);
+                                showModal();
+                            }}
                             className="btn btn-light callHistoryModalButton align-items-center d-inline-flex rounded-pill"
                         >
                             Call Logs
@@ -84,10 +112,6 @@ const NavigationBar = ({
                                 style={{ width: "25px", height: "25px" }}
                             ></lord-icon>
                         </Button>
-                        <CallHistory
-                            showCallHistory={showCallHistory}
-                            setShowCallHistory={setShowCallHistory}
-                        />
                         <Nav>
                             <Nav.Link href="#deets">
                                 <lord-icon
@@ -95,6 +119,11 @@ const NavigationBar = ({
                                     trigger="hover"
                                     colors="primary:#848484"
                                     style={{ width: "40px", height: "40px" }}
+                                    onClick={() => {
+                                        setCallLogs(false);
+                                        setNotification(true);
+                                        showModal();
+                                    }}
                                 ></lord-icon>
                             </Nav.Link>
 

@@ -73,7 +73,8 @@ export default function Cards({
                                     onClick={(e) => {
                                         makeConnections(
                                             counsellor.resourceId.toString(),
-                                            calls[counsellor.resourceId]
+                                            calls[counsellor.resourceId],
+                                            false
                                         );
                                     }}
                                 >
@@ -81,7 +82,13 @@ export default function Cards({
                                 </button>
                                 <button
                                     className="join"
-                                    onClick={makeConnections}
+                                    onClick={(e) => {
+                                        makeConnections(
+                                            counsellor.resourceId.toString(),
+                                            calls[counsellor.resourceId],
+                                            true
+                                        );
+                                    }}
                                 >
                                     Join
                                 </button>

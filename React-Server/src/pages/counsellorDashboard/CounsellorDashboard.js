@@ -479,9 +479,6 @@ function CounsellorDashboard() {
                     patientRole
                 )
             );
-            setTimeout(() => {
-                toggleMute();
-            }, 10000);
             setInGetConsentMode(true);
         };
     };
@@ -496,15 +493,15 @@ function CounsellorDashboard() {
     };
 
     const createWebsocketAndWebRTC = () => {
-        console.log("Hi caounsellor haha");
+        console.log("Creating a new WebSocket connection...", conn);
+        if (conn && conn.readyState <= 1) return;
         conn = initiateWebsocket(role, connections);
         connections.conn = conn;
+        conn.onclose = (msg) => {
+            setIsWebSocketConnected(false);
+            console.log("socket connection closed", msg.data);
+        };
         conn.onopen = () => {
-            setIsWebSocketConnected(true);
-            conn.onclose = (msg) => {
-                setIsWebSocketConnected(false);
-                console.log("socket connection closed", msg.data);
-            };
             function send(message) {
                 conn.send(JSON.stringify(message));
             }
@@ -521,10 +518,11 @@ function CounsellorDashboard() {
                 if (data.event === "reply") {
                     if (data.data === "addedToken") {
                         console.log("adding token Successfull");
+                        setIsWebSocketConnected(true);
                     }
                     if (data.data.startsWith("NewConnection")) {
                         console.log("Checking Patient ID......", data.data);
-                        var str = "NewConnection:3";
+                        var str = data.data;
                         var parts = str.split(":");
                         patID = parts[1];
                         coughAudio.play();
@@ -834,7 +832,7 @@ function CounsellorDashboard() {
                                                 <IoIosNotifications
                                                     style={{
                                                         fontSize: "35px",
-                                                        marginTop: "3px",
+                                                        marginTop: "9px",
                                                         marginRight: "8px",
                                                     }}
                                                 />
@@ -866,7 +864,7 @@ function CounsellorDashboard() {
                             </Modal.Header>
                             <Modal.Body>
                                 <Modal.Body>
-                                    {callHistory.map((call) => (
+                                    {callHistory?.map((call) => (
                                         <div key={call.callId}>
                                             Patient ID - {patientId} Duration -{" "}
                                             {getDuration(
@@ -880,14 +878,8 @@ function CounsellorDashboard() {
                                 </Modal.Body>
                             </Modal.Body>
                             <Modal.Footer>
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleClose}
-                                >
-                                    Close
-                                </Button>
                                 <Button variant="primary" onClick={handleClose}>
-                                    Save Changes
+                                    Okay
                                 </Button>
                             </Modal.Footer>
                         </Modal>
@@ -919,7 +911,9 @@ function CounsellorDashboard() {
                                 {/* Counsellor Name */}
                                 <div>
                                     <p
-                                        onClick={createWebsocketAndWebRTC}
+                                        onClick={() => {
+                                            createWebsocketAndWebRTC();
+                                        }}
                                         style={{
                                             fontSize: "14px",
                                             marginTop: "18px",

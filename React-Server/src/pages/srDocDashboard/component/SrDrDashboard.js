@@ -8,12 +8,14 @@ import Counsellor from "./Counsellor";
 import { jwtDecode } from "jwt-decode";
 import {
     getSocketJson,
+    handlePeerConnectionClose,
     initiateWebRTC,
     initiateWebsocket,
     send,
     userLoggedIn,
 } from "../../../utils/utils";
 import { useNavigate } from "react-router-dom";
+import { Button, Modal } from "react-bootstrap";
 
 // import {
 // 	getSocketJson,
@@ -37,11 +39,20 @@ const connections = {
 };
 const counsellorAudio = new Audio(),
     patientAudio = new Audio();
+
+var streamAudio = false;
+var setIntervalBlockAudioPatient = null;
+var setIntervalBlockAudioCounsellor = null;
+
 export default function SrDrDashboard() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role") || "ROLE_COUNSELLOR";
     const [search, setSearch] = useState("");
     const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
+    const [showListeningCall, setShowListeningCall] = useState(false);
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
+    const [showJoinCall, setShowJoinCall] = useState(false);
+
     const [filters, setFilters] = useState({
         specialization: [],
         language: [],
@@ -84,7 +95,28 @@ export default function SrDrDashboard() {
                 console.log("setted patientAudio");
             }, 3000);
             console.log("this the patientAudio obj", patientAudio);
+            console.log("this is the streamAudio", streamAudio);
+            !streamAudio &&
+                setTimeout(() => {
+                    console.log("setting the setInterval to block audio");
+                    setIntervalBlockAudioPatient = setInterval(() => {
+                        const peerConnectionTracks =
+                            patientPeerConnection.getSenders();
+                        peerConnectionTracks?.forEach((track) => {
+                            console.log("track", track);
+                            track.track.enabled = streamAudio;
+                        });
+
+                        // track.enabled = !isMuted; // Toggle the track's enabled state
+                    }, 10000);
+                }, 2000);
         };
+        handlePeerConnectionClose(
+            conn,
+            patientPeerConnection,
+            disconnectCall,
+            patientRole
+        );
     };
 
     const createCounsellorPeerConnection = async () => {
@@ -98,12 +130,34 @@ export default function SrDrDashboard() {
         counsellorPeerConnection.ontrack = (e) => {
             console.log("setting the remote stream", e);
             counsellorAudio.autoplay = true;
+
             setTimeout(() => {
                 counsellorAudio.srcObject = e.streams[0];
                 console.log("setted counsellorAudio");
             }, 3000);
             console.log("this the counsellorAudio obj", counsellorAudio);
+            !streamAudio &&
+                setTimeout(() => {
+                    console.log(
+                        "setting the setInterval to block audio for counsellor"
+                    );
+                    setIntervalBlockAudioCounsellor = setInterval(() => {
+                        const peerConnectionTracks =
+                            counsellorPeerConnection.getSenders();
+                        peerConnectionTracks?.forEach((track) => {
+                            console.log("track", track);
+                            track.track.enabled = streamAudio;
+                        });
+                    }, 10000);
+                }, 2000);
         };
+
+        handlePeerConnectionClose(
+            conn,
+            counsellorPeerConnection,
+            disconnectCall,
+            counsellorRole
+        );
     };
 
     const createWebsocketAndWebRTC = () => {
@@ -139,47 +193,166 @@ export default function SrDrDashboard() {
                         );
                         createPatientPeerConnection();
                     }
-                    if (data.data === "Connected") {
+                    if (data.data === "counsellorConnected") {
                         console.log(
                             "counsellorConnected... its time to create webRTC"
                         );
                         createCounsellorPeerConnection();
                     }
                 }
+                if (data.event === "decline") {
+                    disconnectCall();
+                    send(
+                        conn,
+                        getSocketJson(
+                            "",
+                            "decline",
+                            token,
+                            srDrRole,
+                            patientRole
+                        )
+                    );
+                    send(
+                        conn,
+                        getSocketJson(
+                            "",
+                            "decline",
+                            token,
+                            srDrRole,
+                            counsellorRole
+                        )
+                    );
+                }
             });
         };
     };
 
-    const makeConnections = async (counsellorId, patientId) => {
+    const makeConnections = async (
+        counsellorId,
+        patientId,
+        streamAudioSelected
+    ) => {
         console.log(
             "connecting to patient and counsellor",
             counsellorId,
-            patientId
+            patientId,
+            streamAudioSelected
         );
+        streamAudio = streamAudioSelected;
+        setShowListeningCall(true);
+        patientId = String(patientId);
+        counsellorId = String(counsellorId);
+        // send(
+        //     conn,
+        //     getSocketJson(patientId, "connectpatient", token, role, patientRole)
+        // );
 
         send(
             conn,
-            getSocketJson(patientId, "connectpatient", token, role, patientRole)
+            getSocketJson(
+                counsellorId,
+                "connectcounsellor",
+                token,
+                role,
+                counsellorRole
+            )
         );
-
-        // send(
-        //     conn,
-        //     getSocketJson(
-        //         counsellorId,
-        //         "connectcounsellor",
-        //         token,
-        //         role,
-        //         counsellorRole
-        //     )
-        // );
     };
     // const [sorts, setSorts] = useState({ arrangeBy, sortBy });
     const [sorts, setSorts] = useState({
         arrangeBy: "ascending",
         sortBy: "name",
     });
+
+    const disconnectPeerConnection = (peerConnection) => {
+        if (
+            peerConnection &&
+            (peerConnection.connectionState === "connected" ||
+                peerConnection.connectionState === "connecting")
+        ) {
+            console.log("peerConnection connected, Now disconnecting");
+            peerConnection.close();
+        }
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = undefined;
+        }
+    };
+
+    const disconnectCall = () => {
+        disconnectPeerConnection(counsellorPeerConnection);
+        counsellorPeerConnection = null;
+        clearTimeout(setIntervalBlockAudioPatient);
+
+        disconnectPeerConnection(patientPeerConnection);
+        patientPeerConnection = null;
+        clearTimeout(setIntervalBlockAudioCounsellor);
+
+        setShowListeningCall(false);
+        setShowIncomingCallModal(false);
+        setShowJoinCall(false);
+    };
     return (
         <div>
+            <Modal show={showListeningCall && !streamAudio} centered>
+                <Modal.Header>
+                    <Modal.Title>Listening Call</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="align-items-center d-inline-flex">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/aollngfh.json"
+                        trigger="loop"
+                        delay="2000"
+                        style={{ width: "250px", height: "250px" }}
+                    ></lord-icon>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        className="btn btn-danger"
+                        variant="primary"
+                        onClick={() => {
+                            send(
+                                conn,
+                                getSocketJson(
+                                    "",
+                                    "decline",
+                                    token,
+                                    counsellorRole
+                                )
+                            );
+                            send(
+                                conn,
+                                getSocketJson("", "decline", token, patientRole)
+                            );
+                            disconnectCall();
+                        }}
+                    >
+                        End
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            {/* <Modal show={showIncomingCallModal} centered>
+                <Modal.Header>
+                    <Modal.Title>Incoming Call</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Footer>
+                    <Button
+                        className="btn btn-success"
+                        variant="secondary"
+                        onClick={sendAccept}
+                    >
+                        Accept
+                    </Button>
+                    <Button
+                        className="btn btn-danger"
+                        variant="primary"
+                        onClick={sendDeclineAndDisconnect}
+                    >
+                        Decline
+                    </Button>
+                </Modal.Footer>
+            </Modal> */}
             <header className="srdocnavbar-header">
                 <SrDocNavBar
                     search={search}
